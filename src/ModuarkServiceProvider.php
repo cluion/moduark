@@ -10,8 +10,11 @@ use Cluion\Moduark\Console\ModuleListCommand;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
 use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
 use Cluion\Moduark\Lifecycle\ModuleOrderer;
+use Cluion\Moduark\Lifecycle\OrderedModules;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
 use Cluion\Moduark\Registry\ModuleRegistry;
+use Cluion\Moduark\Resources\ModuleResourceDiscoverer;
+use Cluion\Moduark\Resources\ModuleResourceServiceProvider;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
@@ -50,6 +53,14 @@ final class ModuarkServiceProvider extends ServiceProvider
         $this->app->singleton(ModuleMetadataCompiler::class);
         $this->app->singleton(ModuleOrderer::class);
         $this->app->singleton(ModuleLifecycleRegistrar::class);
+        $this->app->singleton(ModuleResourceDiscoverer::class);
+
+        $registry = $this->app->make(ModuleRegistry::class);
+        $ordered = $this->app->make(ModuleLifecycleRegistrar::class)
+            ->registerProviders($registry->moduleClasses());
+
+        $this->app->instance(OrderedModules::class, new OrderedModules($ordered));
+        $this->app->register(ModuleResourceServiceProvider::class);
     }
 
     public function boot(): void
