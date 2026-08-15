@@ -58,5 +58,6 @@ leave Capability Port bindings that imply composition completed successfully.
 - A shared Port interface cannot represent consumer-specific Adapter choices in
   the same container. Consumers that need different Adapters must own distinct
   Port types.
-- Level 2 remains incomplete until its structural analysis rules and graph
-  observability are implemented.
+- [ADR-0020](0020-capability-contracts-rule.md) subsequently implements the
+  metadata-only `capability_contracts` rule. Level 2 remains incomplete until
+  adapter boundary enforcement and graph observability are implemented.

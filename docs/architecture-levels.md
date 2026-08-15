@@ -15,8 +15,8 @@ preset plus explicit boolean overrides into an effective rule set, and
 | 3 | Isolated | Reserved, incomplete | Model, database, migration, transaction, and export boundaries |
 
 The package default is Level 1. Selecting Level 2 or Level 3 with their normal
-presets returns exit code 2 because additional enabled rules are unavailable.
-That is an incomplete analysis, not an architecture pass.
+presets returns exit code 2 because at least one additional enabled rule remains
+unavailable. That is an incomplete analysis, not an architecture pass.
 
 ## Preset Matrix
 
@@ -31,7 +31,7 @@ preset leaves the rule disabled.
 | `undeclared_dependencies` | — | E | E | E | Yes |
 | `cycles` | — | E | E | E | Yes |
 | `internal_api_access` | — | E | E | E | Yes |
-| `capability_contracts` | — | — | E | E | No |
+| `capability_contracts` | — | — | E | E | Yes |
 | `adapter_boundaries` | — | — | E | E | No |
 | `cross_module_model_access` | — | — | — | E | No |
 | `database_ownership` | — | — | — | E | No |
@@ -142,10 +142,22 @@ ordering and before registering any Module ServiceProvider. After every provider
 registers successfully, it binds each consumer Port to its declared Adapter in
 Laravel's container. A Port may belong to only one consumer requirement across
 the complete Module graph; collisions fail during preflight instead of relying
-on Laravel's last-binding-wins behavior. Capability graph edges and Level 2
-structural rules remain unavailable. The preset and rule IDs exist so
-configuration can evolve without renaming the model, but their analyzers are not
-part of the current implementation.
+on Laravel's last-binding-wins behavior.
+
+The metadata-only `capability_contracts` rule evaluates the complete descriptor
+set without parsing Module source:
+
+- `MOD-CAPABILITY-001`: a required Capability has no provider;
+- `MOD-CAPABILITY-002`: a required Capability has multiple providers;
+- `MOD-CAPABILITY-003`: multiple consumer Modules declare the same Port.
+
+Resolution is demand-driven, so multiple providers for an unused Capability do
+not violate the rule. Metadata compilation separately rejects invalid Capability
+identities, non-interface Ports, invalid Adapters, and duplicates inside one
+Module before architecture rules run.
+
+Capability graph output and the `adapter_boundaries` source rule remain
+unavailable. The Level 2 preset therefore remains incomplete.
 
 Running the normal preset demonstrates this explicitly:
 
@@ -153,8 +165,8 @@ Running the normal preset demonstrates this explicitly:
 php artisan module:check --level=2
 ```
 
-The command lists `capability_contracts` and `adapter_boundaries` as unavailable
-and exits 2.
+The command evaluates `capability_contracts`, lists only `adapter_boundaries` as
+unavailable, and exits 2.
 
 ## Level 3 — Isolated
 
@@ -196,9 +208,9 @@ repair. Blocking violations return exit 1. Warnings alone return exit 0.
 Command input, parse, duplicate-symbol, filesystem, and unavailable-rule failures
 handled by `module:check` return exit 2. Typed source-analysis failures use
 `MOD-ANALYSIS-001`, report their source location when known, and state that no
-passing result was produced. Configuration or discovery can fail during Laravel
-bootstrap before the command's renderer runs; those exceptions use Laravel's
-process-level handling.
+passing result was produced. Configuration, discovery, metadata, or runtime
+Capability resolution can fail during Laravel bootstrap before the command's
+renderer runs; those exceptions use Laravel's process-level handling.
 
 Use `--level` to evaluate a migration target without editing configuration:
 

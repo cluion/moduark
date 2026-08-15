@@ -51,7 +51,9 @@ and `ModuleLifecycleRegistrar::registerProviders()` return contract.
 
 - This slice made package boot enforce a resolvable Capability provider graph
   whenever Modules declare `requires()` metadata. ADR-0019 subsequently added
-  Port wiring; Level 2 structural rules remain unavailable.
+  Port wiring, and [ADR-0020](0020-capability-contracts-rule.md) subsequently
+  added the metadata-only contract rule. Adapter boundary enforcement remains
+  unavailable.
 - Direct dependency failures and cycles retain precedence because ordering is
   completed before Capability resolution; every failure remains side-effect
   free.

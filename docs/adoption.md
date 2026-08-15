@@ -190,13 +190,14 @@ not be presented as a fully passing Level 1 architecture.
 
 ## Do Not Adopt Level 2 or Level 3 Yet
 
-Level 2 and Level 3 presets intentionally expose future rule names, but their
-additional analyzers and runtime contracts are unavailable. Selecting them
-returns exit code 2. Disabling all unavailable rules does not provide their
-intended guarantees.
+Level 2 now has typed Capability metadata, runtime composition, and the
+`capability_contracts` rule, but its `adapter_boundaries` analyzer remains
+unavailable. Selecting the normal Level 2 preset therefore returns exit code 2.
+Disabling the remaining rule does not provide the intended Level 2 guarantee.
 
-Remain on Level 1 until capability contracts, adapters, database ownership, and
-explicit exports are implemented and documented.
+Remain on Level 1 until the complete Level 2 preset is implemented and
+documented. Level 3 additionally requires database ownership, persistence
+isolation, and explicit exports.
 
 ## Adoption Checklist
 

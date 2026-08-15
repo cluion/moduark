@@ -7,6 +7,7 @@ namespace Tests\Unit;
 use Cluion\Moduark\Analysis\ArchitectureChecker;
 use Cluion\Moduark\Analysis\Boundary\ConventionPublicApi;
 use Cluion\Moduark\Analysis\RuleRunner;
+use Cluion\Moduark\Analysis\Rules\CapabilityContractsRule;
 use Cluion\Moduark\Analysis\Rules\CyclesRule;
 use Cluion\Moduark\Analysis\Rules\InternalApiAccessRule;
 use Cluion\Moduark\Analysis\Rules\MissingDependenciesRule;
@@ -62,7 +63,9 @@ final class ArchitectureCheckerTest extends TestCase
             'path' => $this->temporaryPath,
             'architecture' => [
                 'level' => 1,
-                'rules' => [],
+                'rules' => [
+                    'capability_contracts' => true,
+                ],
             ],
         ], []);
         $checker = new ArchitectureChecker(
@@ -77,7 +80,7 @@ final class ArchitectureCheckerTest extends TestCase
         $report = $checker->check(Level::Organization);
 
         self::assertTrue($report->complete());
-        self::assertCount(2, $report->results());
+        self::assertCount(3, $report->results());
     }
 
     public function test_level_one_runs_source_analysis_and_reports_undeclared_dependencies(): void
@@ -127,6 +130,7 @@ final class ArchitectureCheckerTest extends TestCase
             new UndeclaredDependenciesRule,
             new CyclesRule,
             new InternalApiAccessRule(new ConventionPublicApi),
+            new CapabilityContractsRule,
         ]);
     }
 

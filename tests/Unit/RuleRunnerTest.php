@@ -9,6 +9,7 @@ use Cluion\Moduark\Analysis\ArchitectureRule;
 use Cluion\Moduark\Analysis\Boundary\ConventionPublicApi;
 use Cluion\Moduark\Analysis\CheckReport;
 use Cluion\Moduark\Analysis\RuleRunner;
+use Cluion\Moduark\Analysis\Rules\CapabilityContractsRule;
 use Cluion\Moduark\Analysis\Rules\CyclesRule;
 use Cluion\Moduark\Analysis\Rules\InternalApiAccessRule;
 use Cluion\Moduark\Analysis\Rules\MissingDependenciesRule;
@@ -108,6 +109,18 @@ final class RuleRunnerTest extends TestCase
         self::assertSame(ExitPolicy::SUCCESS, $report->exitCode(new ExitPolicy));
     }
 
+    public function test_level_two_only_reports_the_remaining_adapter_rule_as_unavailable(): void
+    {
+        $report = $this->runner()->run($this->validGraph(), $this->architecture(2));
+
+        self::assertFalse($report->complete());
+        self::assertCount(7, $report->results());
+        self::assertSame([
+            RuleId::AdapterBoundaries,
+        ], $report->unavailableRules());
+        self::assertSame(ExitPolicy::TOOL_ERROR, $report->exitCode(new ExitPolicy));
+    }
+
     public function test_level_zero_is_complete_with_discovery_validation_rules(): void
     {
         $report = $this->runner()->run($this->validGraph(), $this->architecture(0));
@@ -197,6 +210,7 @@ final class RuleRunnerTest extends TestCase
             new UndeclaredDependenciesRule,
             new CyclesRule,
             new InternalApiAccessRule(new ConventionPublicApi),
+            new CapabilityContractsRule,
         ]);
     }
 

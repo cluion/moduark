@@ -5,9 +5,10 @@ normal Laravel application while making their dependencies, lifecycle order,
 resources, and Level 1 boundaries executable and inspectable.
 
 > **Pre-release status:** the current implementation guarantees Level 0 and
-> Level 1 only. Level 2 and Level 3 names and presets exist for forward
-> compatibility, but their additional rules are not implemented and
-> `module:check` reports an incomplete analysis with exit code 2.
+> Level 1 only. Unreleased Level 2 work includes Capability metadata, runtime
+> composition, and the `capability_contracts` rule, but `adapter_boundaries`
+> remains unavailable. The normal Level 2 preset therefore still reports an
+> incomplete analysis with exit code 2.
 
 ## Requirements
 
@@ -199,9 +200,10 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 The graph command currently supports text and Mermaid only. `module:check` does
 not yet support JSON, suppressions, or per-Module filtering.
 
-Application bootstrap happens before Artisan invokes a command. A configuration
-or discovery exception raised during bootstrap may therefore be rendered by
-Laravel itself rather than by `module:check`'s exit-code renderer.
+Application bootstrap happens before Artisan invokes a command. A configuration,
+discovery, metadata, or runtime Capability-resolution exception raised during
+bootstrap may therefore be rendered by Laravel itself rather than by
+`module:check`'s exit-code renderer.
 
 ## Development
 

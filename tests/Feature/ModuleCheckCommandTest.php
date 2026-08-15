@@ -41,6 +41,18 @@ final class ModuleCheckCommandTest extends TestCase
             ->assertSuccessful();
     }
 
+    public function test_level_two_reports_only_the_remaining_adapter_rule_as_unavailable(): void
+    {
+        $this->command('module:check --level=2')
+            ->expectsOutputToContain(
+                'Architecture analysis is incomplete at Level 2 (Decoupled).',
+            )
+            ->expectsOutputToContain(
+                'Unavailable rule implementations: adapter_boundaries',
+            )
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
+    }
+
     #[DataProvider('invalidLevels')]
     public function test_invalid_level_is_a_tool_error(string $level): void
     {

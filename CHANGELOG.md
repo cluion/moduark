@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added runtime Capability composition after Module ServiceProvider registration,
   including deterministic rejection when multiple consumer Modules declare the
   same container Port. Level 2 rule enforcement remains incomplete.
+- Added the `capability_contracts` architecture rule with stable diagnostics for
+  missing providers, ambiguous providers, and cross-Module Port collisions.
+  `adapter_boundaries` remains the unavailable Level 2 rule.
 
 ## [0.1.0-beta.2] - 2026-08-15
 
