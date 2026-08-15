@@ -46,6 +46,7 @@
             "@prepare",
             "@php vendor/bin/phpunit --testsuite=Feature"
         ],
+        "test:installation": "@php tests/Installation/run.php",
         "benchmark": "@benchmark:architecture",
         "benchmark:architecture": "@php benchmarks/run.php",
         "analyse": "@php vendor/bin/phpstan analyse --ansi --memory-limit=1G",

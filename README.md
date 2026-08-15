@@ -213,6 +213,7 @@ Laravel itself rather than by `module:check`'s exit-code renderer.
 
 ```bash
 composer verify
+composer test:installation
 composer benchmark
 ```
 
@@ -221,6 +222,14 @@ baseline exercises 50 Modules / 5,000 PHP files and 100 Modules / 10,000 PHP
 files without checking generated fixtures into Git. See
 [ADR-0012](docs/adr/0012-beta-performance-and-analysis-errors.md) for the method
 and initial evidence.
+
+`composer test:installation` is the slower, networked acceptance matrix. It
+creates disposable Laravel 12 and 13 applications, installs this checkout
+through a Composer path repository, and exercises package discovery and the core
+commands without publishing configuration. It is intentionally separate from
+the default offline-friendly verification command. See
+[ADR-0013](docs/adr/0013-clean-laravel-installation-matrix.md) for the matrix
+contract and initial resolved versions.
 
 ## Documentation
 
