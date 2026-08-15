@@ -1,0 +1,9 @@
+/.gitattributes export-ignore
+/.github export-ignore
+/.gitignore export-ignore
+/benchmarks export-ignore
+/phpstan.neon.dist export-ignore
+/phpunit.xml.dist export-ignore
+/testbench.yaml export-ignore
+/tests export-ignore
+/workbench export-ignore

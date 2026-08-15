@@ -60,6 +60,7 @@
             "@php vendor/bin/phpunit --testsuite=Feature"
         ],
         "test:dependencies": "@php tests/Compatibility/run.php",
+        "test:distribution": "@php vendor/bin/phpunit tests/Distribution",
         "test:installation": "@php tests/Installation/run.php",
         "benchmark": "@benchmark:architecture",
         "benchmark:architecture": "@php benchmarks/run.php",

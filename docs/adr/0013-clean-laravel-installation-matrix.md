@@ -19,9 +19,14 @@ and run the Level 1 tools without publishing configuration.
   a Composer path repository. The repository explicitly maps the current
   checkout to `dev-main` so the same acceptance path works from branch and tag
   refs. It does not require a remote or published tag.
+- Passing `--package=VERSION` selects one exact stable or pre-release version
+  from Packagist, does not configure the path repository, prefers the dist
+  archive, and validates its required and excluded files before Artisan runs.
+  Ranges, branch names, and tag-prefixed versions are rejected so the release
+  gate cannot silently select another package build.
 - Composer home and cache directories live below the disposable matrix root so
   the test does not depend on writable user-level caches.
-- Each application must expose all four commands through package auto-discovery,
+- Each application must expose all five commands through package auto-discovery,
   while `config/modules.php` remains absent.
 - Acceptance generates exactly one `UserModule.php`, then verifies deterministic
   listing, the complete default six-rule Level 1 check, text graph output, and a
@@ -42,6 +47,9 @@ Command:
 
 ```bash
 composer test:installation
+
+# Post-publication verification against an exact Packagist dist:
+composer test:installation -- --package=0.2.0-beta.3
 ```
 
 Environment: PHP 8.5.9 on 2026-08-15. Both applications resolved from the
@@ -65,3 +73,6 @@ rules, and `module:graph` rendered the generated Module.
   Composer cache.
 - A passing local matrix complements, but does not replace, the PHP and
   lowest/highest CI combinations.
+- The Packagist mode is a post-publication gate: an untagged commit cannot prove
+  the contents of a dist archive that does not exist yet. See
+  [ADR-0027](0027-distribution-archive-contract.md).

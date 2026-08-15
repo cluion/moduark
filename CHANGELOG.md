@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Distribution archives now exclude repository automation, tests, benchmarks,
+  workbench files, and development-only analysis configuration.
+- Clean Laravel installation acceptance can install one exact Packagist version
+  and reject published archives that contain development-only files.
+
 ## [0.2.0-beta.2] - 2026-08-15
 
 This beta adds complete Level 2 architecture observability through Capability

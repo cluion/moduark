@@ -6,7 +6,7 @@ use Tests\Installation\CleanApplicationRunner;
 
 require dirname(__DIR__, 2).'/vendor/autoload.php';
 
-$options = getopt('', ['laravel:', 'keep', 'help']);
+$options = getopt('', ['laravel:', 'package:', 'keep', 'help']);
 
 if ($options === false) {
     fwrite(STDERR, "Unable to parse installation test options.\n");
@@ -18,6 +18,7 @@ if (array_key_exists('help', $options)) {
 Usage: php tests/Installation/run.php [options]
 
   --laravel=12,13    Laravel majors to test
+  --package=VERSION  Install one exact published Packagist version
   --keep             Preserve generated applications for inspection
 
 HELP;
@@ -25,11 +26,18 @@ HELP;
 }
 
 try {
-    $runner = new CleanApplicationRunner(dirname(__DIR__, 2), array_key_exists('keep', $options));
+    $packageVersion = CleanApplicationRunner::parsePackageVersion($options['package'] ?? false);
+    $runner = new CleanApplicationRunner(
+        dirname(__DIR__, 2),
+        array_key_exists('keep', $options),
+        $packageVersion,
+    );
     $majors = CleanApplicationRunner::parseMajors($options['laravel'] ?? false);
     $results = $runner->run($majors);
 
-    echo "\nClean installation matrix passed:\n";
+    echo $packageVersion === null
+        ? "\nClean current-checkout installation matrix passed:\n"
+        : "\nClean Packagist installation matrix passed for cluion/moduark:{$packageVersion}:\n";
 
     foreach ($results as $result) {
         echo "- Laravel {$result['major']}: {$result['version']}\n";

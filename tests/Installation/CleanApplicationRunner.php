@@ -9,13 +9,19 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
 use SplFileInfo;
+use Tests\Distribution\PackageArchiveContract;
 
 final class CleanApplicationRunner
 {
     private string $packagePath;
 
-    public function __construct(string $packagePath, private readonly bool $keep = false)
-    {
+    private ?string $packageVersion;
+
+    public function __construct(
+        string $packagePath,
+        private readonly bool $keep = false,
+        ?string $packageVersion = null,
+    ) {
         $resolved = realpath($packagePath);
 
         if ($resolved === false || ! is_file($resolved.'/composer.json')) {
@@ -23,6 +29,9 @@ final class CleanApplicationRunner
         }
 
         $this->packagePath = $resolved;
+        $this->packageVersion = $packageVersion === null
+            ? null
+            : self::parsePackageVersion($packageVersion);
     }
 
     /**
@@ -43,6 +52,27 @@ final class CleanApplicationRunner
         }
 
         return array_values($majors);
+    }
+
+    public static function parsePackageVersion(mixed $value): ?string
+    {
+        if ($value === false) {
+            return null;
+        }
+
+        if (
+            ! is_string($value)
+            || preg_match(
+                '/\A(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?\z/',
+                $value,
+            ) !== 1
+        ) {
+            throw new RuntimeException(
+                'The --package option must be an exact stable or pre-release version.',
+            );
+        }
+
+        return $value;
     }
 
     /**
@@ -75,6 +105,9 @@ final class CleanApplicationRunner
         $results = [];
 
         echo "Clean installation root: {$root}\n";
+        echo $this->packageVersion === null
+            ? "Package source: current checkout as cluion/moduark:dev-main\n"
+            : "Package source: Packagist cluion/moduark:{$this->packageVersion}\n";
 
         try {
             foreach ($majors as $major) {
@@ -115,27 +148,32 @@ final class CleanApplicationRunner
             'The clean Laravel application unexpectedly contains config/modules.php.',
         );
 
-        $repository = json_encode([
-            'type' => 'path',
-            'url' => $this->packagePath,
-            'options' => [
-                'versions' => [
-                    'cluion/moduark' => 'dev-main',
+        $packageConstraint = $this->packageVersion ?? 'dev-main';
+
+        if ($this->packageVersion === null) {
+            $repository = json_encode([
+                'type' => 'path',
+                'url' => $this->packagePath,
+                'options' => [
+                    'versions' => [
+                        'cluion/moduark' => 'dev-main',
+                    ],
                 ],
-            ],
-        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+            ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+
+            $this->command([
+                'composer',
+                'config',
+                '--json',
+                'repositories.moduark',
+                $repository,
+            ], $application, $environment);
+        }
 
         $this->command([
             'composer',
-            'config',
-            '--json',
-            'repositories.moduark',
-            $repository,
-        ], $application, $environment);
-        $this->command([
-            'composer',
             'require',
-            'cluion/moduark:dev-main',
+            'cluion/moduark:'.$packageConstraint,
             '--no-interaction',
             '--no-progress',
             '--prefer-dist',
@@ -144,6 +182,10 @@ final class CleanApplicationRunner
             $application.'/config/modules.php',
             'Installing Moduark must not publish config/modules.php.',
         );
+
+        if ($this->packageVersion !== null) {
+            $this->assertPublishedDistribution($application.'/vendor/cluion/moduark');
+        }
 
         $commands = $this->artisan($application, ['list', '--raw'], $environment);
 
@@ -356,6 +398,30 @@ final class CleanApplicationRunner
     {
         if (file_exists($path)) {
             throw new RuntimeException($message);
+        }
+    }
+
+    private function assertPublishedDistribution(string $packageRoot): void
+    {
+        foreach (PackageArchiveContract::REQUIRED_FILES as $required) {
+            $this->assertFileExists(
+                $packageRoot.'/'.$required,
+                "Published package is missing required file [{$required}].",
+            );
+        }
+
+        foreach (PackageArchiveContract::EXCLUDED_TREES as $excluded) {
+            $this->assertFileMissing(
+                $packageRoot.'/'.rtrim($excluded, '/'),
+                "Published package contains development tree [{$excluded}].",
+            );
+        }
+
+        foreach (PackageArchiveContract::EXCLUDED_FILES as $excluded) {
+            $this->assertFileMissing(
+                $packageRoot.'/'.$excluded,
+                "Published package contains development file [{$excluded}].",
+            );
         }
     }
 

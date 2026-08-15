@@ -237,6 +237,7 @@ bootstrap may therefore be rendered by Laravel itself rather than by
 ```bash
 composer verify
 composer test:dependencies
+composer test:distribution
 composer test:installation
 composer benchmark
 ```
@@ -253,6 +254,12 @@ eight Level 2 rules, runtime container composition, combined graph output, and
 `module:inspect` against one connected architecture. See
 [ADR-0026](docs/adr/0026-large-level-two-fixture.md).
 
+`composer test:distribution` builds the repository's Git archive and verifies
+that runtime source, configuration, stubs, license, and public documentation are
+present while `tests/`, `benchmarks/`, `workbench/`, repository automation, and
+development-only analysis files are absent. See
+[ADR-0027](docs/adr/0027-distribution-archive-contract.md).
+
 `composer test:dependencies` resolves the Laravel 12/13 lowest/highest matrix in
 disposable Composer projects. It simulates the supported PHP floors for
 dependency solving, leaves Composer's security blocking enabled, and reports
@@ -266,6 +273,14 @@ commands without publishing configuration. It is intentionally separate from
 the default offline-friendly verification command. See
 [ADR-0013](docs/adr/0013-clean-laravel-installation-matrix.md) for the matrix
 contract and initial resolved versions.
+
+After a version is published, pass an exact version to repeat the same Laravel
+acceptance against the Packagist dist instead of the local path repository. This
+mode also verifies the installed archive layout:
+
+```bash
+composer test:installation -- --package=0.2.0-beta.3
+```
 
 The GitHub Actions compatibility workflow runs PHPUnit on all four
 Laravel/PHP/dependency combinations and runs the matching clean installation on

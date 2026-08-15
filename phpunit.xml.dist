@@ -12,6 +12,9 @@
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
+        <testsuite name="Distribution">
+            <directory>tests/Distribution</directory>
+        </testsuite>
     </testsuites>
 
     <php>
