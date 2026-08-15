@@ -17,20 +17,14 @@ resources, and Level 1 boundaries executable and inspectable.
 
 ## Installation
 
-This repository does not have a published release tag or Composer distribution
-yet. For local development with this repository beside a Laravel application:
-
-```bash
-composer config repositories.moduark path ../Moduark
-composer require cluion/moduark:dev-main
-```
-
-After a `0.1` beta tag is published through a Composer repository, applications
-can use a beta constraint instead:
+Install the current beta from Packagist:
 
 ```bash
 composer require cluion/moduark:^0.1@beta
 ```
+
+The package is pre-release software. Pin an exact beta version when an
+application requires fully repeatable pre-release upgrades.
 
 Laravel package discovery registers `Cluion\Moduark\ModuarkServiceProvider`.
 Configuration publishing is optional because package defaults are merged even

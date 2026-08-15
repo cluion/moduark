@@ -2,8 +2,21 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "cluion/moduark",
     "description": "Laravel-native modular architecture toolkit.",
+    "keywords": [
+        "architecture",
+        "laravel",
+        "modular-monolith",
+        "modules",
+        "static-analysis"
+    ],
+    "homepage": "https://github.com/cluion/moduark",
     "type": "library",
     "license": "MIT",
+    "authors": [
+        {
+            "name": "Cluion"
+        }
+    ],
     "require": {
         "php": "^8.2",
         "composer-runtime-api": "^2.1",
