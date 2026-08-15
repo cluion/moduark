@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use Cluion\Moduark\Analysis\ArchitectureCheck;
+use Cluion\Moduark\Analysis\ArchitectureChecker;
+use Cluion\Moduark\Analysis\RuleRunner;
 use Cluion\Moduark\Architecture\EffectiveArchitecture;
 use Cluion\Moduark\Architecture\Level;
 use Cluion\Moduark\Architecture\RulePresets;
@@ -31,6 +34,9 @@ final class PackageBaselineTest extends TestCase
         self::assertTrue($application->bound(RulePresets::class));
         self::assertTrue($application->bound(RuleResolver::class));
         self::assertTrue($application->bound(EffectiveArchitecture::class));
+        self::assertTrue($application->bound(RuleRunner::class));
+        self::assertTrue($application->bound(ArchitectureCheck::class));
+        self::assertTrue($application->bound(ArchitectureChecker::class));
         self::assertTrue($application->bound(ModuleDiscoverer::class));
         self::assertTrue($application->bound(ModuleRegistry::class));
         self::assertTrue($application->bound(ModuleMetadataCompiler::class));

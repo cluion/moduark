@@ -4,11 +4,20 @@ declare(strict_types=1);
 
 namespace Cluion\Moduark;
 
+use Cluion\Moduark\Analysis\ArchitectureCheck;
+use Cluion\Moduark\Analysis\ArchitectureChecker;
+use Cluion\Moduark\Analysis\RuleRunner;
+use Cluion\Moduark\Analysis\Rules\CyclesRule;
+use Cluion\Moduark\Analysis\Rules\MissingDependenciesRule;
+use Cluion\Moduark\Analysis\Rules\UniqueModuleIdentityRule;
+use Cluion\Moduark\Analysis\Rules\ValidModuleStructureRule;
 use Cluion\Moduark\Architecture\EffectiveArchitecture;
+use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Architecture\RulePresets;
 use Cluion\Moduark\Architecture\RuleResolver;
 use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Console\MakeModuleCommand;
+use Cluion\Moduark\Console\ModuleCheckCommand;
 use Cluion\Moduark\Console\ModuleListCommand;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
 use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
@@ -63,6 +72,21 @@ final class ModuarkServiceProvider extends ServiceProvider
         $this->app->singleton(ModuleOrderer::class);
         $this->app->singleton(ModuleLifecycleRegistrar::class);
         $this->app->singleton(ModuleResourceDiscoverer::class);
+        $this->app->singleton(ExitPolicy::class);
+        $this->app->singleton(
+            RuleRunner::class,
+            static fn (): RuleRunner => new RuleRunner([
+                new ValidModuleStructureRule,
+                new UniqueModuleIdentityRule,
+                new MissingDependenciesRule,
+                new CyclesRule,
+            ]),
+        );
+        $this->app->singleton(ArchitectureChecker::class);
+        $this->app->singleton(
+            ArchitectureCheck::class,
+            fn (): ArchitectureCheck => $this->app->make(ArchitectureChecker::class),
+        );
 
         $registry = $this->app->make(ModuleRegistry::class);
         $ordered = $this->app->make(ModuleLifecycleRegistrar::class)
@@ -80,6 +104,7 @@ final class ModuarkServiceProvider extends ServiceProvider
 
         $this->commands([
             MakeModuleCommand::class,
+            ModuleCheckCommand::class,
             ModuleListCommand::class,
         ]);
 
