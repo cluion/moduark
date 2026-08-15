@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Fixtures\LevelTwo\Support;
+namespace Cluion\Moduark;
 
 interface Capability
 {

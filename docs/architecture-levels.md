@@ -93,9 +93,43 @@ and `instanceof`. It does not infer PHPDoc, dynamic strings, or an unused import
 ## Level 2 — Decoupled
 
 Level 2 is reserved for consumer-owned Ports, adapter boundaries, and typed
-capability requirements/providers. The preset and rule IDs exist so configuration
-can evolve without renaming the model, but their analyzers and runtime contracts
-are not part of the current beta.
+capability requirements/providers. The unreleased `0.2` work includes the first
+metadata contract: an application can define a typed Capability identity and
+declare what a Module requires or provides.
+
+```php
+use Cluion\Moduark\Capability;
+use Cluion\Moduark\CapabilityRequirement;
+use Cluion\Moduark\Module;
+
+interface UserLookup extends Capability
+{
+}
+
+final class OrderModule extends Module
+{
+    public function requires(): array
+    {
+        return [
+            new CapabilityRequirement(
+                UserLookup::class,
+                FindUser::class,
+                UserModuleAdapter::class,
+            ),
+        ];
+    }
+}
+```
+
+`FindUser` is the consumer-owned Port interface and `UserModuleAdapter` is an
+instantiable Adapter implementing it. A provider declares the same Capability
+identity from `provides()`. Metadata compilation validates these declarations
+and serializes them using cache-safe class strings and arrays.
+
+This metadata does not yet resolve providers, bind Ports in Laravel's container,
+emit Capability graph edges, or enforce Level 2 rules. The preset and rule IDs
+exist so configuration can evolve without renaming the model, but their
+analyzers and runtime composition are not part of the current implementation.
 
 Running the normal preset demonstrates this explicitly:
 

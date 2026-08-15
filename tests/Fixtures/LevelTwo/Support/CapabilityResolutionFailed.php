@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\LevelTwo\Support;
 
+use Cluion\Moduark\Capability;
 use Cluion\Moduark\Module;
 use RuntimeException;
 

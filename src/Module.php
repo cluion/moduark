@@ -27,4 +27,20 @@ abstract class Module
     {
         return [];
     }
+
+    /**
+     * @return list<CapabilityRequirement>
+     */
+    public function requires(): array
+    {
+        return [];
+    }
+
+    /**
+     * @return list<class-string<Capability>>
+     */
+    public function provides(): array
+    {
+        return [];
+    }
 }

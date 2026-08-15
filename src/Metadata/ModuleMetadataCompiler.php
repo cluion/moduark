@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Cluion\Moduark\Metadata;
 
+use Cluion\Moduark\Capability;
+use Cluion\Moduark\CapabilityRequirement;
 use Cluion\Moduark\Exceptions\InvalidModuleMetadata;
 use Cluion\Moduark\Module;
 use Illuminate\Support\ServiceProvider;
+use ReflectionClass;
 
 final class ModuleMetadataCompiler
 {
@@ -22,6 +25,8 @@ final class ModuleMetadataCompiler
             $moduleClass,
             $this->moduleClasses($moduleClass, 'dependencies', $module->dependencies()),
             $this->providerClasses($moduleClass, $module->providers()),
+            $this->requirements($moduleClass, $module->requires()),
+            $this->capabilityClasses($moduleClass, 'provides', $module->provides()),
         );
     }
 
@@ -100,5 +105,126 @@ final class ModuleMetadataCompiler
         }
 
         return array_values($classes);
+    }
+
+    /**
+     * @param array<mixed> $values
+     * @return list<CapabilityRequirement>
+     */
+    private function requirements(string $moduleClass, array $values): array
+    {
+        $requirements = [];
+        $capabilities = [];
+        $ports = [];
+
+        foreach ($values as $value) {
+            if (! $value instanceof CapabilityRequirement) {
+                throw InvalidModuleMetadata::invalidCapabilityRequirement($moduleClass, $value);
+            }
+
+            $capability = $this->capabilityClass(
+                $moduleClass,
+                'requires',
+                $value->capability(),
+            );
+            $port = $this->portClass($moduleClass, $value->port());
+            $adapter = $this->adapterClass($moduleClass, $value->adapter(), $port);
+
+            if (isset($capabilities[$capability])) {
+                throw InvalidModuleMetadata::duplicateReference(
+                    $moduleClass,
+                    'requires',
+                    $capability,
+                );
+            }
+
+            if (isset($ports[$port])) {
+                throw InvalidModuleMetadata::duplicateCapabilityPort($moduleClass, $port);
+            }
+
+            $capabilities[$capability] = true;
+            $ports[$port] = true;
+            $requirements[] = new CapabilityRequirement($capability, $port, $adapter);
+        }
+
+        return $requirements;
+    }
+
+    /**
+     * @param array<mixed> $values
+     * @return list<class-string<Capability>>
+     */
+    private function capabilityClasses(string $moduleClass, string $method, array $values): array
+    {
+        $classes = [];
+
+        foreach ($values as $value) {
+            if (! is_string($value)) {
+                throw InvalidModuleMetadata::invalidClassReference(
+                    $moduleClass,
+                    $method,
+                    $value,
+                    'class-string<'.Capability::class.'>',
+                );
+            }
+
+            $capability = $this->capabilityClass($moduleClass, $method, $value);
+
+            if (isset($classes[$capability])) {
+                throw InvalidModuleMetadata::duplicateReference($moduleClass, $method, $capability);
+            }
+
+            $classes[$capability] = $capability;
+        }
+
+        return array_values($classes);
+    }
+
+    /**
+     * @return class-string<Capability>
+     */
+    private function capabilityClass(string $moduleClass, string $method, string $value): string
+    {
+        if ($value === Capability::class || ! is_a($value, Capability::class, true)) {
+            throw InvalidModuleMetadata::invalidClassReference(
+                $moduleClass,
+                $method,
+                $value,
+                'class-string extending '.Capability::class,
+            );
+        }
+
+        return $value;
+    }
+
+    /**
+     * @return class-string
+     */
+    private function portClass(string $moduleClass, string $value): string
+    {
+        if (! interface_exists($value)) {
+            throw InvalidModuleMetadata::invalidCapabilityPort($moduleClass, $value);
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param class-string $port
+     * @return class-string
+     */
+    private function adapterClass(string $moduleClass, string $value, string $port): string
+    {
+        if (! class_exists($value) || ! is_a($value, $port, true)) {
+            throw InvalidModuleMetadata::invalidCapabilityAdapter($moduleClass, $value, $port);
+        }
+
+        $adapter = new ReflectionClass($value);
+
+        if (! $adapter->isInstantiable()) {
+            throw InvalidModuleMetadata::invalidCapabilityAdapter($moduleClass, $value, $port);
+        }
+
+        return $value;
     }
 }

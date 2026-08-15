@@ -248,9 +248,11 @@ contract.
 
 ## Current Scope
 
-The `0.1` beta target is foundation plus Level 1. Capability contracts,
-consumer-owned Ports and adapters, database or migration ownership, raw SQL
-analysis, explicit exports, JSON diagnostics, and IDE integration are later
-work. Their names in configuration are not claims of enforcement.
+The released `0.1` beta guarantees foundation plus Level 1. Unreleased `0.2`
+work now includes typed Capability metadata, but provider resolution,
+consumer-owned Port wiring, adapter enforcement, database or migration
+ownership, raw SQL analysis, explicit exports, JSON diagnostics, and IDE
+integration remain later work. Their names in configuration are not claims of
+enforcement.
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

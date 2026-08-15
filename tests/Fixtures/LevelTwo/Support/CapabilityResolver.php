@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\LevelTwo\Support;
 
+use Cluion\Moduark\Capability;
+use Cluion\Moduark\CapabilityRequirement;
 use Cluion\Moduark\Module;
 use Illuminate\Foundation\Application;
-use InvalidArgumentException;
 
 final class CapabilityResolver
 {
@@ -25,12 +26,6 @@ final class CapabilityResolver
 
         foreach ($moduleClasses as $moduleClass) {
             $module = new $moduleClass;
-
-            if (! $module instanceof CapabilityMetadata) {
-                throw new InvalidArgumentException(
-                    "Capability owner [{$moduleClass}] must implement ".CapabilityMetadata::class.'.',
-                );
-            }
 
             foreach ($module->provides() as $capability) {
                 $providers[$capability][] = $moduleClass;

@@ -7,14 +7,16 @@ namespace Tests\Architecture;
 use Cluion\Moduark\Analysis\Source\SourceIndex;
 use Cluion\Moduark\Analysis\Source\SourceIndexBuilder;
 use Cluion\Moduark\Analysis\Source\SourceReference;
+use Cluion\Moduark\Capability;
+use Cluion\Moduark\CapabilityRequirement;
 use Cluion\Moduark\Discovery\DiscoveredModule;
+use Cluion\Moduark\Exceptions\InvalidModuleMetadata;
 use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
 use Cluion\Moduark\Lifecycle\ModuleOrderer;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
 use Cluion\Moduark\Module;
 use Cluion\Moduark\Registry\ModuleRegistry;
 use Illuminate\Foundation\Application;
-use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Tests\Fixtures\LevelTwo\Capabilities\UserLookup as UserLookupCapability;
 use Tests\Fixtures\LevelTwo\Modules\Checkout\Actions\StartCheckout;
@@ -26,9 +28,6 @@ use Tests\Fixtures\LevelTwo\Modules\Order\Adapters\User\UserLookupAdapter as Ord
 use Tests\Fixtures\LevelTwo\Modules\Order\OrderModule;
 use Tests\Fixtures\LevelTwo\Modules\Order\Ports\UserLookup as OrderUserLookup;
 use Tests\Fixtures\LevelTwo\Modules\User\UserModule;
-use Tests\Fixtures\LevelTwo\Support\Capability;
-use Tests\Fixtures\LevelTwo\Support\CapabilityMetadata;
-use Tests\Fixtures\LevelTwo\Support\CapabilityRequirement;
 use Tests\Fixtures\LevelTwo\Support\CapabilityResolutionFailed;
 use Tests\Fixtures\LevelTwo\Support\CapabilityResolver;
 
@@ -133,17 +132,14 @@ final class LevelTwoCapabilitySpikeTest extends TestCase
 
     public function test_adapter_must_implement_the_consumer_owned_port(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(InvalidModuleMetadata::class);
         $this->expectExceptionMessage(
-            'Capability Adapter ['.PlaceOrder::class.'] must implement consumer Port ['
+            'Capability Adapter ['.PlaceOrder::class
+            .'] must be an instantiable class implementing consumer Port ['
             .OrderUserLookup::class.'].',
         );
 
-        new CapabilityRequirement(
-            UserLookupCapability::class,
-            OrderUserLookup::class,
-            PlaceOrder::class,
-        );
+        (new ModuleMetadataCompiler)->compile(InvalidAdapterCapabilityModule::class);
     }
 
     public function test_resolved_metadata_has_a_scalar_config_cache_payload(): void
@@ -272,7 +268,7 @@ final class LevelTwoCapabilitySpikeTest extends TestCase
     }
 }
 
-final class AlternativeUserCapabilityModule extends Module implements CapabilityMetadata
+final class AlternativeUserCapabilityModule extends Module
 {
     /** @return list<class-string<Capability>> */
     public function provides(): array
@@ -284,5 +280,18 @@ final class AlternativeUserCapabilityModule extends Module implements Capability
     public function requires(): array
     {
         return [];
+    }
+}
+
+final class InvalidAdapterCapabilityModule extends Module
+{
+    /** @return list<CapabilityRequirement> */
+    public function requires(): array
+    {
+        return [new CapabilityRequirement(
+            UserLookupCapability::class,
+            OrderUserLookup::class,
+            PlaceOrder::class,
+        )];
     }
 }

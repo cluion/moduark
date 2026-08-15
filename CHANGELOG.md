@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added typed Capability identities and validated `requires()` / `provides()`
+  Module metadata as the first Level 2 contract slice. Provider resolution,
+  container wiring, and Level 2 rule enforcement remain incomplete.
+
 ## [0.1.0-beta.2] - 2026-08-15
 
 ### Changed

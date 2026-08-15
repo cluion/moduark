@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\LevelTwo\Support;
 
+use Cluion\Moduark\Capability;
+use Cluion\Moduark\Module;
+
 final readonly class CapabilityPlan
 {
     /**
@@ -24,8 +27,8 @@ final readonly class CapabilityPlan
     /**
      * @return list<array{
      *     capability: class-string<Capability>,
-     *     provider: class-string<\Cluion\Moduark\Module>,
-     *     consumer: class-string<\Cluion\Moduark\Module>,
+     *     provider: class-string<Module>,
+     *     consumer: class-string<Module>,
      *     port: class-string,
      *     adapter: class-string
      * }>

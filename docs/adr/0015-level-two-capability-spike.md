@@ -45,9 +45,10 @@ refactoring and are too easy to duplicate silently.
   providers remain an ambiguity until a deterministic, config-cache-safe
   selection policy is accepted separately.
 
-The classes under `Tests\Fixtures\LevelTwo` are executable design evidence, not
-published package API. Exact production class and method names remain subject to
-the next implementation slice.
+Provider resolution and composition classes under `Tests\Fixtures\LevelTwo`
+remain executable design evidence rather than published package API. The
+Capability metadata portion was promoted to package API by
+[ADR-0016](0016-capability-metadata-contract.md).
 
 ## Candidate evaluation
 
@@ -74,8 +75,8 @@ the next implementation slice.
 
 ## Consequences
 
-- The next production slice can add Capability metadata without changing the
-  accepted Level 1 Public API convention.
+- Capability metadata can be added without changing the accepted Level 1 Public
+  API convention.
 - Capability compilation must happen before provider registration or any
   composition binding so graph failures remain side-effect free.
 - The production resolver needs stable diagnostics and evidence for
