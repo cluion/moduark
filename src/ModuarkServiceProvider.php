@@ -18,8 +18,12 @@ use Cluion\Moduark\Architecture\RuleResolver;
 use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Console\MakeModuleCommand;
 use Cluion\Moduark\Console\ModuleCheckCommand;
+use Cluion\Moduark\Console\ModuleGraphCommand;
 use Cluion\Moduark\Console\ModuleListCommand;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
+use Cluion\Moduark\Graph\Export\MermaidModuleGraphExporter;
+use Cluion\Moduark\Graph\Export\TextModuleGraphExporter;
+use Cluion\Moduark\Graph\ModuleGraphBuilder;
 use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
 use Cluion\Moduark\Lifecycle\ModuleOrderer;
 use Cluion\Moduark\Lifecycle\OrderedModules;
@@ -69,6 +73,9 @@ final class ModuarkServiceProvider extends ServiceProvider
                 ->discover($this->app->make(ModulesConfig::class)->path()),
         );
         $this->app->singleton(ModuleMetadataCompiler::class);
+        $this->app->singleton(ModuleGraphBuilder::class);
+        $this->app->singleton(TextModuleGraphExporter::class);
+        $this->app->singleton(MermaidModuleGraphExporter::class);
         $this->app->singleton(ModuleOrderer::class);
         $this->app->singleton(ModuleLifecycleRegistrar::class);
         $this->app->singleton(ModuleResourceDiscoverer::class);
@@ -105,6 +112,7 @@ final class ModuarkServiceProvider extends ServiceProvider
         $this->commands([
             MakeModuleCommand::class,
             ModuleCheckCommand::class,
+            ModuleGraphCommand::class,
             ModuleListCommand::class,
         ]);
 
