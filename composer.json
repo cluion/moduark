@@ -11,6 +11,7 @@
     },
     "require-dev": {
         "orchestra/testbench": "^10.0 || ^11.0",
+        "phpstan/phpstan": "^2.2",
         "phpunit/phpunit": "^11.5 || ^12.5 || ^13.0"
     },
     "autoload": {
@@ -40,6 +41,11 @@
         "test:feature": [
             "@prepare",
             "@php vendor/bin/phpunit --testsuite=Feature"
+        ],
+        "analyse": "@php vendor/bin/phpstan analyse --ansi --memory-limit=1G",
+        "verify": [
+            "@test",
+            "@analyse"
         ]
     },
     "extra": {

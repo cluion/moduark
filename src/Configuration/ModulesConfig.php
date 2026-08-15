@@ -20,12 +20,12 @@ final readonly class ModulesConfig
      * its nested architecture defaults explicitly so partial rule overrides do
      * not remove the selected level or other defaults.
      *
-     * @param array<string, mixed> $defaults
-     * @param array<string, mixed> $configured
+     * @param array<mixed> $defaults
+     * @param array<mixed> $configured
      */
     public static function from(array $defaults, array $configured): self
     {
-        $values = array_replace_recursive($defaults, $configured);
+        $values = self::normalizeTopLevelKeys(array_replace_recursive($defaults, $configured));
 
         self::validate($values);
 
@@ -88,5 +88,24 @@ final readonly class ModulesConfig
         if (! isset($architecture['rules']) || ! is_array($architecture['rules'])) {
             throw new InvalidArgumentException('The modules.architecture.rules configuration must be an array.');
         }
+    }
+
+    /**
+     * @param array<mixed> $values
+     * @return array<string, mixed>
+     */
+    private static function normalizeTopLevelKeys(array $values): array
+    {
+        $normalized = [];
+
+        foreach ($values as $key => $value) {
+            if (! is_string($key)) {
+                throw new InvalidArgumentException('The modules configuration must use string keys.');
+            }
+
+            $normalized[$key] = $value;
+        }
+
+        return $normalized;
     }
 }

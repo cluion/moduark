@@ -1,6 +1,7 @@
 /vendor/
 /composer.lock
 /.internal/
+/.phpstan/
 /.phpunit.cache/
 /.phpunit.result.cache
 /workbench/bootstrap/cache/*.php

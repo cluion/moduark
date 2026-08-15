@@ -1,0 +1,303 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit;
+
+use Cluion\Moduark\Exceptions\CircularModuleDependency;
+use Cluion\Moduark\Exceptions\InvalidModuleMetadata;
+use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
+use Cluion\Moduark\Lifecycle\ModuleOrderer;
+use Cluion\Moduark\Metadata\ModuleDescriptor;
+use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
+use Cluion\Moduark\Module;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\ServiceProvider;
+use PHPUnit\Framework\TestCase;
+
+final class ModuleLifecycleRegistrarTest extends TestCase
+{
+    private Application $application;
+
+    private LifecycleProbe $probe;
+
+    private ModuleLifecycleRegistrar $registrar;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->application = new Application;
+        $this->probe = new LifecycleProbe;
+        $this->application->instance(LifecycleProbe::class, $this->probe);
+        $this->registrar = new ModuleLifecycleRegistrar(
+            $this->application,
+            new ModuleMetadataCompiler,
+            new ModuleOrderer,
+        );
+    }
+
+    public function test_dependencies_register_and_boot_before_consumers(): void
+    {
+        $ordered = $this->registrar->registerProviders([
+            LifecyclePaymentModule::class,
+            LifecycleUserModule::class,
+            LifecycleOrderModule::class,
+        ]);
+
+        self::assertSame([
+            LifecycleUserModule::class,
+            LifecycleOrderModule::class,
+            LifecyclePaymentModule::class,
+        ], array_map(
+            static fn (ModuleDescriptor $descriptor): string => $descriptor->moduleClass(),
+            $ordered,
+        ));
+
+        self::assertSame([
+            'user.register',
+            'order.register',
+            'payment.register',
+        ], $this->probe->events());
+
+        $this->application->boot();
+
+        self::assertSame([
+            'user.register',
+            'order.register',
+            'payment.register',
+            'user.boot',
+            'order.boot',
+            'payment.boot',
+        ], $this->probe->events());
+    }
+
+    public function test_cycle_is_rejected_before_any_lifecycle_side_effect(): void
+    {
+        try {
+            $this->registrar->registerProviders([
+                LifecycleCycleAlphaModule::class,
+                LifecycleCycleBetaModule::class,
+                LifecycleCycleGammaModule::class,
+            ]);
+
+            self::fail('Expected a circular module dependency exception.');
+        } catch (CircularModuleDependency $exception) {
+            self::assertSame([
+                LifecycleCycleAlphaModule::class,
+                LifecycleCycleBetaModule::class,
+                LifecycleCycleGammaModule::class,
+                LifecycleCycleAlphaModule::class,
+            ], $exception->cycle());
+        }
+
+        self::assertSame([], $this->probe->events());
+    }
+
+    public function test_missing_dependency_is_rejected_before_any_lifecycle_side_effect(): void
+    {
+        $this->expectException(InvalidModuleMetadata::class);
+        $this->expectExceptionMessage(sprintf(
+            'Module [%s] depends on missing module [%s].',
+            LifecycleOrderModule::class,
+            LifecycleUserModule::class,
+        ));
+
+        try {
+            $this->registrar->registerProviders([LifecycleOrderModule::class]);
+        } finally {
+            self::assertSame([], $this->probe->events());
+        }
+    }
+
+    public function test_descriptor_cache_payload_round_trips_without_objects(): void
+    {
+        $descriptor = (new ModuleMetadataCompiler)->compile(LifecycleOrderModule::class);
+        $payload = $descriptor->toArray();
+
+        $cached = unserialize(serialize($payload), ['allowed_classes' => false]);
+
+        self::assertSame($payload, $cached);
+
+        $restored = ModuleDescriptor::fromArray($payload);
+
+        self::assertSame($payload, $restored->toArray());
+
+        array_walk_recursive($payload, static function (mixed $value): void {
+            self::assertTrue(is_scalar($value) || $value === null);
+        });
+    }
+}
+
+final class LifecycleProbe
+{
+    /**
+     * @var list<string>
+     */
+    private array $events = [];
+
+    public function record(string $event): void
+    {
+        $this->events[] = $event;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function events(): array
+    {
+        return $this->events;
+    }
+}
+
+abstract class RecordingServiceProvider extends ServiceProvider
+{
+    abstract protected function moduleName(): string;
+
+    public function register(): void
+    {
+        $this->probe()->record($this->moduleName().'.register');
+    }
+
+    public function boot(): void
+    {
+        $this->probe()->record($this->moduleName().'.boot');
+    }
+
+    private function probe(): LifecycleProbe
+    {
+        $probe = $this->app->make(LifecycleProbe::class);
+
+        return $probe;
+    }
+}
+
+final class LifecycleUserServiceProvider extends RecordingServiceProvider
+{
+    protected function moduleName(): string
+    {
+        return 'user';
+    }
+}
+
+final class LifecycleOrderServiceProvider extends RecordingServiceProvider
+{
+    protected function moduleName(): string
+    {
+        return 'order';
+    }
+}
+
+final class LifecyclePaymentServiceProvider extends RecordingServiceProvider
+{
+    protected function moduleName(): string
+    {
+        return 'payment';
+    }
+}
+
+final class LifecycleUserModule extends Module
+{
+    /**
+     * @return list<class-string<ServiceProvider>>
+     */
+    public function providers(): array
+    {
+        return [LifecycleUserServiceProvider::class];
+    }
+}
+
+final class LifecycleOrderModule extends Module
+{
+    /**
+     * @return list<class-string<Module>>
+     */
+    public function dependencies(): array
+    {
+        return [LifecycleUserModule::class];
+    }
+
+    /**
+     * @return list<class-string<ServiceProvider>>
+     */
+    public function providers(): array
+    {
+        return [LifecycleOrderServiceProvider::class];
+    }
+}
+
+final class LifecyclePaymentModule extends Module
+{
+    /**
+     * @return list<class-string<Module>>
+     */
+    public function dependencies(): array
+    {
+        return [LifecycleOrderModule::class];
+    }
+
+    /**
+     * @return list<class-string<ServiceProvider>>
+     */
+    public function providers(): array
+    {
+        return [LifecyclePaymentServiceProvider::class];
+    }
+}
+
+final class LifecycleCycleAlphaModule extends Module
+{
+    /**
+     * @return list<class-string<Module>>
+     */
+    public function dependencies(): array
+    {
+        return [LifecycleCycleBetaModule::class];
+    }
+
+    /**
+     * @return list<class-string<ServiceProvider>>
+     */
+    public function providers(): array
+    {
+        return [LifecycleUserServiceProvider::class];
+    }
+}
+
+final class LifecycleCycleBetaModule extends Module
+{
+    /**
+     * @return list<class-string<Module>>
+     */
+    public function dependencies(): array
+    {
+        return [LifecycleCycleGammaModule::class];
+    }
+
+    /**
+     * @return list<class-string<ServiceProvider>>
+     */
+    public function providers(): array
+    {
+        return [LifecycleOrderServiceProvider::class];
+    }
+}
+
+final class LifecycleCycleGammaModule extends Module
+{
+    /**
+     * @return list<class-string<Module>>
+     */
+    public function dependencies(): array
+    {
+        return [LifecycleCycleAlphaModule::class];
+    }
+
+    /**
+     * @return list<class-string<ServiceProvider>>
+     */
+    public function providers(): array
+    {
+        return [LifecyclePaymentServiceProvider::class];
+    }
+}

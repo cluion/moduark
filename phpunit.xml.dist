@@ -3,6 +3,9 @@
          colors="true"
          cacheDirectory=".phpunit.cache">
     <testsuites>
+        <testsuite name="Architecture">
+            <directory>tests/Architecture</directory>
+        </testsuite>
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>

@@ -63,5 +63,5 @@ jobs:
       - name: Validate Composer metadata
         run: composer validate --strict
 
-      - name: Run tests
-        run: composer test
+      - name: Run verification
+        run: composer verify
