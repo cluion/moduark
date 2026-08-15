@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added deterministic `module:check --format=json` output with a versioned
+  report schema, stable status and exit-code mapping, complete violation
+  context, unavailable-rule evidence, and machine-readable tool errors.
+
 ## [0.2.0-beta.3] - 2026-08-15
 
 This beta makes the published Composer distribution smaller and adds an exact

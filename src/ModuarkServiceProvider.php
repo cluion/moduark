@@ -8,6 +8,7 @@ use Cluion\Moduark\Analysis\ArchitectureCheck;
 use Cluion\Moduark\Analysis\ArchitectureChecker;
 use Cluion\Moduark\Analysis\Boundary\ConventionPublicApi;
 use Cluion\Moduark\Analysis\Boundary\PublicApi;
+use Cluion\Moduark\Analysis\Export\JsonCheckReportExporter;
 use Cluion\Moduark\Analysis\RuleRunner;
 use Cluion\Moduark\Analysis\Rules\AdapterBoundariesRule;
 use Cluion\Moduark\Analysis\Rules\CapabilityContractsRule;
@@ -91,6 +92,7 @@ final class ModuarkServiceProvider extends ServiceProvider
         );
         $this->app->singleton(ModuleMetadataCompiler::class);
         $this->app->singleton(SourceIndexBuilder::class);
+        $this->app->singleton(JsonCheckReportExporter::class);
         $this->app->singleton(CapabilityGraphBuilder::class);
         $this->app->singleton(CombinedGraphBuilder::class);
         $this->app->singleton(ModuleGraphBuilder::class);

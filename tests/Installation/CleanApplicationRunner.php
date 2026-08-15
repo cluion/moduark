@@ -227,6 +227,22 @@ final class CleanApplicationRunner
             'module:check did not complete the default Level 1 rule set.',
         );
 
+        $jsonCheck = $this->artisan(
+            $application,
+            ['module:check', '--format=json'],
+            $environment,
+        );
+        $jsonPayload = json_decode($jsonCheck, true, 512, JSON_THROW_ON_ERROR);
+
+        if (
+            ! is_array($jsonPayload)
+            || ($jsonPayload['schema_version'] ?? null) !== 1
+            || ($jsonPayload['status'] ?? null) !== 'passed'
+            || ($jsonPayload['exit_code'] ?? null) !== 0
+        ) {
+            throw new RuntimeException('module:check JSON output did not report a passing result.');
+        }
+
         $graph = $this->artisan($application, ['module:graph'], $environment);
         $this->assertContains('User -> —', $graph, 'module:graph did not include the generated User Module.');
 

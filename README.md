@@ -4,7 +4,7 @@ Moduark is a Laravel-native modular architecture toolkit. It keeps Modules in a
 normal Laravel application while making their dependencies, lifecycle order,
 resources, and architecture boundaries executable and inspectable.
 
-> **Pre-release status:** `0.2.0-beta.2` guarantees Level 0, Level 1, and Level
+> **Pre-release status:** `0.2.0-beta.3` guarantees Level 0, Level 1, and Level
 > 2. It includes typed Capability metadata, runtime Adapter composition,
 > complete Capability and combined graphs, and focused Module inspection. Level
 > 3 remains incomplete.
@@ -59,6 +59,7 @@ Inspect the discovered architecture:
 ```bash
 php artisan module:list
 php artisan module:check
+php artisan module:check --format=json
 php artisan module:graph
 php artisan module:graph --format=mermaid
 php artisan module:graph --view=capability
@@ -189,7 +190,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 |---|---|
 | `make:module {name}` | Create one minimal, non-overwriting Module entry class |
 | `module:list` | List discovered Modules in deterministic order |
-| `module:check [--level=0..3]` | Run the effective architecture rules |
+| `module:check [--level=0..3] [--format=text\|json]` | Run the effective architecture rules and optionally emit a versioned JSON report |
 | `module:graph [module] [--view=module\|capability\|combined] [--format=text\|mermaid]` | Render direct, Capability, or combined relationships and optionally select one neighborhood |
 | `module:inspect {module}` | Inspect one Module's identity, dependencies, providers, Capabilities, and Public API convention |
 
@@ -200,6 +201,21 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `0` | No blocking violation; warnings may exist |
 | `1` | One or more blocking architecture violations |
 | `2` | Command input, analyzer, or unavailable-rule tool error; result is incomplete |
+
+Use JSON when another tool needs the complete result without parsing terminal
+formatting. This option is currently on `main` for the next pre-release:
+
+```bash
+php artisan module:check --format=json
+php artisan module:check --level=2 --format=json
+```
+
+Schema version `1` includes `status`, `complete`, `exit_code`, effective
+architecture and rule configuration, summary counts, unavailable rules,
+per-rule violations, and an `error` object for failures that occur before a
+report is produced. Status is `passed`, `violations_found`, or `incomplete`;
+the exit codes remain exactly the same as text output. See
+[ADR-0028](docs/adr/0028-module-check-json-output.md).
 
 The graph command defaults to direct Module dependencies. The Capability view
 renders typed `requires` and `provides` edges:
@@ -216,8 +232,9 @@ Selecting a Module in the Capability view retains its connected Capabilities,
 providers, and other consumers so the relationship remains complete. The
 combined view overlays labeled `depends`, `requires`, and `provides` edges and
 uses the union of direct and Capability neighborhoods. JSON graph output remains
-later work. These views are included in `v0.2.0-beta.2`. `module:check` does not
-yet support JSON, suppressions, or per-Module filtering.
+later work. These views are included in `v0.2.0-beta.2`. `module:check` JSON is
+available on `main` for the next pre-release; suppressions and per-Module
+filtering remain later work.
 
 Use `module:inspect Order` when one Module needs more detail than the graph. It
 shows the effective architecture level, discovered or missing direct
@@ -298,13 +315,13 @@ contract.
 
 ## Current Scope
 
-The released `v0.2.0-beta.2` guarantees foundation plus complete Level 1 and
+The released `v0.2.0-beta.3` guarantees foundation plus complete Level 1 and
 Level 2 presets. Level 2 includes typed Capability metadata, descriptor-only
 provider resolution, lifecycle preflight, consumer-owned Port wiring,
 Capability contract validation, source-enforced Adapter boundaries,
 deterministic Capability and combined graphs, `module:inspect`, and the large
 Level 2 acceptance fixture. Database or migration ownership, raw SQL analysis,
-explicit exports, JSON diagnostics, and IDE integration remain later work.
+explicit exports, CI annotations, and IDE integration remain later work.
 Level 3 rule names in configuration are not claims of enforcement.
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

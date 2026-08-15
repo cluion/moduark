@@ -17,8 +17,10 @@ use Cluion\Moduark\Architecture\Severity;
 use Cluion\Moduark\Architecture\Violation;
 use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Exceptions\SourceAnalysisFailed;
+use Illuminate\Contracts\Console\Kernel;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Tests\TestCase;
 
 final class ModuleCheckCommandTest extends TestCase
@@ -48,6 +50,169 @@ final class ModuleCheckCommandTest extends TestCase
                 'Architecture check passed: 8 rules evaluated at Level 2 (Decoupled).',
             )
             ->assertSuccessful();
+    }
+
+    public function test_json_check_output_is_machine_readable_and_deterministic(): void
+    {
+        [$firstExitCode, $first, $firstJson] = $this->jsonCheck();
+        [$secondExitCode, $second, $secondJson] = $this->jsonCheck();
+
+        self::assertSame(ExitPolicy::SUCCESS, $firstExitCode);
+        self::assertSame($firstExitCode, $secondExitCode);
+        self::assertSame($firstJson, $secondJson);
+        self::assertSame($first, $second);
+        self::assertSame(1, $first['schema_version']);
+        self::assertSame('passed', $first['status']);
+        self::assertTrue($first['complete']);
+        self::assertSame(ExitPolicy::SUCCESS, $first['exit_code']);
+        self::assertSame([
+            'rules_evaluated' => 6,
+            'violations' => 0,
+            'errors' => 0,
+            'warnings' => 0,
+        ], $first['summary']);
+        self::assertSame([], $first['unavailable_rules']);
+        $results = $first['results'];
+        self::assertIsArray($results);
+        self::assertCount(6, $results);
+        self::assertNull($first['error']);
+    }
+
+    public function test_json_check_output_preserves_blocking_violation_context(): void
+    {
+        $report = $this->diagnosticReport(RuleId::Cycles, Severity::Error);
+
+        $this->application()->instance(
+            ArchitectureCheck::class,
+            new class($report) implements ArchitectureCheck
+            {
+                public function __construct(private readonly CheckReport $report)
+                {
+                }
+
+                public function check(?Level $level = null): CheckReport
+                {
+                    return $this->report;
+                }
+            },
+        );
+
+        [$exitCode, $payload] = $this->jsonCheck();
+
+        self::assertSame(ExitPolicy::VIOLATIONS_FOUND, $exitCode);
+        self::assertSame('violations_found', $payload['status']);
+        self::assertTrue($payload['complete']);
+        self::assertSame(ExitPolicy::VIOLATIONS_FOUND, $payload['exit_code']);
+        self::assertSame([
+            'rules_evaluated' => 1,
+            'violations' => 1,
+            'errors' => 1,
+            'warnings' => 0,
+        ], $payload['summary']);
+        self::assertSame([
+            [
+                'rule' => 'cycles',
+                'passed' => false,
+                'violations' => [[
+                    'rule' => 'cycles',
+                    'code' => 'MOD-CHECK-001',
+                    'severity' => 'error',
+                    'message' => 'Fixture architecture violation.',
+                    'file' => '/app/Modules/Order/OrderModule.php',
+                    'line' => 12,
+                    'consumer' => 'Order',
+                    'target' => 'User',
+                    'symbol' => 'Tests\\FixtureSymbol',
+                    'suggestion' => 'Break the dependency.',
+                ]],
+            ],
+        ], $payload['results']);
+    }
+
+    public function test_json_check_output_reports_level_three_as_incomplete(): void
+    {
+        [$exitCode, $payload] = $this->jsonCheck(['--level' => '3']);
+
+        self::assertSame(ExitPolicy::TOOL_ERROR, $exitCode);
+        self::assertSame('incomplete', $payload['status']);
+        self::assertFalse($payload['complete']);
+        self::assertSame(ExitPolicy::TOOL_ERROR, $payload['exit_code']);
+        $architecture = $payload['architecture'];
+        self::assertIsArray($architecture);
+        self::assertSame(3, $architecture['level']);
+        self::assertSame('Isolated', $architecture['level_label']);
+        self::assertSame([
+            'cross_module_model_access',
+            'database_ownership',
+            'migration_ownership',
+            'cross_module_foreign_keys',
+            'cross_module_transactions',
+            'explicit_public_exports',
+        ], $payload['unavailable_rules']);
+    }
+
+    public function test_invalid_check_output_format_is_a_tool_error(): void
+    {
+        $this->command('module:check --format=xml')
+            ->expectsOutputToContain('The --format option must be text or json.')
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
+    }
+
+    public function test_invalid_level_uses_the_json_tool_error_contract(): void
+    {
+        [$exitCode, $payload] = $this->jsonCheck(['--level' => '4']);
+
+        self::assertSame(ExitPolicy::TOOL_ERROR, $exitCode);
+        self::assertSame('incomplete', $payload['status']);
+        self::assertFalse($payload['complete']);
+        self::assertSame(ExitPolicy::TOOL_ERROR, $payload['exit_code']);
+        self::assertNull($payload['architecture']);
+        self::assertSame([
+            'rules_evaluated' => 0,
+            'violations' => 0,
+            'errors' => 0,
+            'warnings' => 0,
+        ], $payload['summary']);
+        self::assertSame([], $payload['unavailable_rules']);
+        self::assertSame([], $payload['results']);
+        self::assertSame([
+            'code' => 'MOD-CHECK-OPTION-001',
+            'message' => 'The --level option must be an integer from 0 to 3.',
+            'location' => null,
+            'suggestion' => 'Pass one of --level=0, --level=1, --level=2, or --level=3.',
+        ], $payload['error']);
+    }
+
+    public function test_source_analysis_failure_uses_the_json_tool_error_contract(): void
+    {
+        $this->application()->instance(
+            ArchitectureCheck::class,
+            new class implements ArchitectureCheck
+            {
+                public function check(?Level $level = null): CheckReport
+                {
+                    throw SourceAnalysisFailed::invalidSyntax(
+                        '/app/Modules/Order/Actions/CreateOrder.php',
+                        17,
+                        'Unexpected token "}"',
+                    );
+                }
+            },
+        );
+
+        [$exitCode, $payload] = $this->jsonCheck();
+
+        self::assertSame(ExitPolicy::TOOL_ERROR, $exitCode);
+        self::assertSame('incomplete', $payload['status']);
+        self::assertFalse($payload['complete']);
+        self::assertSame(ExitPolicy::TOOL_ERROR, $payload['exit_code']);
+        self::assertSame([
+            'code' => 'MOD-ANALYSIS-001',
+            'message' => 'Unable to parse Module source '
+                .'[/app/Modules/Order/Actions/CreateOrder.php:17]: Unexpected token "}"',
+            'location' => '/app/Modules/Order/Actions/CreateOrder.php:17',
+            'suggestion' => 'Fix the PHP syntax at the reported location, then rerun module:check.',
+        ], $payload['error']);
     }
 
     #[DataProvider('invalidLevels')]
@@ -250,5 +415,25 @@ final class ModuleCheckCommandTest extends TestCase
         );
 
         return (new RuleResolver(new RulePresets))->resolve($configuration);
+    }
+
+    /**
+     * @param array<string, string> $parameters
+     * @return array{int, array<mixed>, string}
+     */
+    private function jsonCheck(array $parameters = []): array
+    {
+        $output = new BufferedOutput;
+        $exitCode = $this->application()->make(Kernel::class)->call(
+            'module:check',
+            ['--format' => 'json', ...$parameters],
+            $output,
+        );
+        $json = trim($output->fetch());
+        $payload = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertIsArray($payload);
+
+        return [$exitCode, $payload, $json];
     }
 }

@@ -6,6 +6,7 @@ namespace Cluion\Moduark\Console;
 
 use Cluion\Moduark\Analysis\ArchitectureCheck;
 use Cluion\Moduark\Analysis\CheckReport;
+use Cluion\Moduark\Analysis\Export\JsonCheckReportExporter;
 use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Architecture\Level;
 use Cluion\Moduark\Architecture\RuleId;
@@ -14,6 +15,7 @@ use Cluion\Moduark\Exceptions\SourceAnalysisFailed;
 use Illuminate\Console\Command;
 use InvalidArgumentException;
 use RuntimeException;
+use Symfony\Component\Console\Output\OutputInterface;
 
 final class ModuleCheckCommand extends Command
 {
@@ -21,7 +23,8 @@ final class ModuleCheckCommand extends Command
      * @var string
      */
     protected $signature = 'module:check
-        {--level= : Temporarily use an architecture Level from 0 to 3}';
+        {--level= : Temporarily use an architecture Level from 0 to 3}
+        {--format=text : Output format (text or json)}';
 
     /**
      * @var string
@@ -31,30 +34,62 @@ final class ModuleCheckCommand extends Command
     public function __construct(
         private readonly ArchitectureCheck $checker,
         private readonly ExitPolicy $exitPolicy,
+        private readonly JsonCheckReportExporter $json,
     ) {
         parent::__construct();
     }
 
     public function handle(): int
     {
+        $format = $this->format();
+
+        if ($format === false) {
+            return ExitPolicy::TOOL_ERROR;
+        }
+
         $level = $this->level();
 
         if ($level === false) {
+            $this->renderToolError(
+                $format,
+                'MOD-CHECK-OPTION-001',
+                'The --level option must be an integer from 0 to 3.',
+                null,
+                'Pass one of --level=0, --level=1, --level=2, or --level=3.',
+            );
+
             return ExitPolicy::TOOL_ERROR;
         }
 
         try {
             $report = $this->checker->check($level);
         } catch (SourceAnalysisFailed $exception) {
-            $this->renderSourceAnalysisFailure($exception);
+            if ($format === 'json') {
+                $this->renderJson($this->json->exportToolError(
+                    $exception->diagnosticCode(),
+                    $exception->getMessage(),
+                    $exception->location(),
+                    $exception->suggestion(),
+                ));
+            } else {
+                $this->renderSourceAnalysisFailure($exception);
+            }
 
             return ExitPolicy::TOOL_ERROR;
         } catch (InvalidArgumentException|RuntimeException $exception) {
-            $this->components->error(
+            $this->renderToolError(
+                $format,
+                'MOD-CHECK-TOOL-001',
                 'Architecture analysis could not be completed: '.$exception->getMessage(),
             );
 
             return ExitPolicy::TOOL_ERROR;
+        }
+
+        if ($format === 'json') {
+            $this->renderJson($this->json->export($report, $this->exitPolicy));
+
+            return $report->exitCode($this->exitPolicy);
         }
 
         $this->renderViolations($report->violations());
@@ -131,12 +166,49 @@ final class ModuleCheckCommand extends Command
         }
 
         if (! is_string($value) || preg_match('/\A[0-3]\z/', $value) !== 1) {
-            $this->components->error('The --level option must be an integer from 0 to 3.');
-
             return false;
         }
 
         return Level::from((int) $value);
+    }
+
+    private function format(): string|false
+    {
+        $value = $this->option('format');
+
+        if (! is_string($value) || ! in_array($value, ['text', 'json'], true)) {
+            $this->components->error('The --format option must be text or json.');
+
+            return false;
+        }
+
+        return $value;
+    }
+
+    private function renderToolError(
+        string $format,
+        string $code,
+        string $message,
+        ?string $location = null,
+        ?string $suggestion = null,
+    ): void {
+        if ($format === 'json') {
+            $this->renderJson($this->json->exportToolError(
+                $code,
+                $message,
+                $location,
+                $suggestion,
+            ));
+
+            return;
+        }
+
+        $this->components->error($message);
+    }
+
+    private function renderJson(string $json): void
+    {
+        $this->output->writeln($json, OutputInterface::OUTPUT_RAW);
     }
 
     /**
