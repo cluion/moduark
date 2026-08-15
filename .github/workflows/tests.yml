@@ -77,9 +77,38 @@ jobs:
       - name: Validate Composer metadata
         run: composer validate --strict
 
-      - name: Run verification
-        run: composer verify
+      - name: Run test suite
+        run: composer test
 
       - name: Run clean Laravel installation
         if: matrix.dependencies == 'highest'
         run: composer test:installation -- --laravel=${{ matrix.major }}
+
+  static-analysis:
+    name: Static analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install highest dependencies
+        run: >-
+          composer update --prefer-dist
+          --no-interaction --no-progress
+
+      - name: Validate Composer metadata
+        run: composer validate --strict
+
+      - name: Run static analysis
+        run: composer analyse

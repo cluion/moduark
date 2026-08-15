@@ -238,9 +238,10 @@ the default offline-friendly verification command. See
 [ADR-0013](docs/adr/0013-clean-laravel-installation-matrix.md) for the matrix
 contract and initial resolved versions.
 
-The GitHub Actions compatibility workflow runs `composer verify` on all four
+The GitHub Actions compatibility workflow runs PHPUnit on all four
 Laravel/PHP/dependency combinations and runs the matching clean installation on
-both highest-dependency jobs. See
+both highest-dependency jobs. A separate PHP 8.2 job runs PHPStan against the
+highest resolvable tooling dependencies. See
 [ADR-0014](docs/adr/0014-ci-compatibility-matrix.md) for the release-gate
 contract.
 

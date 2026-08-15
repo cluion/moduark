@@ -12,8 +12,8 @@ is also not evidence: Composer's security policy or transitive package
 constraints may move the earliest installable framework version forward.
 
 The release gate therefore needs real PHP runtimes, explicit framework and
-Testbench pairs, lowest and highest dependency solving, and the same full
-package verification command used locally.
+Testbench pairs, lowest and highest dependency solving, and static analysis at
+the package's PHP syntax floor.
 
 ## Decision
 
@@ -26,11 +26,16 @@ package verification command used locally.
   | Laravel 13 lowest | 8.3 | `^13.0` | `^11.0` | `--prefer-lowest` |
   | Laravel 13 highest | 8.5 | `^13.0` | `^11.0` | latest stable |
 
-- Every job resolves dependencies without disabling Composer's insecure-package
-  blocking, validates the resulting metadata, and runs `composer verify`.
+- Every compatibility job resolves dependencies without disabling Composer's
+  insecure-package blocking, validates the resulting metadata, and runs the
+  complete PHPUnit suite.
 - Each highest job additionally runs `composer test:installation` for its own
   Laravel major. This covers consumer installation without duplicating both
   clean applications inside every matrix job.
+- A separate PHP 8.2 job resolves highest stable dependencies and runs PHPStan
+  at level max. Static analysis is not part of `--prefer-lowest` dependency
+  compatibility because PHPStan is build tooling rather than a package runtime
+  dependency.
 - The workflow grants only `contents: read`; checkout does not persist Git
   credentials. Jobs have a 30-minute timeout and do not fail fast, so all matrix
   outcomes remain visible.
@@ -67,7 +72,8 @@ and `^13.0`; future secure resolution may move them again.
 
 ## Consequences
 
-- Laravel 12/13 support requires four green compatibility jobs before release.
+- Laravel 12/13 support requires four green compatibility jobs and a green
+  static-analysis job before release.
 - Local dependency resolution can diagnose constraint or advisory failures
   before a push, while CI remains the authority for PHP-runtime compatibility.
 - The two highest jobs are slower because they also create clean Laravel
