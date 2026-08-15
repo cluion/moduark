@@ -135,9 +135,10 @@ $plan = (new CapabilityResolver)->resolve($descriptors);
 
 Each plan binding identifies the Capability, provider Module, consumer Module,
 Port, and Adapter. Missing providers and consumed Capabilities with multiple
-providers fail before Laravel lifecycle or container work begins.
+providers fail before any Module ServiceProvider or container work begins.
 
-Resolution is not yet integrated into the Module lifecycle and does not bind
+The Module lifecycle runs this resolution as a preflight after direct dependency
+ordering and before registering any Module ServiceProvider. It does not yet bind
 Ports in Laravel's container, emit Capability graph edges, or enforce Level 2
 rules. The preset and rule IDs exist so configuration can evolve without
 renaming the model, but their analyzers and runtime composition are not part of

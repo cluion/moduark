@@ -55,5 +55,6 @@ performed Laravel container wiring, which is outside this production slice.
   registering a Module ServiceProvider or mutating a Port binding.
 - Explicit multi-provider selection remains a separate decision; this resolver
   intentionally rejects ambiguity for every consumed Capability.
-- `module:list`, Capability graph output, Level 2 rules, lifecycle integration,
-  and container wiring remain independently testable slices.
+- [ADR-0018](0018-capability-lifecycle-preflight.md) later integrates resolution
+  as a lifecycle preflight. `module:list`, Capability graph output, Level 2
+  rules, and container wiring remain independently testable slices.

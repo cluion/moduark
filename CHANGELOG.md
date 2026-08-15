@@ -13,8 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Module metadata as the first Level 2 contract slice.
 - Added deterministic, descriptor-only Capability provider resolution with
   cache-safe binding plans and stable missing or ambiguous provider diagnostics.
-  Lifecycle integration, container wiring, and Level 2 rule enforcement remain
-  incomplete.
+- Added Capability lifecycle preflight so missing or ambiguous providers fail
+  before any Module ServiceProvider is registered. Container wiring and Level 2
+  rule enforcement remain incomplete.
 
 ## [0.1.0-beta.2] - 2026-08-15
 

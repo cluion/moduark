@@ -20,6 +20,7 @@ use Cluion\Moduark\Architecture\EffectiveArchitecture;
 use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Architecture\RulePresets;
 use Cluion\Moduark\Architecture\RuleResolver;
+use Cluion\Moduark\Capabilities\CapabilityResolver;
 use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Console\MakeModuleCommand;
 use Cluion\Moduark\Console\ModuleCheckCommand;
@@ -84,6 +85,7 @@ final class ModuarkServiceProvider extends ServiceProvider
         $this->app->singleton(TextModuleGraphExporter::class);
         $this->app->singleton(MermaidModuleGraphExporter::class);
         $this->app->singleton(ModuleOrderer::class);
+        $this->app->singleton(CapabilityResolver::class);
         $this->app->singleton(ModuleLifecycleRegistrar::class);
         $this->app->singleton(ModuleResourceDiscoverer::class);
         $this->app->singleton(ExitPolicy::class);

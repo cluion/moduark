@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cluion\Moduark\Lifecycle;
 
+use Cluion\Moduark\Capabilities\CapabilityResolver;
 use Cluion\Moduark\Metadata\ModuleDescriptor;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
 use Cluion\Moduark\Module;
@@ -15,6 +16,7 @@ final readonly class ModuleLifecycleRegistrar
         private Application $application,
         private ModuleMetadataCompiler $compiler,
         private ModuleOrderer $orderer,
+        private ?CapabilityResolver $capabilityResolver = null,
     ) {
     }
 
@@ -27,6 +29,8 @@ final readonly class ModuleLifecycleRegistrar
     public function registerProviders(array $moduleClasses): array
     {
         $ordered = $this->orderer->order($this->compiler->compileAll($moduleClasses));
+
+        ($this->capabilityResolver ?? new CapabilityResolver)->resolve($ordered);
 
         foreach ($ordered as $descriptor) {
             foreach ($descriptor->providers() as $provider) {

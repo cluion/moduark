@@ -13,6 +13,7 @@ use Cluion\Moduark\Architecture\EffectiveArchitecture;
 use Cluion\Moduark\Architecture\Level;
 use Cluion\Moduark\Architecture\RulePresets;
 use Cluion\Moduark\Architecture\RuleResolver;
+use Cluion\Moduark\Capabilities\CapabilityResolver;
 use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
 use Cluion\Moduark\Graph\Export\MermaidModuleGraphExporter;
@@ -51,7 +52,12 @@ final class PackageBaselineTest extends TestCase
         self::assertTrue($application->bound(TextModuleGraphExporter::class));
         self::assertTrue($application->bound(MermaidModuleGraphExporter::class));
         self::assertTrue($application->bound(ModuleOrderer::class));
+        self::assertTrue($application->bound(CapabilityResolver::class));
         self::assertTrue($application->bound(ModuleLifecycleRegistrar::class));
+        self::assertSame(
+            $application->make(CapabilityResolver::class),
+            $application->make(CapabilityResolver::class),
+        );
         self::assertTrue($application->bound('moduark.workbench.loaded'));
     }
 
