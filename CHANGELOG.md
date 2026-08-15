@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.0-beta] - 2026-08-15
+## [0.1.0-beta.1] - 2026-08-15
 
 This first beta establishes Moduark's Laravel-native package foundation and
 Level 1 architecture enforcement. Level 2 and Level 3 remain intentionally
@@ -30,5 +30,10 @@ incomplete and are not part of this release contract.
 - Performance baselines, staged adoption guidance, clean Laravel installation
   tests, and Laravel 12/13 lowest/highest compatibility CI.
 
-[Unreleased]: https://github.com/cluion/moduark/compare/v0.1.0-beta...HEAD
-[0.1.0-beta]: https://github.com/cluion/moduark/releases/tag/v0.1.0-beta
+### Fixed
+
+- Clean installation acceptance from release-tag checkouts by explicitly
+  mapping the local path repository to `dev-main`.
+
+[Unreleased]: https://github.com/cluion/moduark/compare/v0.1.0-beta.1...HEAD
+[0.1.0-beta.1]: https://github.com/cluion/moduark/releases/tag/v0.1.0-beta.1
