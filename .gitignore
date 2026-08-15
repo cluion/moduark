@@ -1,0 +1,7 @@
+/vendor/
+/composer.lock
+/.internal/
+/.phpunit.cache/
+/.phpunit.result.cache
+/workbench/bootstrap/cache/*.php
+!/workbench/bootstrap/cache/.gitignore

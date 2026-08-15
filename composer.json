@@ -1,0 +1,57 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "cluion/moduark",
+    "description": "Laravel-native modular architecture toolkit.",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.2",
+        "illuminate/contracts": "^12.0 || ^13.0",
+        "illuminate/support": "^12.0 || ^13.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^10.0 || ^11.0",
+        "phpunit/phpunit": "^11.5 || ^12.5 || ^13.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Cluion\\Moduark\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/"
+        }
+    },
+    "scripts": {
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "post-autoload-dump": [
+            "@prepare"
+        ],
+        "test": [
+            "@prepare",
+            "@php vendor/bin/phpunit"
+        ],
+        "test:unit": [
+            "@prepare",
+            "@php vendor/bin/phpunit --testsuite=Unit"
+        ],
+        "test:feature": [
+            "@prepare",
+            "@php vendor/bin/phpunit --testsuite=Feature"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Cluion\\Moduark\\ModuarkServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
