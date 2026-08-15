@@ -205,6 +205,19 @@ ServiceProviders and convention-based Public API. It deliberately does not
 claim the Level 3 explicit exports contract. See
 [ADR-0025](adr/0025-module-inspection.md).
 
+The repository also carries a connected Level 2 acceptance fixture rather than
+validating these rules only as isolated units:
+
+| Role | Modules | Capability relationships |
+|---|---|---:|
+| Providers | Catalog, Customer, Inventory, Notification, Payment | 5 provided Capabilities |
+| Consumers | Checkout, Fulfillment, Returns | 12 consumer-owned Port/Adapter bindings |
+
+All eight Modules pass the complete Level 2 preset. The three consumer workflow
+actions are resolved through Laravel's container, and the same topology is
+exercised through combined graph and Module inspection commands. See
+[ADR-0026](adr/0026-large-level-two-fixture.md).
+
 Running the normal preset demonstrates this explicitly:
 
 ```bash

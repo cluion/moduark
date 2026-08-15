@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `module:inspect {module}` with identity, effective level, direct
   dependency status, ServiceProviders, resolved Capability details, and the
   current convention-based Public API.
+- Added an eight-Module Level 2 acceptance fixture with five shared
+  Capabilities, twelve consumer-owned Port/Adapter bindings, three executable
+  workflows, and command-level architecture observability coverage.
 
 ## [0.2.0-beta.1] - 2026-08-15
 

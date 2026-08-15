@@ -61,3 +61,5 @@ accepted explicit exports contract.
   rendered by Laravel before `module:inspect` handles input.
 - Future explicit exports can replace or compose with the `PublicApi` classifier
   without changing dependency or Capability inspection semantics.
+- [ADR-0026](0026-large-level-two-fixture.md) subsequently exercises inspection
+  together with the full Level 2 contract on a connected eight-Module fixture.

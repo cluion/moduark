@@ -249,6 +249,12 @@ files without checking generated fixtures into Git. See
 [ADR-0012](docs/adr/0012-beta-performance-and-analysis-errors.md) for the method
 and initial evidence.
 
+The Level 2 acceptance fixture models eight business Modules, five shared
+Capabilities, and twelve consumer-owned Port/Adapter bindings. It proves all
+eight Level 2 rules, runtime container composition, combined graph output, and
+`module:inspect` against one connected architecture. See
+[ADR-0026](docs/adr/0026-large-level-two-fixture.md).
+
 `composer test:dependencies` resolves the Laravel 12/13 lowest/highest matrix in
 disposable Composer projects. It simulates the supported PHP floors for
 dependency solving, leaves Composer's security blocking enabled, and reports
@@ -284,9 +290,9 @@ Level 2 presets. Level 2 includes typed Capability metadata, descriptor-only
 provider resolution, lifecycle preflight, consumer-owned Port wiring,
 Capability contract validation, and source-enforced Adapter boundaries. Current
 `main` additionally includes deterministic text or Mermaid Capability and
-combined graph output plus `module:inspect` for the next `0.2` beta. Database or
-migration ownership, raw SQL analysis, explicit exports, JSON diagnostics, and
-IDE integration remain later work. Level 3 rule names in configuration are not
-claims of enforcement.
+combined graph output, `module:inspect`, and the large Level 2 acceptance
+fixture for the next `0.2` beta. Database or migration ownership, raw SQL
+analysis, explicit exports, JSON diagnostics, and IDE integration remain later
+work. Level 3 rule names in configuration are not claims of enforcement.
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).
