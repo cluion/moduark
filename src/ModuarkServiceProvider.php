@@ -6,8 +6,11 @@ namespace Cluion\Moduark;
 
 use Cluion\Moduark\Analysis\ArchitectureCheck;
 use Cluion\Moduark\Analysis\ArchitectureChecker;
+use Cluion\Moduark\Analysis\Boundary\ConventionPublicApi;
+use Cluion\Moduark\Analysis\Boundary\PublicApi;
 use Cluion\Moduark\Analysis\RuleRunner;
 use Cluion\Moduark\Analysis\Rules\CyclesRule;
+use Cluion\Moduark\Analysis\Rules\InternalApiAccessRule;
 use Cluion\Moduark\Analysis\Rules\MissingDependenciesRule;
 use Cluion\Moduark\Analysis\Rules\UndeclaredDependenciesRule;
 use Cluion\Moduark\Analysis\Rules\UniqueModuleIdentityRule;
@@ -64,6 +67,7 @@ final class ModuarkServiceProvider extends ServiceProvider
         $this->app->instance(ModulesConfig::class, $configuration);
         $this->app->singleton(RulePresets::class);
         $this->app->singleton(RuleResolver::class);
+        $this->app->singleton(PublicApi::class, ConventionPublicApi::class);
         $this->app->instance(
             EffectiveArchitecture::class,
             $this->app->make(RuleResolver::class)->resolve($configuration),
@@ -85,12 +89,13 @@ final class ModuarkServiceProvider extends ServiceProvider
         $this->app->singleton(ExitPolicy::class);
         $this->app->singleton(
             RuleRunner::class,
-            static fn (): RuleRunner => new RuleRunner([
+            fn (): RuleRunner => new RuleRunner([
                 new ValidModuleStructureRule,
                 new UniqueModuleIdentityRule,
                 new MissingDependenciesRule,
                 new UndeclaredDependenciesRule,
                 new CyclesRule,
+                new InternalApiAccessRule($this->app->make(PublicApi::class)),
             ]),
         );
         $this->app->singleton(ArchitectureChecker::class);

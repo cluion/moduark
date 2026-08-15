@@ -31,14 +31,13 @@ final class ModuleCheckCommandTest extends TestCase
             ->assertSuccessful();
     }
 
-    public function test_default_level_reports_unavailable_rules_as_incomplete(): void
+    public function test_default_level_check_passes(): void
     {
         $this->command('module:check')
-            ->expectsOutputToContain('Architecture analysis is incomplete at Level 1 (Modular).')
             ->expectsOutputToContain(
-                'Unavailable rule implementations: internal_api_access',
+                'Architecture check passed: 6 rules evaluated at Level 1 (Modular).',
             )
-            ->assertExitCode(ExitPolicy::TOOL_ERROR);
+            ->assertSuccessful();
     }
 
     #[DataProvider('invalidLevels')]
@@ -84,9 +83,9 @@ final class ModuleCheckCommandTest extends TestCase
 
             $this->command('module:check')
                 ->expectsOutputToContain(
-                    'Unavailable rule implementations: internal_api_access',
+                    'Architecture check passed: 6 rules evaluated at Level 1 (Modular).',
                 )
-                ->assertExitCode(ExitPolicy::TOOL_ERROR);
+                ->assertSuccessful();
         } finally {
             $this->command('config:clear')->run();
         }

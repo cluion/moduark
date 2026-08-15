@@ -17,22 +17,6 @@ namespace Tests\Fixtures\Analysis\Modules\User\Base {
     }
 }
 
-namespace Tests\Fixtures\Analysis\Modules\User\Contracts {
-    interface UserContract
-    {
-    }
-
-    interface SecondContract
-    {
-    }
-}
-
-namespace Tests\Fixtures\Analysis\Modules\User\Data {
-    final readonly class UserData
-    {
-    }
-}
-
 namespace Tests\Fixtures\Analysis\Modules\User\Exceptions {
     use RuntimeException;
 

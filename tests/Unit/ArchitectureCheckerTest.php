@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use Cluion\Moduark\Analysis\ArchitectureChecker;
+use Cluion\Moduark\Analysis\Boundary\ConventionPublicApi;
 use Cluion\Moduark\Analysis\RuleRunner;
 use Cluion\Moduark\Analysis\Rules\CyclesRule;
+use Cluion\Moduark\Analysis\Rules\InternalApiAccessRule;
 use Cluion\Moduark\Analysis\Rules\MissingDependenciesRule;
 use Cluion\Moduark\Analysis\Rules\UndeclaredDependenciesRule;
 use Cluion\Moduark\Analysis\Rules\UniqueModuleIdentityRule;
@@ -80,8 +82,59 @@ final class ArchitectureCheckerTest extends TestCase
 
     public function test_level_one_runs_source_analysis_and_reports_undeclared_dependencies(): void
     {
+        $registry = $this->fixtureRegistry();
+        $checker = new ArchitectureChecker(
+            $registry,
+            new ModuleMetadataCompiler,
+            new SourceIndexBuilder($registry),
+            $this->fixtureConfiguration(['internal_api_access' => false]),
+            new RuleResolver(new RulePresets),
+            $this->runner(),
+        );
+
+        $report = $checker->check();
+
+        self::assertTrue($report->complete());
+        self::assertNotEmpty($report->errors());
+        self::assertSame('MOD-DEPENDENCY-002', $report->errors()[0]->code());
+    }
+
+    public function test_internal_rule_alone_still_builds_the_source_index(): void
+    {
+        $registry = $this->fixtureRegistry();
+        $checker = new ArchitectureChecker(
+            $registry,
+            new ModuleMetadataCompiler,
+            new SourceIndexBuilder($registry),
+            $this->fixtureConfiguration(['undeclared_dependencies' => false]),
+            new RuleResolver(new RulePresets),
+            $this->runner(),
+        );
+
+        $report = $checker->check();
+
+        self::assertTrue($report->complete());
+        self::assertNotEmpty($report->errors());
+        self::assertSame('MOD-BOUNDARY-001', $report->errors()[0]->code());
+    }
+
+    private function runner(): RuleRunner
+    {
+        return new RuleRunner([
+            new ValidModuleStructureRule,
+            new UniqueModuleIdentityRule,
+            new MissingDependenciesRule,
+            new UndeclaredDependenciesRule,
+            new CyclesRule,
+            new InternalApiAccessRule(new ConventionPublicApi),
+        ]);
+    }
+
+    private function fixtureRegistry(): ModuleRegistry
+    {
         $root = dirname(__DIR__).'/Fixtures/Analysis/Modules';
-        $registry = new ModuleRegistry([
+
+        return new ModuleRegistry([
             new DiscoveredModule(
                 'User',
                 UserModule::class,
@@ -95,43 +148,23 @@ final class ArchitectureCheckerTest extends TestCase
                 'Tests\\Fixtures\\Analysis\\Modules\\Order',
             ),
         ]);
-        $configuration = ModulesConfig::from([
-            'path' => $root,
+    }
+
+    /**
+     * @param array<string, bool> $rules
+     */
+    private function fixtureConfiguration(array $rules): ModulesConfig
+    {
+        return ModulesConfig::from([
+            'path' => dirname(__DIR__).'/Fixtures/Analysis/Modules',
             'architecture' => [
                 'level' => 1,
                 'rules' => [],
             ],
         ], [
             'architecture' => [
-                'rules' => [
-                    'internal_api_access' => false,
-                ],
+                'rules' => $rules,
             ],
-        ]);
-        $checker = new ArchitectureChecker(
-            $registry,
-            new ModuleMetadataCompiler,
-            new SourceIndexBuilder($registry),
-            $configuration,
-            new RuleResolver(new RulePresets),
-            $this->runner(),
-        );
-
-        $report = $checker->check();
-
-        self::assertTrue($report->complete());
-        self::assertNotEmpty($report->errors());
-        self::assertSame('MOD-DEPENDENCY-002', $report->errors()[0]->code());
-    }
-
-    private function runner(): RuleRunner
-    {
-        return new RuleRunner([
-            new ValidModuleStructureRule,
-            new UniqueModuleIdentityRule,
-            new MissingDependenciesRule,
-            new UndeclaredDependenciesRule,
-            new CyclesRule,
         ]);
     }
 }

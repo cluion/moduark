@@ -61,6 +61,7 @@ final class SourceIndexBuilderTest extends TestCase
             'Tests\\Fixtures\\Analysis\\Modules\\User\\Contracts\\SecondContract',
             'Tests\\Fixtures\\Analysis\\Modules\\User\\Contracts\\UserContract',
             'Tests\\Fixtures\\Analysis\\Modules\\User\\Data\\UserData',
+            'Tests\\Fixtures\\Analysis\\Modules\\User\\Events\\UserCreated',
             'Tests\\Fixtures\\Analysis\\Modules\\User\\Exceptions\\UserFailure',
             'Tests\\Fixtures\\Analysis\\Modules\\User\\Services\\UserService',
             'Tests\\Fixtures\\Analysis\\Modules\\User\\Support\\UserTrait',

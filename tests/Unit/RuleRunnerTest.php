@@ -6,9 +6,11 @@ namespace Tests\Unit;
 
 use Cluion\Moduark\Analysis\AnalysisContext;
 use Cluion\Moduark\Analysis\ArchitectureRule;
+use Cluion\Moduark\Analysis\Boundary\ConventionPublicApi;
 use Cluion\Moduark\Analysis\CheckReport;
 use Cluion\Moduark\Analysis\RuleRunner;
 use Cluion\Moduark\Analysis\Rules\CyclesRule;
+use Cluion\Moduark\Analysis\Rules\InternalApiAccessRule;
 use Cluion\Moduark\Analysis\Rules\MissingDependenciesRule;
 use Cluion\Moduark\Analysis\Rules\UndeclaredDependenciesRule;
 use Cluion\Moduark\Analysis\Rules\UniqueModuleIdentityRule;
@@ -96,16 +98,14 @@ final class RuleRunnerTest extends TestCase
         self::assertSame(ExitPolicy::SUCCESS, $report->exitCode(new ExitPolicy));
     }
 
-    public function test_enabled_rule_without_an_implementation_makes_the_report_incomplete(): void
+    public function test_all_level_one_rules_have_implementations(): void
     {
         $report = $this->runner()->run($this->validGraph(), $this->architecture(1));
 
-        self::assertFalse($report->complete());
-        self::assertSame([
-            RuleId::InternalApiAccess,
-        ], $report->unavailableRules());
-        self::assertCount(5, $report->results());
-        self::assertSame(ExitPolicy::TOOL_ERROR, $report->exitCode(new ExitPolicy));
+        self::assertTrue($report->complete());
+        self::assertSame([], $report->unavailableRules());
+        self::assertCount(6, $report->results());
+        self::assertSame(ExitPolicy::SUCCESS, $report->exitCode(new ExitPolicy));
     }
 
     public function test_level_zero_is_complete_with_discovery_validation_rules(): void
@@ -196,6 +196,7 @@ final class RuleRunnerTest extends TestCase
             new MissingDependenciesRule,
             new UndeclaredDependenciesRule,
             new CyclesRule,
+            new InternalApiAccessRule(new ConventionPublicApi),
         ]);
     }
 

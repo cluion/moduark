@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use Cluion\Moduark\Analysis\ArchitectureCheck;
 use Cluion\Moduark\Analysis\ArchitectureChecker;
+use Cluion\Moduark\Analysis\Boundary\PublicApi;
 use Cluion\Moduark\Analysis\RuleRunner;
 use Cluion\Moduark\Analysis\Source\SourceIndexBuilder;
 use Cluion\Moduark\Architecture\EffectiveArchitecture;
@@ -41,6 +42,7 @@ final class PackageBaselineTest extends TestCase
         self::assertTrue($application->bound(RuleRunner::class));
         self::assertTrue($application->bound(ArchitectureCheck::class));
         self::assertTrue($application->bound(ArchitectureChecker::class));
+        self::assertTrue($application->bound(PublicApi::class));
         self::assertTrue($application->bound(SourceIndexBuilder::class));
         self::assertTrue($application->bound(ModuleDiscoverer::class));
         self::assertTrue($application->bound(ModuleRegistry::class));
