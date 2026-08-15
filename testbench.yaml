@@ -1,4 +1,5 @@
 providers:
+  - Cluion\Moduark\ModuarkServiceProvider
   - Workbench\App\Providers\WorkbenchServiceProvider
 workbench:
   discovers:

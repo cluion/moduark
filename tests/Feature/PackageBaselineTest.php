@@ -18,7 +18,7 @@ use Tests\TestCase;
 
 final class PackageBaselineTest extends TestCase
 {
-    public function test_package_and_workbench_are_discovered(): void
+    public function test_package_and_workbench_providers_are_loaded(): void
     {
         $application = $this->application();
 

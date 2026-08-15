@@ -1,0 +1,11 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use Cluion\Moduark\Module;
+
+final class {{ class }} extends Module
+{
+}

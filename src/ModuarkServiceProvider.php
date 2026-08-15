@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Cluion\Moduark;
 
 use Cluion\Moduark\Configuration\ModulesConfig;
+use Cluion\Moduark\Console\MakeModuleCommand;
+use Cluion\Moduark\Console\ModuleListCommand;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
 use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
 use Cluion\Moduark\Lifecycle\ModuleOrderer;
@@ -56,8 +58,17 @@ final class ModuarkServiceProvider extends ServiceProvider
             return;
         }
 
+        $this->commands([
+            MakeModuleCommand::class,
+            ModuleListCommand::class,
+        ]);
+
         $this->publishes([
             dirname(__DIR__).'/config/modules.php' => config_path('modules.php'),
         ], 'moduark-config');
+
+        $this->publishes([
+            dirname(__DIR__).'/stubs/module.stub' => base_path('stubs/module.stub'),
+        ], 'moduark-stubs');
     }
 }
