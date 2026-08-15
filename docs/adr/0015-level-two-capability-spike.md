@@ -45,10 +45,11 @@ refactoring and are too easy to duplicate silently.
   providers remain an ambiguity until a deterministic, config-cache-safe
   selection policy is accepted separately.
 
-Provider resolution and composition classes under `Tests\Fixtures\LevelTwo`
-remain executable design evidence rather than published package API. The
-Capability metadata portion was promoted to package API by
-[ADR-0016](0016-capability-metadata-contract.md).
+Composition wiring under `Tests\Fixtures\LevelTwo` remains executable design
+evidence rather than published package API. Capability metadata was promoted by
+[ADR-0016](0016-capability-metadata-contract.md), and descriptor-only provider
+resolution was promoted by
+[ADR-0017](0017-capability-provider-resolution.md).
 
 ## Candidate evaluation
 
@@ -79,8 +80,8 @@ Capability metadata portion was promoted to package API by
   API convention.
 - Capability compilation must happen before provider registration or any
   composition binding so graph failures remain side-effect free.
-- The production resolver needs stable diagnostics and evidence for
-  `provides()` and `requires()` declarations.
+- Provider resolution preserves stable diagnostics and evidence for `provides()`
+  and `requires()` declarations.
 - Combined graph and cycle analysis must preserve direct, Capability, and
   Adapter edge kinds rather than flattening them into one dependency.
 - A dedicated decision is still required for explicit multi-provider selection.

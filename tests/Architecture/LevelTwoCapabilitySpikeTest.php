@@ -9,10 +9,14 @@ use Cluion\Moduark\Analysis\Source\SourceIndexBuilder;
 use Cluion\Moduark\Analysis\Source\SourceReference;
 use Cluion\Moduark\Capability;
 use Cluion\Moduark\CapabilityRequirement;
+use Cluion\Moduark\Capabilities\CapabilityPlan;
+use Cluion\Moduark\Capabilities\CapabilityResolver;
 use Cluion\Moduark\Discovery\DiscoveredModule;
+use Cluion\Moduark\Exceptions\CapabilityResolutionFailed;
 use Cluion\Moduark\Exceptions\InvalidModuleMetadata;
 use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
 use Cluion\Moduark\Lifecycle\ModuleOrderer;
+use Cluion\Moduark\Metadata\ModuleDescriptor;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
 use Cluion\Moduark\Module;
 use Cluion\Moduark\Registry\ModuleRegistry;
@@ -28,8 +32,7 @@ use Tests\Fixtures\LevelTwo\Modules\Order\Adapters\User\UserLookupAdapter as Ord
 use Tests\Fixtures\LevelTwo\Modules\Order\OrderModule;
 use Tests\Fixtures\LevelTwo\Modules\Order\Ports\UserLookup as OrderUserLookup;
 use Tests\Fixtures\LevelTwo\Modules\User\UserModule;
-use Tests\Fixtures\LevelTwo\Support\CapabilityResolutionFailed;
-use Tests\Fixtures\LevelTwo\Support\CapabilityResolver;
+use Tests\Fixtures\LevelTwo\Support\CapabilityWiring;
 
 final class LevelTwoCapabilitySpikeTest extends TestCase
 {
@@ -37,7 +40,7 @@ final class LevelTwoCapabilitySpikeTest extends TestCase
     {
         $modules = $this->moduleClasses();
         $resolver = new CapabilityResolver;
-        $plan = $resolver->resolve($modules);
+        $plan = $resolver->resolve($this->descriptors($modules));
         $application = new Application;
         $registrar = new ModuleLifecycleRegistrar(
             $application,
@@ -46,7 +49,7 @@ final class LevelTwoCapabilitySpikeTest extends TestCase
         );
 
         $registrar->registerProviders($modules);
-        $resolver->wire($application, $plan);
+        (new CapabilityWiring)->wire($application, $plan);
 
         self::assertSame([
             CheckoutModule::class,
@@ -93,10 +96,10 @@ final class LevelTwoCapabilitySpikeTest extends TestCase
         $application = new Application;
 
         try {
-            (new CapabilityResolver)->resolve([
+            (new CapabilityResolver)->resolve($this->descriptors([
                 OrderModule::class,
                 CheckoutModule::class,
-            ]);
+            ]));
             self::fail('A missing Capability provider must fail resolution.');
         } catch (CapabilityResolutionFailed $exception) {
             self::assertSame(
@@ -144,10 +147,14 @@ final class LevelTwoCapabilitySpikeTest extends TestCase
 
     public function test_resolved_metadata_has_a_scalar_config_cache_payload(): void
     {
-        $payload = (new CapabilityResolver)->resolve($this->moduleClasses())->toArray();
+        $payload = (new CapabilityResolver)
+            ->resolve($this->descriptors($this->moduleClasses()))
+            ->toArray();
         $cached = unserialize(serialize($payload), ['allowed_classes' => false]);
+        $restored = CapabilityPlan::fromArray($payload);
 
         self::assertSame($payload, $cached);
+        self::assertSame($payload, $restored->toArray());
 
         array_walk_recursive($payload, static function (mixed $value): void {
             self::assertTrue(is_scalar($value) || $value === null);
@@ -177,7 +184,7 @@ final class LevelTwoCapabilitySpikeTest extends TestCase
     private function ambiguousProviderMessage(array $moduleClasses): string
     {
         try {
-            (new CapabilityResolver)->resolve($moduleClasses);
+            (new CapabilityResolver)->resolve($this->descriptors($moduleClasses));
             self::fail('Ambiguous Capability providers must fail resolution.');
         } catch (CapabilityResolutionFailed $exception) {
             return $exception->getMessage();
@@ -238,6 +245,15 @@ final class LevelTwoCapabilitySpikeTest extends TestCase
             UserModule::class,
             OrderModule::class,
         ];
+    }
+
+    /**
+     * @param list<class-string<Module>> $moduleClasses
+     * @return list<ModuleDescriptor>
+     */
+    private function descriptors(array $moduleClasses): array
+    {
+        return (new ModuleMetadataCompiler)->compileAll($moduleClasses);
     }
 
     private function registry(): ModuleRegistry

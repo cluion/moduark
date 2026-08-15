@@ -100,6 +100,7 @@ declare what a Module requires or provides.
 ```php
 use Cluion\Moduark\Capability;
 use Cluion\Moduark\CapabilityRequirement;
+use Cluion\Moduark\Capabilities\CapabilityResolver;
 use Cluion\Moduark\Module;
 
 interface UserLookup extends Capability
@@ -124,12 +125,23 @@ final class OrderModule extends Module
 `FindUser` is the consumer-owned Port interface and `UserModuleAdapter` is an
 instantiable Adapter implementing it. A provider declares the same Capability
 identity from `provides()`. Metadata compilation validates these declarations
-and serializes them using cache-safe class strings and arrays.
+and serializes them using cache-safe class strings and arrays. Given the complete
+compiled descriptor list, provider resolution is deterministic and side-effect
+free:
 
-This metadata does not yet resolve providers, bind Ports in Laravel's container,
-emit Capability graph edges, or enforce Level 2 rules. The preset and rule IDs
-exist so configuration can evolve without renaming the model, but their
-analyzers and runtime composition are not part of the current implementation.
+```php
+$plan = (new CapabilityResolver)->resolve($descriptors);
+```
+
+Each plan binding identifies the Capability, provider Module, consumer Module,
+Port, and Adapter. Missing providers and consumed Capabilities with multiple
+providers fail before Laravel lifecycle or container work begins.
+
+Resolution is not yet integrated into the Module lifecycle and does not bind
+Ports in Laravel's container, emit Capability graph edges, or enforce Level 2
+rules. The preset and rule IDs exist so configuration can evolve without
+renaming the model, but their analyzers and runtime composition are not part of
+the current implementation.
 
 Running the normal preset demonstrates this explicitly:
 

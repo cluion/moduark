@@ -53,8 +53,9 @@ resolution, graph, rule, and runtime slices.
 
 - Capability metadata is now a pre-release public API and requires changelog or
   migration notes if its shape changes.
-- The next slice can build provider resolution entirely from compiled
-  `ModuleDescriptor` values instead of invoking Module methods again.
+- [ADR-0017](0017-capability-provider-resolution.md) builds provider resolution
+  entirely from compiled `ModuleDescriptor` values instead of invoking Module
+  methods again.
 - Provider resolution must complete before Module provider registration or any
   Port binding so missing and ambiguous graphs remain side-effect free.
 - `module:list`, Capability graph output, Level 2 rules, and runtime composition

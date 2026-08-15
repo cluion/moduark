@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Fixtures\LevelTwo\Support;
+namespace Cluion\Moduark\Exceptions;
 
 use Cluion\Moduark\Capability;
 use Cluion\Moduark\Module;

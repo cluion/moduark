@@ -2,21 +2,23 @@
 
 declare(strict_types=1);
 
-namespace Tests\Fixtures\LevelTwo\Support;
+namespace Cluion\Moduark\Capabilities;
 
 use Cluion\Moduark\Capability;
 use Cluion\Moduark\CapabilityRequirement;
+use Cluion\Moduark\Exceptions\CapabilityResolutionFailed;
+use Cluion\Moduark\Metadata\ModuleDescriptor;
 use Cluion\Moduark\Module;
-use Illuminate\Foundation\Application;
 
 final class CapabilityResolver
 {
     /**
-     * Resolve the complete Capability graph without mutating the container.
+     * Resolve the complete Capability graph without invoking Modules or mutating
+     * the Laravel container.
      *
-     * @param list<class-string<Module>> $moduleClasses
+     * @param list<ModuleDescriptor> $descriptors
      */
-    public function resolve(array $moduleClasses): CapabilityPlan
+    public function resolve(array $descriptors): CapabilityPlan
     {
         /** @var array<class-string<Capability>, list<class-string<Module>>> $providers */
         $providers = [];
@@ -24,16 +26,14 @@ final class CapabilityResolver
         /** @var list<array{consumer: class-string<Module>, requirement: CapabilityRequirement}> $requirements */
         $requirements = [];
 
-        foreach ($moduleClasses as $moduleClass) {
-            $module = new $moduleClass;
-
-            foreach ($module->provides() as $capability) {
-                $providers[$capability][] = $moduleClass;
+        foreach ($descriptors as $descriptor) {
+            foreach ($descriptor->provides() as $capability) {
+                $providers[$capability][] = $descriptor->moduleClass();
             }
 
-            foreach ($module->requires() as $requirement) {
+            foreach ($descriptor->requires() as $requirement) {
                 $requirements[] = [
-                    'consumer' => $moduleClass,
+                    'consumer' => $descriptor->moduleClass(),
                     'requirement' => $requirement,
                 ];
             }
@@ -87,12 +87,5 @@ final class CapabilityResolver
         }
 
         return new CapabilityPlan($bindings);
-    }
-
-    public function wire(Application $application, CapabilityPlan $plan): void
-    {
-        foreach ($plan->bindings() as $binding) {
-            $application->bind($binding->port(), $binding->adapter());
-        }
     }
 }

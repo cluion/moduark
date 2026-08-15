@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Fixtures\LevelTwo\Support;
+namespace Cluion\Moduark\Capabilities;
 
 use Cluion\Moduark\Capability;
 use Cluion\Moduark\Module;
@@ -14,6 +14,23 @@ final readonly class CapabilityPlan
      */
     public function __construct(private array $bindings)
     {
+    }
+
+    /**
+     * @param list<array{
+     *     capability: class-string<Capability>,
+     *     provider: class-string<Module>,
+     *     consumer: class-string<Module>,
+     *     port: class-string,
+     *     adapter: class-string
+     * }> $values
+     */
+    public static function fromArray(array $values): self
+    {
+        return new self(array_map(
+            static fn (array $binding): CapabilityBinding => CapabilityBinding::fromArray($binding),
+            $values,
+        ));
     }
 
     /**
