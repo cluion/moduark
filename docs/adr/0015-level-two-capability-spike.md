@@ -45,11 +45,10 @@ refactoring and are too easy to duplicate silently.
   providers remain an ambiguity until a deterministic, config-cache-safe
   selection policy is accepted separately.
 
-Composition wiring under `Tests\Fixtures\LevelTwo` remains executable design
-evidence rather than published package API. Capability metadata was promoted by
-[ADR-0016](0016-capability-metadata-contract.md), and descriptor-only provider
-resolution was promoted by
-[ADR-0017](0017-capability-provider-resolution.md).
+Capability metadata, provider resolution, lifecycle preflight, and runtime
+composition were promoted by [ADR-0016](0016-capability-metadata-contract.md)
+through [ADR-0019](0019-capability-runtime-composition.md). The remaining
+Level 2 fixture classes are executable boundary evidence rather than package API.
 
 ## Candidate evaluation
 

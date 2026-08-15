@@ -36,4 +36,24 @@ final class CapabilityResolutionFailed extends RuntimeException
             implode(', ', $providers),
         ));
     }
+
+    /**
+     * @param class-string $port
+     * @param class-string<Module> $firstConsumer
+     * @param class-string<Module> $secondConsumer
+     */
+    public static function duplicatePort(
+        string $port,
+        string $firstConsumer,
+        string $secondConsumer,
+    ): self {
+        $consumers = [$firstConsumer, $secondConsumer];
+        sort($consumers, SORT_STRING);
+
+        return new self(sprintf(
+            'Capability Port [%s] is required by multiple consumer Modules [%s].',
+            $port,
+            implode(', ', $consumers),
+        ));
+    }
 }

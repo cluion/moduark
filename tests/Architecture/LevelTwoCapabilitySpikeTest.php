@@ -32,7 +32,6 @@ use Tests\Fixtures\LevelTwo\Modules\Order\Adapters\User\UserLookupAdapter as Ord
 use Tests\Fixtures\LevelTwo\Modules\Order\OrderModule;
 use Tests\Fixtures\LevelTwo\Modules\Order\Ports\UserLookup as OrderUserLookup;
 use Tests\Fixtures\LevelTwo\Modules\User\UserModule;
-use Tests\Fixtures\LevelTwo\Support\CapabilityWiring;
 
 final class LevelTwoCapabilitySpikeTest extends TestCase
 {
@@ -48,8 +47,13 @@ final class LevelTwoCapabilitySpikeTest extends TestCase
             new ModuleOrderer,
         );
 
+        self::assertFalse($application->bound(CheckoutUserLookup::class));
+        self::assertFalse($application->bound(OrderUserLookup::class));
+
         $registrar->registerProviders($modules);
-        (new CapabilityWiring)->wire($application, $plan);
+
+        self::assertTrue($application->bound(CheckoutUserLookup::class));
+        self::assertTrue($application->bound(OrderUserLookup::class));
 
         self::assertSame([
             CheckoutModule::class,

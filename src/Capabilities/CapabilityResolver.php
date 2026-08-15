@@ -58,6 +58,9 @@ final class CapabilityResolver
 
         $bindings = [];
 
+        /** @var array<class-string, class-string<Module>> $ports */
+        $ports = [];
+
         foreach ($requirements as $candidate) {
             $requirement = $candidate['requirement'];
             $matches = $providers[$requirement->capability()] ?? [];
@@ -77,11 +80,23 @@ final class CapabilityResolver
                 );
             }
 
+            $port = $requirement->port();
+
+            if (isset($ports[$port])) {
+                throw CapabilityResolutionFailed::duplicatePort(
+                    $port,
+                    $ports[$port],
+                    $candidate['consumer'],
+                );
+            }
+
+            $ports[$port] = $candidate['consumer'];
+
             $bindings[] = new CapabilityBinding(
                 $requirement->capability(),
                 $matches[0],
                 $candidate['consumer'],
-                $requirement->port(),
+                $port,
                 $requirement->adapter(),
             );
         }

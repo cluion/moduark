@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use Cluion\Moduark\CapabilityRequirement;
 use Cluion\Moduark\Capabilities\CapabilityPlan;
 use Cluion\Moduark\Capabilities\CapabilityResolver;
 use Cluion\Moduark\Exceptions\CapabilityResolutionFailed;
@@ -103,6 +104,43 @@ final class CapabilityResolverTest extends TestCase
         (new CapabilityResolver)->resolve([$provider, $consumer, $alternative]);
     }
 
+    public function test_one_port_cannot_be_bound_for_multiple_consumer_modules(): void
+    {
+        $provider = (new ModuleMetadataCompiler)->compile(UserModule::class);
+        $alpha = new ModuleDescriptor(
+            ResolutionPortConsumerAlphaModule::class,
+            [],
+            [],
+            [new CapabilityRequirement(
+                UserLookupCapability::class,
+                OrderUserLookup::class,
+                OrderUserLookupAdapter::class,
+            )],
+            [],
+        );
+        $beta = new ModuleDescriptor(
+            ResolutionPortConsumerBetaModule::class,
+            [],
+            [],
+            [new CapabilityRequirement(
+                UserLookupCapability::class,
+                OrderUserLookup::class,
+                OrderUserLookupAdapter::class,
+            )],
+            [],
+        );
+
+        $this->expectException(CapabilityResolutionFailed::class);
+        $this->expectExceptionMessage(
+            'Capability Port ['.OrderUserLookup::class
+            .'] is required by multiple consumer Modules ['
+            .ResolutionPortConsumerAlphaModule::class.', '
+            .ResolutionPortConsumerBetaModule::class.'].',
+        );
+
+        (new CapabilityResolver)->resolve([$beta, $provider, $alpha]);
+    }
+
     public function test_plan_payload_round_trips_without_objects(): void
     {
         $payload = $this->resolve([
@@ -174,5 +212,13 @@ final class CapabilityResolverTest extends TestCase
 }
 
 final class ResolutionAlternativeUserModule extends Module
+{
+}
+
+final class ResolutionPortConsumerAlphaModule extends Module
+{
+}
+
+final class ResolutionPortConsumerBetaModule extends Module
 {
 }

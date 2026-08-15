@@ -138,11 +138,14 @@ Port, and Adapter. Missing providers and consumed Capabilities with multiple
 providers fail before any Module ServiceProvider or container work begins.
 
 The Module lifecycle runs this resolution as a preflight after direct dependency
-ordering and before registering any Module ServiceProvider. It does not yet bind
-Ports in Laravel's container, emit Capability graph edges, or enforce Level 2
-rules. The preset and rule IDs exist so configuration can evolve without
-renaming the model, but their analyzers and runtime composition are not part of
-the current implementation.
+ordering and before registering any Module ServiceProvider. After every provider
+registers successfully, it binds each consumer Port to its declared Adapter in
+Laravel's container. A Port may belong to only one consumer requirement across
+the complete Module graph; collisions fail during preflight instead of relying
+on Laravel's last-binding-wins behavior. Capability graph edges and Level 2
+structural rules remain unavailable. The preset and rule IDs exist so
+configuration can evolve without renaming the model, but their analyzers are not
+part of the current implementation.
 
 Running the normal preset demonstrates this explicitly:
 

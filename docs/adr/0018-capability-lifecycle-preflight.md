@@ -37,7 +37,9 @@ and `ModuleLifecycleRegistrar::registerProviders()` return contract.
 ## Acceptance evidence
 
 - `ModuleLifecycleRegistrarTest` proves successful Capability preflight
-  preserves dependency-first registration and does not bind the consumer Port.
+  preserves dependency-first registration. Port binding was deliberately absent
+  from this slice and is now governed by
+  [ADR-0019](0019-capability-runtime-composition.md).
 - The same test proves missing and ambiguous providers fail before any
   ServiceProvider `register()` event.
 - `PackageBaselineTest` proves Laravel registers the production
@@ -47,11 +49,12 @@ and `ModuleLifecycleRegistrar::registerProviders()` return contract.
 
 ## Consequences
 
-- Package boot now enforces a resolvable Capability provider graph whenever
-  Modules declare `requires()` metadata, even though Level 2 structural rules
-  and Port wiring remain unavailable.
+- This slice made package boot enforce a resolvable Capability provider graph
+  whenever Modules declare `requires()` metadata. ADR-0019 subsequently added
+  Port wiring; Level 2 structural rules remain unavailable.
 - Direct dependency failures and cycles retain precedence because ordering is
   completed before Capability resolution; every failure remains side-effect
   free.
-- The next runtime composition slice can focus on the binding transaction and
-  plan ownership without reopening provider selection semantics.
+- Runtime composition and registrar-local plan ownership are defined by
+  [ADR-0019](0019-capability-runtime-composition.md) without reopening provider
+  selection semantics.

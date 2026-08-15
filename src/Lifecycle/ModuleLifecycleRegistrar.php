@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cluion\Moduark\Lifecycle;
 
+use Cluion\Moduark\Capabilities\CapabilityPlan;
 use Cluion\Moduark\Capabilities\CapabilityResolver;
 use Cluion\Moduark\Metadata\ModuleDescriptor;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
@@ -21,7 +22,8 @@ final readonly class ModuleLifecycleRegistrar
     }
 
     /**
-     * Compile and validate the complete graph before invoking any provider.
+     * Compile and validate the complete graph before invoking any provider,
+     * then apply Capability bindings after every provider has registered.
      *
      * @param list<class-string<Module>> $moduleClasses
      * @return list<ModuleDescriptor>
@@ -30,7 +32,7 @@ final readonly class ModuleLifecycleRegistrar
     {
         $ordered = $this->orderer->order($this->compiler->compileAll($moduleClasses));
 
-        ($this->capabilityResolver ?? new CapabilityResolver)->resolve($ordered);
+        $capabilities = ($this->capabilityResolver ?? new CapabilityResolver)->resolve($ordered);
 
         foreach ($ordered as $descriptor) {
             foreach ($descriptor->providers() as $provider) {
@@ -38,6 +40,15 @@ final readonly class ModuleLifecycleRegistrar
             }
         }
 
+        $this->bindCapabilities($capabilities);
+
         return $ordered;
+    }
+
+    private function bindCapabilities(CapabilityPlan $capabilities): void
+    {
+        foreach ($capabilities->bindings() as $binding) {
+            $this->application->bind($binding->port(), $binding->adapter());
+        }
     }
 }

@@ -17,6 +17,7 @@ use Cluion\Moduark\Module;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class ModuleLifecycleRegistrarTest extends TestCase
 {
@@ -113,7 +114,7 @@ final class ModuleLifecycleRegistrarTest extends TestCase
         }
     }
 
-    public function test_capability_preflight_preserves_registration_order_without_binding_ports(): void
+    public function test_capability_preflight_preserves_registration_order_and_binds_ports_after_providers(): void
     {
         $ordered = $this->registrar->registerProviders([
             LifecycleCapabilityConsumerModule::class,
@@ -131,7 +132,11 @@ final class ModuleLifecycleRegistrarTest extends TestCase
             'user.register',
             'order.register',
         ], $this->probe->events());
-        self::assertFalse($this->application->bound(LifecycleUserLookupPort::class));
+        self::assertTrue($this->application->bound(LifecycleUserLookupPort::class));
+        self::assertInstanceOf(
+            LifecycleUserLookupAdapter::class,
+            $this->application->make(LifecycleUserLookupPort::class),
+        );
     }
 
     public function test_missing_capability_provider_is_rejected_before_any_lifecycle_side_effect(): void
@@ -149,6 +154,7 @@ final class ModuleLifecycleRegistrarTest extends TestCase
             ]);
         } finally {
             self::assertSame([], $this->probe->events());
+            self::assertFalse($this->application->bound(LifecycleUserLookupPort::class));
         }
     }
 
@@ -165,6 +171,43 @@ final class ModuleLifecycleRegistrarTest extends TestCase
             ]);
         } finally {
             self::assertSame([], $this->probe->events());
+            self::assertFalse($this->application->bound(LifecycleUserLookupPort::class));
+        }
+    }
+
+    public function test_duplicate_capability_port_is_rejected_before_any_lifecycle_side_effect(): void
+    {
+        $this->expectException(CapabilityResolutionFailed::class);
+        $this->expectExceptionMessage('is required by multiple consumer Modules');
+
+        try {
+            $this->registrar->registerProviders([
+                LifecycleCapabilityProviderModule::class,
+                LifecycleCapabilityConsumerModule::class,
+                LifecycleSecondCapabilityConsumerModule::class,
+            ]);
+        } finally {
+            self::assertSame([], $this->probe->events());
+            self::assertFalse($this->application->bound(LifecycleUserLookupPort::class));
+        }
+    }
+
+    public function test_provider_failure_does_not_apply_capability_bindings(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Capability consumer provider registration failed.');
+
+        try {
+            $this->registrar->registerProviders([
+                LifecycleCapabilityProviderModule::class,
+                LifecycleFailingCapabilityConsumerModule::class,
+            ]);
+        } finally {
+            self::assertSame([
+                'user.register',
+                'failing.register',
+            ], $this->probe->events());
+            self::assertFalse($this->application->bound(LifecycleUserLookupPort::class));
         }
     }
 
@@ -251,6 +294,16 @@ final class LifecyclePaymentServiceProvider extends RecordingServiceProvider
     protected function moduleName(): string
     {
         return 'payment';
+    }
+}
+
+final class LifecycleFailingServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        $this->app->make(LifecycleProbe::class)->record('failing.register');
+
+        throw new RuntimeException('Capability consumer provider registration failed.');
     }
 }
 
@@ -419,6 +472,56 @@ final class LifecycleCapabilityConsumerModule extends Module
     public function providers(): array
     {
         return [LifecycleOrderServiceProvider::class];
+    }
+
+    /** @return list<CapabilityRequirement> */
+    public function requires(): array
+    {
+        return [new CapabilityRequirement(
+            LifecycleUserLookupCapability::class,
+            LifecycleUserLookupPort::class,
+            LifecycleUserLookupAdapter::class,
+        )];
+    }
+}
+
+final class LifecycleFailingCapabilityConsumerModule extends Module
+{
+    /** @return list<class-string<Module>> */
+    public function dependencies(): array
+    {
+        return [LifecycleCapabilityProviderModule::class];
+    }
+
+    /** @return list<class-string<ServiceProvider>> */
+    public function providers(): array
+    {
+        return [LifecycleFailingServiceProvider::class];
+    }
+
+    /** @return list<CapabilityRequirement> */
+    public function requires(): array
+    {
+        return [new CapabilityRequirement(
+            LifecycleUserLookupCapability::class,
+            LifecycleUserLookupPort::class,
+            LifecycleUserLookupAdapter::class,
+        )];
+    }
+}
+
+final class LifecycleSecondCapabilityConsumerModule extends Module
+{
+    /** @return list<class-string<Module>> */
+    public function dependencies(): array
+    {
+        return [LifecycleCapabilityProviderModule::class];
+    }
+
+    /** @return list<class-string<ServiceProvider>> */
+    public function providers(): array
+    {
+        return [LifecyclePaymentServiceProvider::class];
     }
 
     /** @return list<CapabilityRequirement> */
