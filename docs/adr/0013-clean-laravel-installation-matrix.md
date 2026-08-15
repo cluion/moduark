@@ -16,7 +16,9 @@ and run the Level 1 tools without publishing configuration.
 - `composer test:installation` creates disposable applications with Composer's
   official `laravel/laravel` project for majors 12 and 13.
 - The runner installs the current checkout as `cluion/moduark:dev-main` through
-  a Composer path repository. It does not require a remote or published tag.
+  a Composer path repository. The repository explicitly maps the current
+  checkout to `dev-main` so the same acceptance path works from branch and tag
+  refs. It does not require a remote or published tag.
 - Composer home and cache directories live below the disposable matrix root so
   the test does not depend on writable user-level caches.
 - Each application must expose all four commands through package auto-discovery,

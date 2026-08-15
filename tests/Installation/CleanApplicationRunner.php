@@ -115,12 +115,22 @@ final class CleanApplicationRunner
             'The clean Laravel application unexpectedly contains config/modules.php.',
         );
 
+        $repository = json_encode([
+            'type' => 'path',
+            'url' => $this->packagePath,
+            'options' => [
+                'versions' => [
+                    'cluion/moduark' => 'dev-main',
+                ],
+            ],
+        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+
         $this->command([
             'composer',
             'config',
+            '--json',
             'repositories.moduark',
-            'path',
-            $this->packagePath,
+            $repository,
         ], $application, $environment);
         $this->command([
             'composer',
