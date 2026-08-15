@@ -94,12 +94,21 @@ final class SourceIndexBuilderTest extends TestCase
             ),
         ]);
 
-        $this->expectException(SourceAnalysisFailed::class);
-        $this->expectExceptionMessage(
-            "Unable to parse Module source [{$modulePath}/BrokenModule.php:3]",
-        );
-
-        (new SourceIndexBuilder($registry))->build();
+        try {
+            (new SourceIndexBuilder($registry))->build();
+            self::fail('Invalid PHP must fail source analysis.');
+        } catch (SourceAnalysisFailed $exception) {
+            self::assertStringContainsString(
+                "Unable to parse Module source [{$modulePath}/BrokenModule.php:3]",
+                $exception->getMessage(),
+            );
+            self::assertSame('MOD-ANALYSIS-001', $exception->diagnosticCode());
+            self::assertSame("{$modulePath}/BrokenModule.php:3", $exception->location());
+            self::assertSame(
+                'Fix the PHP syntax at the reported location, then rerun module:check.',
+                $exception->suggestion(),
+            );
+        }
     }
 
     public function test_duplicate_case_insensitive_symbols_are_rejected(): void

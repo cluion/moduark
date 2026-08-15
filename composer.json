@@ -24,6 +24,7 @@
     },
     "autoload-dev": {
         "psr-4": {
+            "Benchmarks\\": "benchmarks/",
             "Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/"
         }
@@ -45,6 +46,8 @@
             "@prepare",
             "@php vendor/bin/phpunit --testsuite=Feature"
         ],
+        "benchmark": "@benchmark:architecture",
+        "benchmark:architecture": "@php benchmarks/run.php",
         "analyse": "@php vendor/bin/phpstan analyse --ansi --memory-limit=1G",
         "verify": [
             "@test",

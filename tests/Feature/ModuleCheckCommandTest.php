@@ -16,6 +16,7 @@ use Cluion\Moduark\Architecture\RuleResult;
 use Cluion\Moduark\Architecture\Severity;
 use Cluion\Moduark\Architecture\Violation;
 use Cluion\Moduark\Configuration\ModulesConfig;
+use Cluion\Moduark\Exceptions\SourceAnalysisFailed;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 use Tests\TestCase;
@@ -159,6 +160,36 @@ final class ModuleCheckCommandTest extends TestCase
         $this->command('module:check --level=0')
             ->expectsOutputToContain(
                 'Architecture analysis could not be completed: Fixture analyzer failed.',
+            )
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
+    }
+
+    public function test_source_analysis_failure_is_an_actionable_tool_error(): void
+    {
+        $this->application()->instance(
+            ArchitectureCheck::class,
+            new class implements ArchitectureCheck
+            {
+                public function check(?Level $level = null): CheckReport
+                {
+                    throw SourceAnalysisFailed::invalidSyntax(
+                        '/app/Modules/Order/Actions/CreateOrder.php',
+                        17,
+                        'Unexpected token "}"',
+                    );
+                }
+            },
+        );
+
+        $this->command('module:check')
+            ->expectsOutputToContain('Architecture source analysis could not be completed.')
+            ->expectsOutputToContain('MOD-ANALYSIS-001 Unable to parse Module source')
+            ->expectsOutputToContain('Location: /app/Modules/Order/Actions/CreateOrder.php:17')
+            ->expectsOutputToContain(
+                'Suggestion: Fix the PHP syntax at the reported location, then rerun module:check.',
+            )
+            ->expectsOutputToContain(
+                'Result: incomplete; no architecture pass result was produced.',
             )
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }

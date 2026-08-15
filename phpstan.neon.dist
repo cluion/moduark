@@ -1,6 +1,7 @@
 parameters:
     level: max
     paths:
+        - benchmarks
         - config
         - src
         - tests

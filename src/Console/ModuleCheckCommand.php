@@ -10,6 +10,7 @@ use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Architecture\Level;
 use Cluion\Moduark\Architecture\RuleId;
 use Cluion\Moduark\Architecture\Violation;
+use Cluion\Moduark\Exceptions\SourceAnalysisFailed;
 use Illuminate\Console\Command;
 use InvalidArgumentException;
 use RuntimeException;
@@ -44,6 +45,10 @@ final class ModuleCheckCommand extends Command
 
         try {
             $report = $this->checker->check($level);
+        } catch (SourceAnalysisFailed $exception) {
+            $this->renderSourceAnalysisFailure($exception);
+
+            return ExitPolicy::TOOL_ERROR;
         } catch (InvalidArgumentException|RuntimeException $exception) {
             $this->components->error(
                 'Architecture analysis could not be completed: '.$exception->getMessage(),
@@ -102,6 +107,19 @@ final class ModuleCheckCommand extends Command
         ));
 
         return $report->exitCode($this->exitPolicy);
+    }
+
+    private function renderSourceAnalysisFailure(SourceAnalysisFailed $exception): void
+    {
+        $this->components->error('Architecture source analysis could not be completed.');
+        $this->line($exception->diagnosticCode().' '.$exception->getMessage());
+
+        if ($exception->location() !== null) {
+            $this->line('Location: '.$exception->location());
+        }
+
+        $this->line('Suggestion: '.$exception->suggestion());
+        $this->line('Result: incomplete; no architecture pass result was produced.');
     }
 
     private function level(): Level|false|null
