@@ -187,6 +187,7 @@ php artisan module:graph Order --view=capability
 php artisan module:graph --view=capability --format=mermaid
 php artisan module:graph --view=combined
 php artisan module:graph Order --view=combined --format=mermaid
+php artisan module:inspect Order
 ```
 
 The Capability view preserves `requires` and `provides` as different edge kinds.
@@ -197,6 +198,12 @@ meaning. JSON graph output remains separate work. See
 [ADR-0022](adr/0022-capability-graph-domain.md),
 [ADR-0023](adr/0023-capability-graph-output.md), and
 [ADR-0024](adr/0024-combined-graph-output.md).
+
+`module:inspect {module}` reuses those validated graphs to display one Module's
+direct dependency status and resolved Capability details, together with its
+ServiceProviders and convention-based Public API. It deliberately does not
+claim the Level 3 explicit exports contract. See
+[ADR-0025](adr/0025-module-inspection.md).
 
 Running the normal preset demonstrates this explicitly:
 

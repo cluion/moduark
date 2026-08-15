@@ -59,3 +59,5 @@ to the entire application.
   recursive dependency closure.
 - Future JSON output can serialize the same two validated graphs and explicit
   edge kinds instead of reverse-engineering text or Mermaid output.
+- [ADR-0025](0025-module-inspection.md) subsequently reuses the combined graph
+  to inspect one Module without rebuilding relationship semantics.

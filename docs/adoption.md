@@ -206,9 +206,9 @@ the shared default after the complete eight-rule check exits 0.
 
 Inspect both the direct and inverted relationships before enabling Level 2:
 
-> The Capability and combined views are currently available on `main` and are
-> scheduled for the next `0.2` beta; the tagged `v0.2.0-beta.1` package does not
-> include them.
+> The Capability and combined views plus `module:inspect` are currently
+> available on `main` and are scheduled for the next `0.2` beta; the tagged
+> `v0.2.0-beta.1` package does not include them.
 
 ```bash
 php artisan module:graph
@@ -217,12 +217,16 @@ php artisan module:graph Order --view=capability
 php artisan module:graph --view=capability --format=mermaid
 php artisan module:graph --view=combined
 php artisan module:graph Order --view=combined --format=mermaid
+php artisan module:inspect Order
 ```
 
 The Capability neighborhood keeps the selected Module's providers and sibling
 consumers visible. It does not flatten these edges into direct Module
 dependencies. The combined view retains all three labeled edge kinds and uses
-the union of direct and Capability neighborhoods.
+the union of direct and Capability neighborhoods. `module:inspect` adds the
+selected Module's resolved Capability provider, Port, Adapter, ServiceProviders,
+dependency status, and current convention-based Public API. It does not define
+the future Level 3 explicit export metadata.
 
 Level 3 remains unavailable and additionally requires database ownership,
 persistence isolation, and explicit exports.

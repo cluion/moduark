@@ -147,7 +147,10 @@ final class CleanApplicationRunner
 
         $commands = $this->artisan($application, ['list', '--raw'], $environment);
 
-        foreach (['make:module', 'module:list', 'module:check', 'module:graph'] as $command) {
+        foreach (
+            ['make:module', 'module:list', 'module:check', 'module:graph', 'module:inspect']
+            as $command
+        ) {
             $this->assertMatches(
                 '/^'.preg_quote($command, '/').'\b/m',
                 $commands,
@@ -170,6 +173,10 @@ final class CleanApplicationRunner
         $list = $this->artisan($application, ['module:list'], $environment);
         $this->assertContains('User', $list, 'module:list did not report the generated User Module.');
         $this->assertContains('| 1', $list, 'module:list did not use the default Level 1 configuration.');
+
+        $inspection = $this->artisan($application, ['module:inspect', 'User'], $environment);
+        $this->assertContains('Public API (convention)', $inspection, 'module:inspect omitted the Public API.');
+        $this->assertContains('UserModule', $inspection, 'module:inspect omitted the generated Module.');
 
         $check = $this->artisan($application, ['module:check'], $environment);
         $this->assertContains(
@@ -211,6 +218,16 @@ final class CleanApplicationRunner
                 'Architecture check passed: 6 rules evaluated at Level 1 (Modular).',
                 $cachedCheck,
                 'module:check did not survive Laravel configuration caching.',
+            );
+            $cachedInspection = $this->artisan(
+                $application,
+                ['module:inspect', 'User'],
+                $environment,
+            );
+            $this->assertContains(
+                'UserModule',
+                $cachedInspection,
+                'module:inspect did not survive Laravel configuration caching.',
             );
         } finally {
             $this->artisan($application, ['config:clear'], $environment);

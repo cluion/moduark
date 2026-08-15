@@ -27,6 +27,7 @@ use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Console\MakeModuleCommand;
 use Cluion\Moduark\Console\ModuleCheckCommand;
 use Cluion\Moduark\Console\ModuleGraphCommand;
+use Cluion\Moduark\Console\ModuleInspectCommand;
 use Cluion\Moduark\Console\ModuleListCommand;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
 use Cluion\Moduark\Graph\CapabilityGraphBuilder;
@@ -38,6 +39,7 @@ use Cluion\Moduark\Graph\Export\TextCapabilityGraphExporter;
 use Cluion\Moduark\Graph\Export\TextCombinedGraphExporter;
 use Cluion\Moduark\Graph\Export\TextModuleGraphExporter;
 use Cluion\Moduark\Graph\ModuleGraphBuilder;
+use Cluion\Moduark\Inspection\ModuleInspectionBuilder;
 use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
 use Cluion\Moduark\Lifecycle\ModuleOrderer;
 use Cluion\Moduark\Lifecycle\OrderedModules;
@@ -98,6 +100,7 @@ final class ModuarkServiceProvider extends ServiceProvider
         $this->app->singleton(MermaidCombinedGraphExporter::class);
         $this->app->singleton(TextModuleGraphExporter::class);
         $this->app->singleton(MermaidModuleGraphExporter::class);
+        $this->app->singleton(ModuleInspectionBuilder::class);
         $this->app->singleton(ModuleOrderer::class);
         $this->app->singleton(CapabilityResolver::class);
         $this->app->singleton(ModuleLifecycleRegistrar::class);
@@ -140,6 +143,7 @@ final class ModuarkServiceProvider extends ServiceProvider
             MakeModuleCommand::class,
             ModuleCheckCommand::class,
             ModuleGraphCommand::class,
+            ModuleInspectCommand::class,
             ModuleListCommand::class,
         ]);
 

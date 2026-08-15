@@ -63,6 +63,7 @@ php artisan module:graph --format=mermaid
 php artisan module:graph --view=capability
 php artisan module:graph --view=capability --format=mermaid
 php artisan module:graph --view=combined
+php artisan module:inspect Order
 ```
 
 The default configuration uses Level 1, so a successful check evaluates six
@@ -189,6 +190,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `module:list` | List discovered Modules in deterministic order |
 | `module:check [--level=0..3]` | Run the effective architecture rules |
 | `module:graph [module] [--view=module\|capability\|combined] [--format=text\|mermaid]` | Render direct, Capability, or combined relationships and optionally select one neighborhood |
+| `module:inspect {module}` | Inspect one Module's identity, dependencies, providers, Capabilities, and Public API convention |
 
 `module:check` exit codes are stable within the beta contract:
 
@@ -217,6 +219,15 @@ later work. These views are currently on `main` and are scheduled for the next
 `0.2` beta; they are not part of the tagged `v0.2.0-beta.1` package.
 `module:check` does
 not yet support JSON, suppressions, or per-Module filtering.
+
+Use `module:inspect Order` when one Module needs more detail than the graph. It
+shows the effective architecture level, discovered or missing direct
+dependencies, Module ServiceProviders, each required Capability's resolved
+provider, consumer Port and Adapter, provided Capabilities, and symbols exposed
+by the current `Contracts/`, `Data/`, `Events/`, and Module-entry convention.
+This is an inspection of today's Public API convention, not the future Level 3
+explicit `exports()` contract. The command is currently on `main` for the next
+`0.2` beta and is not part of `v0.2.0-beta.1`.
 
 Application bootstrap happens before Artisan invokes a command. A configuration,
 discovery, metadata, or runtime Capability-resolution exception raised during
@@ -273,8 +284,9 @@ Level 2 presets. Level 2 includes typed Capability metadata, descriptor-only
 provider resolution, lifecycle preflight, consumer-owned Port wiring,
 Capability contract validation, and source-enforced Adapter boundaries. Current
 `main` additionally includes deterministic text or Mermaid Capability and
-combined graph output for the next `0.2` beta. Database or migration ownership,
-raw SQL analysis, explicit exports, JSON diagnostics, and IDE integration remain
-later work. Level 3 rule names in configuration are not claims of enforcement.
+combined graph output plus `module:inspect` for the next `0.2` beta. Database or
+migration ownership, raw SQL analysis, explicit exports, JSON diagnostics, and
+IDE integration remain later work. Level 3 rule names in configuration are not
+claims of enforcement.
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).
