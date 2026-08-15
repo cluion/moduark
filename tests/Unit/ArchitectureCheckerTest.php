@@ -7,6 +7,7 @@ namespace Tests\Unit;
 use Cluion\Moduark\Analysis\ArchitectureChecker;
 use Cluion\Moduark\Analysis\Boundary\ConventionPublicApi;
 use Cluion\Moduark\Analysis\RuleRunner;
+use Cluion\Moduark\Analysis\Rules\AdapterBoundariesRule;
 use Cluion\Moduark\Analysis\Rules\CapabilityContractsRule;
 use Cluion\Moduark\Analysis\Rules\CyclesRule;
 use Cluion\Moduark\Analysis\Rules\InternalApiAccessRule;
@@ -20,6 +21,7 @@ use Cluion\Moduark\Architecture\RulePresets;
 use Cluion\Moduark\Architecture\RuleResolver;
 use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Discovery\DiscoveredModule;
+use Cluion\Moduark\Exceptions\SourceAnalysisFailed;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
 use Cluion\Moduark\Module;
 use Cluion\Moduark\Registry\ModuleRegistry;
@@ -102,6 +104,41 @@ final class ArchitectureCheckerTest extends TestCase
         self::assertSame('MOD-DEPENDENCY-002', $report->errors()[0]->code());
     }
 
+    public function test_adapter_rule_alone_still_builds_the_source_index(): void
+    {
+        $path = $this->temporaryPath.'/OrganizationModule.php';
+        self::assertNotFalse(file_put_contents($path, "<?php\nfinal class InvalidSource {"));
+        $registry = new ModuleRegistry([
+            new DiscoveredModule(
+                'Organization',
+                OrganizationModule::class,
+                $path,
+                __NAMESPACE__,
+            ),
+        ]);
+        $configuration = ModulesConfig::from([
+            'path' => $this->temporaryPath,
+            'architecture' => [
+                'level' => 0,
+                'rules' => [
+                    'adapter_boundaries' => true,
+                ],
+            ],
+        ], []);
+        $checker = new ArchitectureChecker(
+            $registry,
+            new ModuleMetadataCompiler,
+            new SourceIndexBuilder($registry),
+            $configuration,
+            new RuleResolver(new RulePresets),
+            $this->runner(),
+        );
+
+        $this->expectException(SourceAnalysisFailed::class);
+
+        $checker->check(Level::Organization);
+    }
+
     public function test_internal_rule_alone_still_builds_the_source_index(): void
     {
         $registry = $this->fixtureRegistry();
@@ -131,6 +168,7 @@ final class ArchitectureCheckerTest extends TestCase
             new CyclesRule,
             new InternalApiAccessRule(new ConventionPublicApi),
             new CapabilityContractsRule,
+            new AdapterBoundariesRule,
         ]);
     }
 

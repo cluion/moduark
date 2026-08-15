@@ -11,12 +11,13 @@ preset plus explicit boolean overrides into an effective rule set, and
 |---:|---|---|---|
 | 0 | Organization | Implemented | Valid, uniquely identified Module structure |
 | 1 | Modular | Implemented | Explicit dependencies, acyclic graph, provider-owned Public API |
-| 2 | Decoupled | Reserved, incomplete | Consumer-owned Ports, adapters, capability contracts |
+| 2 | Decoupled | Implemented in unreleased `0.2` | Consumer-owned Ports, adapters, capability contracts |
 | 3 | Isolated | Reserved, incomplete | Model, database, migration, transaction, and export boundaries |
 
-The package default is Level 1. Selecting Level 2 or Level 3 with their normal
-presets returns exit code 2 because at least one additional enabled rule remains
-unavailable. That is an incomplete analysis, not an architecture pass.
+The package default is Level 1. In this unreleased `0.2` branch, the normal
+Level 2 preset has eight implemented rules and can produce a complete pass.
+Level 3 still returns exit code 2 because enabled rules remain unavailable; that
+is an incomplete analysis, not an architecture pass.
 
 ## Preset Matrix
 
@@ -32,7 +33,7 @@ preset leaves the rule disabled.
 | `cycles` | — | E | E | E | Yes |
 | `internal_api_access` | — | E | E | E | Yes |
 | `capability_contracts` | — | — | E | E | Yes |
-| `adapter_boundaries` | — | — | E | E | No |
+| `adapter_boundaries` | — | — | E | E | Yes |
 | `cross_module_model_access` | — | — | — | E | No |
 | `database_ownership` | — | — | — | E | No |
 | `migration_ownership` | — | — | — | E | No |
@@ -40,8 +41,10 @@ preset leaves the rule disabled.
 | `cross_module_transactions` | — | — | — | W | No |
 | `explicit_public_exports` | — | — | — | E | No |
 
-Overrides may disable unavailable rules, but doing so does not create a Level 2
-or Level 3 guarantee. The beta supports Level 0 and Level 1 as complete products.
+Disabling an enabled rule weakens that preset's guarantee. The published `0.1`
+beta supports Level 0 and Level 1; the current unreleased branch additionally
+implements the complete Level 2 preset. Disabling unavailable Level 3 rules does
+not create a Level 3 guarantee.
 
 ## Level 0 — Organization
 
@@ -92,10 +95,9 @@ and `instanceof`. It does not infer PHPDoc, dynamic strings, or an unused import
 
 ## Level 2 — Decoupled
 
-Level 2 is reserved for consumer-owned Ports, adapter boundaries, and typed
-capability requirements/providers. The unreleased `0.2` work includes the first
-metadata contract: an application can define a typed Capability identity and
-declare what a Module requires or provides.
+Level 2 adds consumer-owned Ports, provider-scoped Adapters, and typed Capability
+requirements/providers. An application defines a typed Capability identity and
+declares what a Module requires or provides.
 
 ```php
 use Cluion\Moduark\Capability;
@@ -156,8 +158,28 @@ not violate the rule. Metadata compilation separately rejects invalid Capability
 identities, non-interface Ports, invalid Adapters, and duplicates inside one
 Module before architecture rules run.
 
-Capability graph output and the `adapter_boundaries` source rule remain
-unavailable. The Level 2 preset therefore remains incomplete.
+The source-backed `adapter_boundaries` rule enforces the accepted inversion
+boundary:
+
+- `MOD-ADAPTER-001`: the Port must be owned by the consumer below exact
+  `Ports/`;
+- `MOD-ADAPTER-002`: the Adapter must be owned by the consumer below exact
+  `Adapters/{Provider}/`;
+- `MOD-ADAPTER-003`: cross-Module code outside Module dependency metadata must
+  pass through a declared Capability Adapter;
+- `MOD-ADAPTER-004`: an Adapter may cross only into its selected provider;
+- `MOD-ADAPTER-005`: consumer core code may not reference its concrete Adapter
+  and must depend on the Port.
+
+The provider must not reference a consumer Port or Adapter. The direct
+`dependencies()` entry remains visible metadata and authorizes the consumer
+Adapter's provider reference; other consumer core files cannot use that
+exception. Provider selection errors remain owned by `capability_contracts`, so
+the source rule defers provider-specific checks when the provider graph is
+missing or ambiguous instead of emitting cascading diagnostics.
+
+Capability graph output remains separate work; it does not make the Level 2
+enforcement preset incomplete.
 
 Running the normal preset demonstrates this explicitly:
 
@@ -165,8 +187,8 @@ Running the normal preset demonstrates this explicitly:
 php artisan module:check --level=2
 ```
 
-The command evaluates `capability_contracts`, lists only `adapter_boundaries` as
-unavailable, and exits 2.
+On a valid architecture, the command evaluates all eight Level 2 rules and exits
+0. Violations exit 1 using the stable diagnostics above.
 
 ## Level 3 — Isolated
 

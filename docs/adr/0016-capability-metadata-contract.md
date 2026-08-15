@@ -34,7 +34,8 @@ resolution, graph, rule, and runtime slices.
   these fields existed remain readable with empty defaults.
 - This slice does not resolve providers, mutate Laravel container bindings,
   implement `capability_contracts` or `adapter_boundaries`, or add Capability
-  graph output. Level 2 therefore remains incomplete and still exits 2.
+  graph output. At this slice's acceptance, Level 2 therefore remained
+  incomplete and exited 2.
 
 ## Acceptance evidence
 

@@ -188,16 +188,22 @@ This weakens the Level 1 guarantee for the entire application. The beta has no
 per-file suppression, expiry, or baseline mechanism, so a broad override should
 not be presented as a fully passing Level 1 architecture.
 
-## Do Not Adopt Level 2 or Level 3 Yet
+## Level 2 Requires the Unreleased `0.2` Branch
 
-Level 2 now has typed Capability metadata, runtime composition, and the
-`capability_contracts` rule, but its `adapter_boundaries` analyzer remains
-unavailable. Selecting the normal Level 2 preset therefore returns exit code 2.
-Disabling the remaining rule does not provide the intended Level 2 guarantee.
+The current `0.2` development branch completes the eight-rule Level 2 preset:
+typed Capability metadata, provider preflight, runtime Port-to-Adapter wiring,
+Capability contracts, and source-backed Adapter boundaries. The published
+`0.1` beta does not contain this contract, so Packagist consumers should remain
+on Level 1 until a `0.2` beta is released unless they deliberately test a path
+repository or development branch.
 
-Remain on Level 1 until the complete Level 2 preset is implemented and
-documented. Level 3 additionally requires database ownership, persistence
-isolation, and explicit exports.
+Before selecting Level 2, give every consumer its own interface below `Ports/`,
+place each declared Adapter below `Adapters/{Provider}/`, and keep provider API
+references out of consumer core code. Run `module:check --level=2`; only change
+the shared default after the complete eight-rule check exits 0.
+
+Level 3 remains unavailable and additionally requires database ownership,
+persistence isolation, and explicit exports.
 
 ## Adoption Checklist
 
@@ -209,5 +215,7 @@ isolation, and explicit exports.
 - [ ] Cross-Module references target only `Contracts/`, `Data/`, `Events/`, or
       the Module entry class.
 - [ ] `module:check --level=1` completes with exit 0.
+- [ ] Before Level 2 adoption, consumer Ports and provider-scoped Adapters pass
+      `module:check --level=2` with all eight rules enabled.
 - [ ] Configuration and CI both run the same default Level.
 - [ ] Any rule override has an owner, reason, and removal condition.

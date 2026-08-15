@@ -4,11 +4,10 @@ Moduark is a Laravel-native modular architecture toolkit. It keeps Modules in a
 normal Laravel application while making their dependencies, lifecycle order,
 resources, and Level 1 boundaries executable and inspectable.
 
-> **Pre-release status:** the current implementation guarantees Level 0 and
-> Level 1 only. Unreleased Level 2 work includes Capability metadata, runtime
-> composition, and the `capability_contracts` rule, but `adapter_boundaries`
-> remains unavailable. The normal Level 2 preset therefore still reports an
-> incomplete analysis with exit code 2.
+> **Pre-release status:** the published `0.1` beta guarantees Level 0 and Level
+> 1. The unreleased `0.2` branch also completes Level 2 with typed Capability
+> metadata, runtime composition, and both Capability architecture rules. Level
+> 3 remains incomplete.
 
 ## Requirements
 
@@ -252,9 +251,10 @@ contract.
 
 The released `0.1` beta guarantees foundation plus Level 1. Unreleased `0.2`
 work now includes typed Capability metadata and descriptor-only provider
-resolution with lifecycle preflight and consumer-owned Port wiring. Structural
-adapter rules, database or migration ownership, raw SQL analysis, explicit
-exports, JSON diagnostics, and IDE integration remain later work. Their names
-in configuration are not claims of enforcement.
+resolution with lifecycle preflight, consumer-owned Port wiring, Capability
+contract validation, and source-enforced Adapter boundaries. Capability graph
+output, database or migration ownership, raw SQL analysis, explicit exports,
+JSON diagnostics, and IDE integration remain later work. Level 3 rule names in
+configuration are not claims of enforcement.
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

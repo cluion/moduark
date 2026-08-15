@@ -59,5 +59,6 @@ leave Capability Port bindings that imply composition completed successfully.
   the same container. Consumers that need different Adapters must own distinct
   Port types.
 - [ADR-0020](0020-capability-contracts-rule.md) subsequently implements the
-  metadata-only `capability_contracts` rule. Level 2 remains incomplete until
-  adapter boundary enforcement and graph observability are implemented.
+  metadata-only `capability_contracts` rule, and
+  [ADR-0021](0021-adapter-boundaries-rule.md) implements Adapter boundary
+  enforcement. Capability graph observability remains separate work.

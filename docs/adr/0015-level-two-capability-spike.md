@@ -47,8 +47,10 @@ refactoring and are too easy to duplicate silently.
 
 Capability metadata, provider resolution, lifecycle preflight, and runtime
 composition were promoted by [ADR-0016](0016-capability-metadata-contract.md)
-through [ADR-0019](0019-capability-runtime-composition.md). The remaining
-Level 2 fixture classes are executable boundary evidence rather than package API.
+through [ADR-0019](0019-capability-runtime-composition.md). Contract and Adapter
+enforcement were promoted by [ADR-0020](0020-capability-contracts-rule.md) and
+[ADR-0021](0021-adapter-boundaries-rule.md). The remaining Level 2 fixture
+classes are executable boundary evidence rather than package API.
 
 ## Candidate evaluation
 

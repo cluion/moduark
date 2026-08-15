@@ -31,7 +31,8 @@ final readonly class ArchitectureChecker implements ArchitectureCheck
         $descriptors = $this->compiler->compileAll($this->registry->moduleClasses());
         $rules = $architecture->rules();
         $needsSourceIndex = $rules->get(RuleId::UndeclaredDependencies)->enabled()
-            || $rules->get(RuleId::InternalApiAccess)->enabled();
+            || $rules->get(RuleId::InternalApiAccess)->enabled()
+            || $rules->get(RuleId::AdapterBoundaries)->enabled();
         $sourceIndex = $needsSourceIndex
             ? $this->sourceIndexBuilder->build()
             : new SourceIndex([], []);

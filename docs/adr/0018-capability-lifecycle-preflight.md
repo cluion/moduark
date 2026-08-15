@@ -31,8 +31,8 @@ and `ModuleLifecycleRegistrar::registerProviders()` return contract.
   preflight proves validity; a later composition slice will decide the ownership
   and timing of container bindings.
 - This slice does not bind consumer Ports, implement Level 2 rules, change
-  `module:list`, or add Capability graph output. Level 2 remains incomplete and
-  still exits 2.
+  `module:list`, or add Capability graph output. At this slice's acceptance,
+  Level 2 remained incomplete and exited 2.
 
 ## Acceptance evidence
 
@@ -52,8 +52,8 @@ and `ModuleLifecycleRegistrar::registerProviders()` return contract.
 - This slice made package boot enforce a resolvable Capability provider graph
   whenever Modules declare `requires()` metadata. ADR-0019 subsequently added
   Port wiring, and [ADR-0020](0020-capability-contracts-rule.md) subsequently
-  added the metadata-only contract rule. Adapter boundary enforcement remains
-  unavailable.
+  added the metadata-only contract rule. [ADR-0021](0021-adapter-boundaries-rule.md)
+  subsequently added source-backed Adapter boundary enforcement.
 - Direct dependency failures and cycles retain precedence because ordering is
   completed before Capability resolution; every failure remains side-effect
   free.

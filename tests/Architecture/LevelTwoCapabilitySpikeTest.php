@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Architecture;
 
+use Cluion\Moduark\Analysis\AnalysisContext;
+use Cluion\Moduark\Analysis\Rules\AdapterBoundariesRule;
 use Cluion\Moduark\Analysis\Source\SourceIndex;
 use Cluion\Moduark\Analysis\Source\SourceIndexBuilder;
 use Cluion\Moduark\Analysis\Source\SourceReference;
+use Cluion\Moduark\Architecture\RuleId;
 use Cluion\Moduark\Capability;
 use Cluion\Moduark\CapabilityRequirement;
 use Cluion\Moduark\Capabilities\CapabilityPlan;
@@ -180,6 +183,17 @@ final class LevelTwoCapabilitySpikeTest extends TestCase
         self::assertSame([], array_values($providerReferences));
         $this->assertConsumerBoundary($index, CheckoutModule::class);
         $this->assertConsumerBoundary($index, OrderModule::class);
+
+        $result = (new AdapterBoundariesRule)->inspect(
+            new AnalysisContext(
+                $this->registry(),
+                $this->descriptors($this->moduleClasses()),
+                $index,
+            ),
+            RuleId::AdapterBoundaries->defaultSeverity(),
+        );
+
+        self::assertTrue($result->passed());
     }
 
     /**

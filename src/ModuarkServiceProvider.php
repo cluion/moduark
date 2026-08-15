@@ -9,6 +9,7 @@ use Cluion\Moduark\Analysis\ArchitectureChecker;
 use Cluion\Moduark\Analysis\Boundary\ConventionPublicApi;
 use Cluion\Moduark\Analysis\Boundary\PublicApi;
 use Cluion\Moduark\Analysis\RuleRunner;
+use Cluion\Moduark\Analysis\Rules\AdapterBoundariesRule;
 use Cluion\Moduark\Analysis\Rules\CapabilityContractsRule;
 use Cluion\Moduark\Analysis\Rules\CyclesRule;
 use Cluion\Moduark\Analysis\Rules\InternalApiAccessRule;
@@ -100,6 +101,7 @@ final class ModuarkServiceProvider extends ServiceProvider
                 new CyclesRule,
                 new InternalApiAccessRule($this->app->make(PublicApi::class)),
                 new CapabilityContractsRule,
+                new AdapterBoundariesRule,
             ]),
         );
         $this->app->singleton(ArchitectureChecker::class);

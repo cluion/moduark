@@ -39,15 +39,16 @@ parsing source code, mutating the container, or weakening strict package boot.
   result. The rule still provides the architecture engine and valid-graph CLI
   with one stable enforcement contract.
 - `adapter_boundaries`, Capability graph output, and provider selection remain
-  outside this slice. The normal Level 2 preset is still incomplete and exits 2.
+  outside this slice. At this slice's acceptance, the normal Level 2 preset was
+  still incomplete and exited 2.
 
 ## Acceptance evidence
 
 - `CapabilityContractsRuleTest` covers a valid three-Module graph, missing and
   ambiguous providers, shared Ports, deterministic Module ordering, and unused
   multiple providers.
-- `RuleRunnerTest` proves Level 2 now evaluates seven rules and reports only
-  `adapter_boundaries` as unavailable.
+- At this slice's acceptance, `RuleRunnerTest` proved Level 2 evaluated seven
+  rules and reported only `adapter_boundaries` as unavailable.
 - `ArchitectureCheckerTest` proves enabling `capability_contracts` alone does
   not parse Module source.
 - `ModuleCheckCommandTest` proves the production Laravel registration evaluates
@@ -61,4 +62,5 @@ parsing source code, mutating the container, or weakening strict package boot.
   stable Capability contract violations without Laravel lifecycle side effects.
 - The Artisan command verifies valid Capability graphs through the same rule
   registration, while strict bootstrap failures remain intentionally earlier.
-- Level 2 has one unavailable preset rule left: `adapter_boundaries`.
+- [ADR-0021](0021-adapter-boundaries-rule.md) subsequently implements the final
+  unavailable Level 2 preset rule, `adapter_boundaries`.

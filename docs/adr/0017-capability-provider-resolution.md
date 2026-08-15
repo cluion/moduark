@@ -37,7 +37,8 @@ performed Laravel container wiring, which is outside this production slice.
   existing metadata and lifecycle components.
 - This slice does not integrate resolution into `ModuleLifecycleRegistrar`, bind
   Ports in Laravel's container, implement Level 2 rules, or add Capability graph
-  output. Level 2 therefore remains incomplete and still exits 2.
+  output. At this slice's acceptance, Level 2 therefore remained incomplete and
+  exited 2.
 
 ## Acceptance evidence
 
