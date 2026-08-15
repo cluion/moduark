@@ -11,13 +11,13 @@ preset plus explicit boolean overrides into an effective rule set, and
 |---:|---|---|---|
 | 0 | Organization | Implemented | Valid, uniquely identified Module structure |
 | 1 | Modular | Implemented | Explicit dependencies, acyclic graph, provider-owned Public API |
-| 2 | Decoupled | Implemented in unreleased `0.2` | Consumer-owned Ports, adapters, capability contracts |
+| 2 | Decoupled | Implemented in `0.2` beta | Consumer-owned Ports, adapters, capability contracts |
 | 3 | Isolated | Reserved, incomplete | Model, database, migration, transaction, and export boundaries |
 
-The package default is Level 1. In this unreleased `0.2` branch, the normal
-Level 2 preset has eight implemented rules and can produce a complete pass.
-Level 3 still returns exit code 2 because enabled rules remain unavailable; that
-is an incomplete analysis, not an architecture pass.
+The package default is Level 1. In the `0.2` beta, the normal Level 2 preset has
+eight implemented rules and can produce a complete pass. Level 3 still returns
+exit code 2 because enabled rules remain unavailable; that is an incomplete
+analysis, not an architecture pass.
 
 ## Preset Matrix
 
@@ -41,10 +41,9 @@ preset leaves the rule disabled.
 | `cross_module_transactions` | — | — | — | W | No |
 | `explicit_public_exports` | — | — | — | E | No |
 
-Disabling an enabled rule weakens that preset's guarantee. The published `0.1`
-beta supports Level 0 and Level 1; the current unreleased branch additionally
-implements the complete Level 2 preset. Disabling unavailable Level 3 rules does
-not create a Level 3 guarantee.
+Disabling an enabled rule weakens that preset's guarantee. The `0.2` beta
+supports Level 0, Level 1, and the complete Level 2 preset. Disabling unavailable
+Level 3 rules does not create a Level 3 guarantee.
 
 ## Level 0 — Organization
 

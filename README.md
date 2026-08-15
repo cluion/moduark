@@ -2,12 +2,11 @@
 
 Moduark is a Laravel-native modular architecture toolkit. It keeps Modules in a
 normal Laravel application while making their dependencies, lifecycle order,
-resources, and Level 1 boundaries executable and inspectable.
+resources, and architecture boundaries executable and inspectable.
 
-> **Pre-release status:** the published `0.1` beta guarantees Level 0 and Level
-> 1. The unreleased `0.2` branch also completes Level 2 with typed Capability
-> metadata, runtime composition, and both Capability architecture rules. Level
-> 3 remains incomplete.
+> **Pre-release status:** `0.2.0-beta.1` guarantees Level 0, Level 1, and Level
+> 2. It completes typed Capability metadata, runtime Adapter composition, and
+> both Capability architecture rules. Level 3 remains incomplete.
 
 ## Requirements
 
@@ -20,7 +19,7 @@ resources, and Level 1 boundaries executable and inspectable.
 Install the current beta from Packagist:
 
 ```bash
-composer require cluion/moduark:^0.1@beta
+composer require cluion/moduark:^0.2@beta
 ```
 
 The package is pre-release software. Pin an exact beta version when an
@@ -249,12 +248,12 @@ contract.
 
 ## Current Scope
 
-The released `0.1` beta guarantees foundation plus Level 1. Unreleased `0.2`
-work now includes typed Capability metadata and descriptor-only provider
-resolution with lifecycle preflight, consumer-owned Port wiring, Capability
-contract validation, and source-enforced Adapter boundaries. Capability graph
-output, database or migration ownership, raw SQL analysis, explicit exports,
-JSON diagnostics, and IDE integration remain later work. Level 3 rule names in
-configuration are not claims of enforcement.
+The `0.2` beta guarantees foundation plus complete Level 1 and Level 2 presets.
+Level 2 includes typed Capability metadata, descriptor-only provider resolution,
+lifecycle preflight, consumer-owned Port wiring, Capability contract validation,
+and source-enforced Adapter boundaries. Capability graph output, database or
+migration ownership, raw SQL analysis, explicit exports, JSON diagnostics, and
+IDE integration remain later work. Level 3 rule names in configuration are not
+claims of enforcement.
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

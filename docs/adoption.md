@@ -188,14 +188,16 @@ This weakens the Level 1 guarantee for the entire application. The beta has no
 per-file suppression, expiry, or baseline mechanism, so a broad override should
 not be presented as a fully passing Level 1 architecture.
 
-## Level 2 Requires the Unreleased `0.2` Branch
+## Adopt Level 2 with the `0.2` Beta
 
-The current `0.2` development branch completes the eight-rule Level 2 preset:
-typed Capability metadata, provider preflight, runtime Port-to-Adapter wiring,
-Capability contracts, and source-backed Adapter boundaries. The published
-`0.1` beta does not contain this contract, so Packagist consumers should remain
-on Level 1 until a `0.2` beta is released unless they deliberately test a path
-repository or development branch.
+`v0.2.0-beta.1` completes the eight-rule Level 2 preset: typed Capability
+metadata, provider preflight, runtime Port-to-Adapter wiring, Capability
+contracts, and source-backed Adapter boundaries. Install the `0.2` beta from
+Packagist before adopting this contract:
+
+```bash
+composer require cluion/moduark:^0.2@beta
+```
 
 Before selecting Level 2, give every consumer its own interface below `Ports/`,
 place each declared Adapter below `Adapters/{Provider}/`, and keep provider API

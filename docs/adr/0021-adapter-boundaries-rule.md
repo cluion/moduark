@@ -63,11 +63,10 @@ and Adapter.
 
 ## Consequences
 
-- The normal Level 2 preset is complete in the unreleased `0.2` branch; a valid
-  architecture evaluates eight rules and exits 0.
+- The normal Level 2 preset is complete in `v0.2.0-beta.1`; a valid architecture
+  evaluates eight rules and exits 0.
 - Port and Adapter directory names are architecture contract, not descriptive
   conventions. Case or provider-directory mismatches are blocking violations.
 - Capability graph observability remains useful for inspection but is not an
   enforcement prerequisite and does not keep Level 2 incomplete.
-- The released `0.1` beta remains a Level 0 and Level 1 product until a `0.2`
-  beta is tagged and published.
+- This contract is delivered as part of `v0.2.0-beta.1`.
