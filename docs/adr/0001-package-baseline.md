@@ -26,8 +26,8 @@ by active security advisories.
 - Laravel 13 jobs start at PHP 8.3; the package source remains PHP 8.2 syntax.
 - Laravel 11 is outside the beta support contract. CI must not disable
   Composer's insecure-package blocking to create a nominal compatibility job.
-- `cluion/moduark` and the `proprietary` license marker are provisional until
-  the package name, vendor, and public license are formally approved.
+- The public package identity is `cluion/moduark`. Moduark is distributed under
+  the MIT License, copyright 2026 Cluion.
 
 ## Consequences
 

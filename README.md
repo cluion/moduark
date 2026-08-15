@@ -17,8 +17,8 @@ resources, and Level 1 boundaries executable and inspectable.
 
 ## Installation
 
-This checkout currently has no release tag or configured distribution remote.
-For local development with this repository beside a Laravel application:
+This repository does not have a published release tag or Composer distribution
+yet. For local development with this repository beside a Laravel application:
 
 ```bash
 composer config repositories.moduark path ../Moduark
@@ -250,6 +250,7 @@ contract.
 - [Architecture Levels](docs/architecture-levels.md)
 - [Adopting Moduark](docs/adoption.md)
 - [Architecture Decision Records](docs/adr/0001-package-baseline.md)
+- [Changelog](CHANGELOG.md)
 
 ## Current Scope
 
@@ -258,4 +259,4 @@ consumer-owned Ports and adapters, database or migration ownership, raw SQL
 analysis, explicit exports, JSON diagnostics, and IDE integration are later
 work. Their names in configuration are not claims of enforcement.
 
-License: proprietary, as declared by the current package metadata.
+Moduark is open-source software licensed under the [MIT License](LICENSE).

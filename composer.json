@@ -3,7 +3,7 @@
     "name": "cluion/moduark",
     "description": "Laravel-native modular architecture toolkit.",
     "type": "library",
-    "license": "proprietary",
+    "license": "MIT",
     "require": {
         "php": "^8.2",
         "composer-runtime-api": "^2.1",
