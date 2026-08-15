@@ -46,6 +46,7 @@
             "@prepare",
             "@php vendor/bin/phpunit --testsuite=Feature"
         ],
+        "test:dependencies": "@php tests/Compatibility/run.php",
         "test:installation": "@php tests/Installation/run.php",
         "benchmark": "@benchmark:architecture",
         "benchmark:architecture": "@php benchmarks/run.php",

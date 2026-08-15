@@ -29,9 +29,10 @@ and run the Level 1 tools without publishing configuration.
   failure investigation.
 - The networked installation matrix remains separate from `composer verify`.
   Fast PHPUnit and PHPStan runs must remain usable offline.
-- This slice tests the highest stable dependency resolution available to the
-  current PHP runtime. Lowest dependency combinations and CI workflow wiring
-  remain separate release work.
+- Local runs test the highest stable dependency resolution available to the
+  current PHP runtime. The compatibility workflow runs each Laravel major's
+  clean installation in its highest-dependency job; lowest dependency jobs
+  remain focused on package verification. See [ADR-0014](0014-ci-compatibility-matrix.md).
 
 ## Acceptance Evidence
 
@@ -60,5 +61,5 @@ rules, and `module:graph` rendered the generated Module.
   configuration caching are tested as one consumer-visible path.
 - The matrix is intentionally slower and needs network access on an empty
   Composer cache.
-- A passing local matrix is not a replacement for the planned PHP and
+- A passing local matrix complements, but does not replace, the PHP and
   lowest/highest CI combinations.

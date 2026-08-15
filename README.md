@@ -213,6 +213,7 @@ Laravel itself rather than by `module:check`'s exit-code renderer.
 
 ```bash
 composer verify
+composer test:dependencies
 composer test:installation
 composer benchmark
 ```
@@ -223,6 +224,12 @@ files without checking generated fixtures into Git. See
 [ADR-0012](docs/adr/0012-beta-performance-and-analysis-errors.md) for the method
 and initial evidence.
 
+`composer test:dependencies` resolves the Laravel 12/13 lowest/highest matrix in
+disposable Composer projects. It simulates the supported PHP floors for
+dependency solving, leaves Composer's security blocking enabled, and reports
+the exact framework, Testbench, and PHPUnit versions selected. It does not
+replace executing the test suite on those PHP runtimes.
+
 `composer test:installation` is the slower, networked acceptance matrix. It
 creates disposable Laravel 12 and 13 applications, installs this checkout
 through a Composer path repository, and exercises package discovery and the core
@@ -230,6 +237,12 @@ commands without publishing configuration. It is intentionally separate from
 the default offline-friendly verification command. See
 [ADR-0013](docs/adr/0013-clean-laravel-installation-matrix.md) for the matrix
 contract and initial resolved versions.
+
+The GitHub Actions compatibility workflow runs `composer verify` on all four
+Laravel/PHP/dependency combinations and runs the matching clean installation on
+both highest-dependency jobs. See
+[ADR-0014](docs/adr/0014-ci-compatibility-matrix.md) for the release-gate
+contract.
 
 ## Documentation
 
