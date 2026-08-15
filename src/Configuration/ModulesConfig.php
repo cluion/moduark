@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cluion\Moduark\Configuration;
 
+use Cluion\Moduark\Architecture\Level;
 use InvalidArgumentException;
 
 final readonly class ModulesConfig
@@ -38,12 +39,12 @@ final readonly class ModulesConfig
         return $this->values['path'];
     }
 
-    public function level(): int
+    public function level(): Level
     {
         /** @var array{level: int, rules: array<string, mixed>} $architecture */
         $architecture = $this->values['architecture'];
 
-        return $architecture['level'];
+        return Level::from($architecture['level']);
     }
 
     /**

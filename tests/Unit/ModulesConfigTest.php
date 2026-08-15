@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use Cluion\Moduark\Architecture\Level;
 use Cluion\Moduark\Configuration\ModulesConfig;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
@@ -32,7 +33,7 @@ final class ModulesConfigTest extends TestCase
             ],
         );
 
-        self::assertSame(1, $configuration->level());
+        self::assertSame(Level::Modular, $configuration->level());
         self::assertSame([
             'cycles' => false,
             'internal_api_access' => true,
@@ -53,7 +54,7 @@ final class ModulesConfigTest extends TestCase
         );
 
         self::assertSame('/domain/Modules', $configuration->path());
-        self::assertSame(0, $configuration->level());
+        self::assertSame(Level::Organization, $configuration->level());
     }
 
     public function test_invalid_level_is_rejected(): void

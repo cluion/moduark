@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Cluion\Moduark\Listing;
 
-use Cluion\Moduark\Configuration\ModulesConfig;
+use Cluion\Moduark\Architecture\EffectiveArchitecture;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
 use Cluion\Moduark\Module;
 use Cluion\Moduark\Registry\ModuleRegistry;
@@ -14,7 +14,7 @@ final readonly class ModuleListBuilder
     public function __construct(
         private ModuleRegistry $registry,
         private ModuleMetadataCompiler $compiler,
-        private ModulesConfig $configuration,
+        private EffectiveArchitecture $architecture,
     ) {
     }
 
@@ -43,7 +43,7 @@ final readonly class ModuleListBuilder
             $rows[] = [
                 $discovered[$index]->name(),
                 'enabled',
-                $this->configuration->level(),
+                $this->architecture->level()->value,
                 $dependencies === [] ? '—' : implode(', ', $dependencies),
                 '—',
                 '—',

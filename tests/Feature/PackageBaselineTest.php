@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use Cluion\Moduark\Architecture\EffectiveArchitecture;
+use Cluion\Moduark\Architecture\Level;
+use Cluion\Moduark\Architecture\RulePresets;
+use Cluion\Moduark\Architecture\RuleResolver;
 use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
 use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
@@ -24,6 +28,9 @@ final class PackageBaselineTest extends TestCase
 
         self::assertArrayHasKey(ModuarkServiceProvider::class, $application->getLoadedProviders());
         self::assertTrue($application->bound(ModulesConfig::class));
+        self::assertTrue($application->bound(RulePresets::class));
+        self::assertTrue($application->bound(RuleResolver::class));
+        self::assertTrue($application->bound(EffectiveArchitecture::class));
         self::assertTrue($application->bound(ModuleDiscoverer::class));
         self::assertTrue($application->bound(ModuleRegistry::class));
         self::assertTrue($application->bound(ModuleMetadataCompiler::class));
@@ -37,20 +44,26 @@ final class PackageBaselineTest extends TestCase
         $configuration = $this->application()->make(ModulesConfig::class);
 
         self::assertSame(dirname(__DIR__, 2).'/workbench/app/Modules', $configuration->path());
-        self::assertSame(1, $configuration->level());
+        self::assertSame(Level::Modular, $configuration->level());
         self::assertSame(1, config('modules.architecture.level'));
     }
 
     public function test_configuration_survives_config_cache(): void
     {
+        $expected = $this->application()->make(EffectiveArchitecture::class)->toArray();
+
         try {
             $this->command('config:cache')->assertSuccessful();
             $this->refreshApplication();
 
             $configuration = $this->application()->make(ModulesConfig::class);
 
-            self::assertSame(1, $configuration->level());
+            self::assertSame(Level::Modular, $configuration->level());
             self::assertSame(dirname(__DIR__, 2).'/workbench/app/Modules', $configuration->path());
+            self::assertSame(
+                $expected,
+                $this->application()->make(EffectiveArchitecture::class)->toArray(),
+            );
         } finally {
             $this->command('config:clear')->run();
         }

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Cluion\Moduark;
 
+use Cluion\Moduark\Architecture\EffectiveArchitecture;
+use Cluion\Moduark\Architecture\RulePresets;
+use Cluion\Moduark\Architecture\RuleResolver;
 use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Console\MakeModuleCommand;
 use Cluion\Moduark\Console\ModuleListCommand;
@@ -44,6 +47,12 @@ final class ModuarkServiceProvider extends ServiceProvider
 
         $repository->set('modules', $configuration->all());
         $this->app->instance(ModulesConfig::class, $configuration);
+        $this->app->singleton(RulePresets::class);
+        $this->app->singleton(RuleResolver::class);
+        $this->app->instance(
+            EffectiveArchitecture::class,
+            $this->app->make(RuleResolver::class)->resolve($configuration),
+        );
         $this->app->singleton(ModuleDiscoverer::class);
         $this->app->singleton(
             ModuleRegistry::class,
