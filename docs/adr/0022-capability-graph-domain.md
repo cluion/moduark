@@ -58,3 +58,5 @@ combined exporters define public CLI output.
 - Invalid Capability metadata remains diagnostic data for `module:check`; the
   graph command will not silently visualize an architecture that runtime
   composition cannot resolve.
+- [ADR-0023](0023-capability-graph-output.md) subsequently exposes the model
+  through text and Mermaid CLI views with Module neighborhood filtering.

@@ -204,6 +204,22 @@ place each declared Adapter below `Adapters/{Provider}/`, and keep provider API
 references out of consumer core code. Run `module:check --level=2`; only change
 the shared default after the complete eight-rule check exits 0.
 
+Inspect both the direct and inverted relationships before enabling Level 2:
+
+> The Capability view is currently available on `main` and is scheduled for the
+> next `0.2` beta; the tagged `v0.2.0-beta.1` package does not include it.
+
+```bash
+php artisan module:graph
+php artisan module:graph --view=capability
+php artisan module:graph Order --view=capability
+php artisan module:graph --view=capability --format=mermaid
+```
+
+The Capability neighborhood keeps the selected Module's providers and sibling
+consumers visible. It does not flatten these edges into direct Module
+dependencies.
+
 Level 3 remains unavailable and additionally requires database ownership,
 persistence isolation, and explicit exports.
 

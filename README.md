@@ -60,6 +60,8 @@ php artisan module:list
 php artisan module:check
 php artisan module:graph
 php artisan module:graph --format=mermaid
+php artisan module:graph --view=capability
+php artisan module:graph --view=capability --format=mermaid
 ```
 
 The default configuration uses Level 1, so a successful check evaluates six
@@ -185,7 +187,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `make:module {name}` | Create one minimal, non-overwriting Module entry class |
 | `module:list` | List discovered Modules in deterministic order |
 | `module:check [--level=0..3]` | Run the effective architecture rules |
-| `module:graph [module] [--format=text\|mermaid]` | Render the full graph or one Module's direct neighborhood |
+| `module:graph [module] [--view=module\|capability] [--format=text\|mermaid]` | Render a direct Module graph or Capability graph and optionally select one neighborhood |
 
 `module:check` exit codes are stable within the beta contract:
 
@@ -195,7 +197,20 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `1` | One or more blocking architecture violations |
 | `2` | Command input, analyzer, or unavailable-rule tool error; result is incomplete |
 
-The graph command currently supports text and Mermaid only. `module:check` does
+The graph command defaults to direct Module dependencies. The Capability view
+renders typed `requires` and `provides` edges:
+
+```bash
+php artisan module:graph --view=capability
+php artisan module:graph Order --view=capability
+php artisan module:graph --view=capability --format=mermaid
+```
+
+Selecting a Module in the Capability view retains its connected Capabilities,
+providers, and other consumers so the relationship remains complete. Combined
+and JSON graph views are later work. This Capability view is currently on
+`main` and is scheduled for the next `0.2` beta; it is not part of the tagged
+`v0.2.0-beta.1` package. `module:check` does
 not yet support JSON, suppressions, or per-Module filtering.
 
 Application bootstrap happens before Artisan invokes a command. A configuration,
@@ -248,12 +263,14 @@ contract.
 
 ## Current Scope
 
-The `0.2` beta guarantees foundation plus complete Level 1 and Level 2 presets.
-Level 2 includes typed Capability metadata, descriptor-only provider resolution,
-lifecycle preflight, consumer-owned Port wiring, Capability contract validation,
-and source-enforced Adapter boundaries. Capability graph output, database or
-migration ownership, raw SQL analysis, explicit exports, JSON diagnostics, and
-IDE integration remain later work. Level 3 rule names in configuration are not
+The released `v0.2.0-beta.1` guarantees foundation plus complete Level 1 and
+Level 2 presets. Level 2 includes typed Capability metadata, descriptor-only
+provider resolution, lifecycle preflight, consumer-owned Port wiring,
+Capability contract validation, and source-enforced Adapter boundaries. Current
+`main` additionally includes deterministic text or Mermaid Capability graph
+output for the next `0.2` beta. Combined graphs, database or migration
+ownership, raw SQL analysis, explicit exports, JSON diagnostics, and IDE
+integration remain later work. Level 3 rule names in configuration are not
 claims of enforcement.
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

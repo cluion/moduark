@@ -218,4 +218,56 @@ final readonly class CapabilityGraph
             static fn (CapabilityGraphEdge $edge): bool => $edge->module() === $moduleClass,
         ));
     }
+
+    public function neighborhood(string $module): self
+    {
+        $selected = null;
+
+        foreach ($this->modules as $node) {
+            if (strcasecmp($node->name(), $module) === 0) {
+                $selected = $node;
+
+                break;
+            }
+        }
+
+        if ($selected === null) {
+            throw CapabilityGraphFailed::unknownModule($module);
+        }
+
+        $includedModules = [$selected->moduleClass() => true];
+        $includedCapabilities = [];
+
+        foreach ($this->edgesForModule($selected->moduleClass()) as $edge) {
+            $includedCapabilities[$edge->capability()] = true;
+        }
+
+        $includedEdges = array_values(array_filter(
+            $this->edges,
+            static function (CapabilityGraphEdge $edge) use (
+                $includedCapabilities,
+            ): bool {
+                return isset($includedCapabilities[$edge->capability()]);
+            },
+        ));
+
+        foreach ($includedEdges as $edge) {
+            $includedModules[$edge->module()] = true;
+        }
+
+        $modules = array_values(array_filter(
+            $this->modules,
+            static fn (ModuleGraphNode $node): bool => isset(
+                $includedModules[$node->moduleClass()],
+            ),
+        ));
+        $capabilities = array_values(array_filter(
+            $this->capabilities,
+            static fn (CapabilityGraphNode $node): bool => isset(
+                $includedCapabilities[$node->capability()],
+            ),
+        ));
+
+        return new self($modules, $capabilities, $includedEdges);
+    }
 }

@@ -181,6 +181,17 @@ final class CleanApplicationRunner
         $graph = $this->artisan($application, ['module:graph'], $environment);
         $this->assertContains('User -> —', $graph, 'module:graph did not include the generated User Module.');
 
+        $capabilityGraph = $this->artisan(
+            $application,
+            ['module:graph', '--view=capability'],
+            $environment,
+        );
+        $this->assertContains(
+            'User -> —',
+            $capabilityGraph,
+            'module:graph Capability view did not include the generated User Module.',
+        );
+
         $this->artisan($application, ['config:cache'], $environment);
 
         try {

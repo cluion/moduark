@@ -42,4 +42,9 @@ final class CapabilityGraphFailed extends RuntimeException
             "Capability graph [{$type}] edge [{$moduleClass}] -> [{$capability}] was provided more than once.",
         );
     }
+
+    public static function unknownModule(string $module): self
+    {
+        return new self("Module [{$module}] was not found in the Capability graph.");
+    }
 }

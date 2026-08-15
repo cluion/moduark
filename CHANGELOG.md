@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a typed, deterministic Capability graph domain and builder that retain
   `requires()` / `provides()` evidence and consumer Port / Adapter metadata
   while reusing runtime provider-resolution validation.
+- Added `module:graph --view=capability` with deterministic text and Mermaid
+  exporters plus complete provider/consumer neighborhoods for a selected
+  Module. The existing direct Module view remains the default.
 
 ## [0.2.0-beta.1] - 2026-08-15
 

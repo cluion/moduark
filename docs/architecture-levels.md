@@ -177,8 +177,21 @@ exception. Provider selection errors remain owned by `capability_contracts`, so
 the source rule defers provider-specific checks when the provider graph is
 missing or ambiguous instead of emitting cascading diagnostics.
 
-Capability graph output remains separate work; it does not make the Level 2
-enforcement preset incomplete.
+On current `main`, inspect the direct dependency and Capability views
+separately:
+
+```bash
+php artisan module:graph
+php artisan module:graph --view=capability
+php artisan module:graph Order --view=capability
+php artisan module:graph --view=capability --format=mermaid
+```
+
+The Capability view preserves `requires` and `provides` as different edge kinds.
+A selected Module retains the complete provider/consumer relationship for each
+connected Capability. Combined and JSON graph output remain separate work. See
+[ADR-0022](adr/0022-capability-graph-domain.md) and
+[ADR-0023](adr/0023-capability-graph-output.md).
 
 Running the normal preset demonstrates this explicitly:
 
