@@ -7,7 +7,7 @@ namespace Workbench\App\Providers;
 use Cluion\Moduark\Metadata\ModuleDescriptor;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Support\ServiceProvider;
-use Workbench\App\Modules\WorkbenchModule;
+use Workbench\App\Modules\Workbench\WorkbenchModule;
 
 final class WorkbenchServiceProvider extends ServiceProvider
 {

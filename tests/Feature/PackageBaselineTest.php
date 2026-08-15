@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use Cluion\Moduark\Configuration\ModulesConfig;
+use Cluion\Moduark\Discovery\ModuleDiscoverer;
 use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
 use Cluion\Moduark\Lifecycle\ModuleOrderer;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
 use Cluion\Moduark\ModuarkServiceProvider;
+use Cluion\Moduark\Registry\ModuleRegistry;
 use Illuminate\Contracts\Config\Repository;
 use LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -22,17 +24,19 @@ final class PackageBaselineTest extends TestCase
 
         self::assertArrayHasKey(ModuarkServiceProvider::class, $application->getLoadedProviders());
         self::assertTrue($application->bound(ModulesConfig::class));
+        self::assertTrue($application->bound(ModuleDiscoverer::class));
+        self::assertTrue($application->bound(ModuleRegistry::class));
         self::assertTrue($application->bound(ModuleMetadataCompiler::class));
         self::assertTrue($application->bound(ModuleOrderer::class));
         self::assertTrue($application->bound(ModuleLifecycleRegistrar::class));
         self::assertTrue($application->bound('moduark.workbench.loaded'));
     }
 
-    public function test_zero_config_defaults_to_level_one(): void
+    public function test_workbench_path_keeps_the_default_level_one(): void
     {
         $configuration = $this->application()->make(ModulesConfig::class);
 
-        self::assertSame(app_path('Modules'), $configuration->path());
+        self::assertSame(dirname(__DIR__, 2).'/workbench/app/Modules', $configuration->path());
         self::assertSame(1, $configuration->level());
         self::assertSame(1, config('modules.architecture.level'));
     }
@@ -46,7 +50,7 @@ final class PackageBaselineTest extends TestCase
             $configuration = $this->application()->make(ModulesConfig::class);
 
             self::assertSame(1, $configuration->level());
-            self::assertSame(app_path('Modules'), $configuration->path());
+            self::assertSame(dirname(__DIR__, 2).'/workbench/app/Modules', $configuration->path());
         } finally {
             $this->command('config:clear')->run();
         }

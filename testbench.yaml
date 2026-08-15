@@ -1,2 +1,5 @@
 providers:
   - Workbench\App\Providers\WorkbenchServiceProvider
+workbench:
+  discovers:
+    config: true
