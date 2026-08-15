@@ -154,7 +154,28 @@ final class ModuleCheckCommandTest extends TestCase
     public function test_invalid_check_output_format_is_a_tool_error(): void
     {
         $this->command('module:check --format=xml')
-            ->expectsOutputToContain('The --format option must be text or json.')
+            ->expectsOutputToContain('The --format option must be text, json, or github.')
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
+    }
+
+    public function test_github_check_output_emits_a_notice_for_a_pass(): void
+    {
+        $this->command('module:check --format=github')
+            ->expectsOutput(
+                '::notice title=Moduark architecture check::'
+                    .'Architecture check passed: 6 rules evaluated at Level 1 (Modular).',
+            )
+            ->assertSuccessful();
+    }
+
+    public function test_github_check_output_preserves_tool_error_exit_code(): void
+    {
+        $this->command('module:check --level=4 --format=github')
+            ->expectsOutput(
+                '::error title=MOD-CHECK-OPTION-001::'
+                    .'The --level option must be an integer from 0 to 3.%0A'
+                    .'Suggestion: Pass one of --level=0, --level=1, --level=2, or --level=3.',
+            )
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }
 

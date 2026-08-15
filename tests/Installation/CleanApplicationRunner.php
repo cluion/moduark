@@ -243,6 +243,18 @@ final class CleanApplicationRunner
             throw new RuntimeException('module:check JSON output did not report a passing result.');
         }
 
+        $githubCheck = $this->artisan(
+            $application,
+            ['module:check', '--format=github'],
+            $environment,
+        );
+        $this->assertContains(
+            '::notice title=Moduark architecture check::'
+                .'Architecture check passed: 6 rules evaluated at Level 1 (Modular).',
+            $githubCheck,
+            'module:check GitHub output did not report a passing result.',
+        );
+
         $graph = $this->artisan($application, ['module:graph'], $environment);
         $this->assertContains('User -> —', $graph, 'module:graph did not include the generated User Module.');
 

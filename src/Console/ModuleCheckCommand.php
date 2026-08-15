@@ -6,6 +6,7 @@ namespace Cluion\Moduark\Console;
 
 use Cluion\Moduark\Analysis\ArchitectureCheck;
 use Cluion\Moduark\Analysis\CheckReport;
+use Cluion\Moduark\Analysis\Export\GithubCheckReportExporter;
 use Cluion\Moduark\Analysis\Export\JsonCheckReportExporter;
 use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Architecture\Level;
@@ -24,7 +25,7 @@ final class ModuleCheckCommand extends Command
      */
     protected $signature = 'module:check
         {--level= : Temporarily use an architecture Level from 0 to 3}
-        {--format=text : Output format (text or json)}';
+        {--format=text : Output format (text, json, or github)}';
 
     /**
      * @var string
@@ -35,6 +36,7 @@ final class ModuleCheckCommand extends Command
         private readonly ArchitectureCheck $checker,
         private readonly ExitPolicy $exitPolicy,
         private readonly JsonCheckReportExporter $json,
+        private readonly GithubCheckReportExporter $github,
     ) {
         parent::__construct();
     }
@@ -65,11 +67,19 @@ final class ModuleCheckCommand extends Command
             $report = $this->checker->check($level);
         } catch (SourceAnalysisFailed $exception) {
             if ($format === 'json') {
-                $this->renderJson($this->json->exportToolError(
+                $this->renderRaw($this->json->exportToolError(
                     $exception->diagnosticCode(),
                     $exception->getMessage(),
                     $exception->location(),
                     $exception->suggestion(),
+                ));
+            } elseif ($format === 'github') {
+                $this->renderRaw($this->github->exportToolError(
+                    $exception->diagnosticCode(),
+                    $exception->getMessage(),
+                    $exception->location(),
+                    $exception->suggestion(),
+                    base_path(),
                 ));
             } else {
                 $this->renderSourceAnalysisFailure($exception);
@@ -87,7 +97,13 @@ final class ModuleCheckCommand extends Command
         }
 
         if ($format === 'json') {
-            $this->renderJson($this->json->export($report, $this->exitPolicy));
+            $this->renderRaw($this->json->export($report, $this->exitPolicy));
+
+            return $report->exitCode($this->exitPolicy);
+        }
+
+        if ($format === 'github') {
+            $this->renderRaw($this->github->export($report, base_path()));
 
             return $report->exitCode($this->exitPolicy);
         }
@@ -176,8 +192,8 @@ final class ModuleCheckCommand extends Command
     {
         $value = $this->option('format');
 
-        if (! is_string($value) || ! in_array($value, ['text', 'json'], true)) {
-            $this->components->error('The --format option must be text or json.');
+        if (! is_string($value) || ! in_array($value, ['text', 'json', 'github'], true)) {
+            $this->components->error('The --format option must be text, json, or github.');
 
             return false;
         }
@@ -193,7 +209,7 @@ final class ModuleCheckCommand extends Command
         ?string $suggestion = null,
     ): void {
         if ($format === 'json') {
-            $this->renderJson($this->json->exportToolError(
+            $this->renderRaw($this->json->exportToolError(
                 $code,
                 $message,
                 $location,
@@ -203,12 +219,24 @@ final class ModuleCheckCommand extends Command
             return;
         }
 
+        if ($format === 'github') {
+            $this->renderRaw($this->github->exportToolError(
+                $code,
+                $message,
+                $location,
+                $suggestion,
+                base_path(),
+            ));
+
+            return;
+        }
+
         $this->components->error($message);
     }
 
-    private function renderJson(string $json): void
+    private function renderRaw(string $output): void
     {
-        $this->output->writeln($json, OutputInterface::OUTPUT_RAW);
+        $this->output->writeln($output, OutputInterface::OUTPUT_RAW);
     }
 
     /**

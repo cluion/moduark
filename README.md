@@ -60,6 +60,7 @@ Inspect the discovered architecture:
 php artisan module:list
 php artisan module:check
 php artisan module:check --format=json
+php artisan module:check --format=github
 php artisan module:graph
 php artisan module:graph --format=mermaid
 php artisan module:graph --view=capability
@@ -190,7 +191,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 |---|---|
 | `make:module {name}` | Create one minimal, non-overwriting Module entry class |
 | `module:list` | List discovered Modules in deterministic order |
-| `module:check [--level=0..3] [--format=text\|json]` | Run the effective architecture rules and optionally emit a versioned JSON report |
+| `module:check [--level=0..3] [--format=text\|json\|github]` | Run the effective architecture rules and optionally emit JSON or GitHub Actions annotations |
 | `module:graph [module] [--view=module\|capability\|combined] [--format=text\|mermaid]` | Render direct, Capability, or combined relationships and optionally select one neighborhood |
 | `module:inspect {module}` | Inspect one Module's identity, dependencies, providers, Capabilities, and Public API convention |
 
@@ -217,6 +218,18 @@ report is produced. Status is `passed`, `violations_found`, or `incomplete`;
 the exit codes remain exactly the same as text output. See
 [ADR-0028](docs/adr/0028-module-check-json-output.md).
 
+Use GitHub output in an Actions workflow to attach each violation to its source
+file and line while preserving the same exit-code contract:
+
+```yaml
+- name: Check Module architecture
+  run: php artisan module:check --format=github
+```
+
+Errors and warnings become workflow annotations; a clean run emits one notice.
+Incomplete analysis and command failures remain errors with exit code `2`. See
+[ADR-0029](docs/adr/0029-github-actions-annotations.md).
+
 The graph command defaults to direct Module dependencies. The Capability view
 renders typed `requires` and `provides` edges:
 
@@ -232,9 +245,9 @@ Selecting a Module in the Capability view retains its connected Capabilities,
 providers, and other consumers so the relationship remains complete. The
 combined view overlays labeled `depends`, `requires`, and `provides` edges and
 uses the union of direct and Capability neighborhoods. JSON graph output remains
-later work. These views are included in `v0.2.0-beta.2`. `module:check` JSON is
-available on `main` for the next pre-release; suppressions and per-Module
-filtering remain later work.
+later work. These views are included in `v0.2.0-beta.2`. `module:check` JSON and
+GitHub Actions annotations are available on `main` for the next pre-release;
+suppressions and per-Module filtering remain later work.
 
 Use `module:inspect Order` when one Module needs more detail than the graph. It
 shows the effective architecture level, discovered or missing direct
@@ -321,7 +334,8 @@ provider resolution, lifecycle preflight, consumer-owned Port wiring,
 Capability contract validation, source-enforced Adapter boundaries,
 deterministic Capability and combined graphs, `module:inspect`, and the large
 Level 2 acceptance fixture. Database or migration ownership, raw SQL analysis,
-explicit exports, CI annotations, and IDE integration remain later work.
-Level 3 rule names in configuration are not claims of enforcement.
+explicit exports, baseline files, suppressions, incremental analysis, and IDE
+integration remain later work. Level 3 rule names in configuration are not
+claims of enforcement.
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

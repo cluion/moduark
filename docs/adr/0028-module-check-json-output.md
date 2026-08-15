@@ -62,5 +62,7 @@ source analysis fails before a `CheckReport` exists.
 - Exceptions raised during Laravel application bootstrap happen before Artisan
   invokes `module:check`; Laravel may render those failures outside this JSON
   contract.
-- CI annotations, baseline files, suppressions, incremental analysis, and JSON
-  graph output remain separate future slices.
+- GitHub Actions annotations are added separately by
+  [ADR-0029](0029-github-actions-annotations.md). Baseline files, suppressions,
+  incremental analysis, IDE integration, and JSON graph output remain future
+  slices.
