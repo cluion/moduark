@@ -9,8 +9,10 @@ use Cluion\Moduark\Analysis\ArchitectureChecker;
 use Cluion\Moduark\Analysis\RuleRunner;
 use Cluion\Moduark\Analysis\Rules\CyclesRule;
 use Cluion\Moduark\Analysis\Rules\MissingDependenciesRule;
+use Cluion\Moduark\Analysis\Rules\UndeclaredDependenciesRule;
 use Cluion\Moduark\Analysis\Rules\UniqueModuleIdentityRule;
 use Cluion\Moduark\Analysis\Rules\ValidModuleStructureRule;
+use Cluion\Moduark\Analysis\Source\SourceIndexBuilder;
 use Cluion\Moduark\Architecture\EffectiveArchitecture;
 use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Architecture\RulePresets;
@@ -73,6 +75,7 @@ final class ModuarkServiceProvider extends ServiceProvider
                 ->discover($this->app->make(ModulesConfig::class)->path()),
         );
         $this->app->singleton(ModuleMetadataCompiler::class);
+        $this->app->singleton(SourceIndexBuilder::class);
         $this->app->singleton(ModuleGraphBuilder::class);
         $this->app->singleton(TextModuleGraphExporter::class);
         $this->app->singleton(MermaidModuleGraphExporter::class);
@@ -86,6 +89,7 @@ final class ModuarkServiceProvider extends ServiceProvider
                 new ValidModuleStructureRule,
                 new UniqueModuleIdentityRule,
                 new MissingDependenciesRule,
+                new UndeclaredDependenciesRule,
                 new CyclesRule,
             ]),
         );

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cluion\Moduark\Analysis;
 
+use Cluion\Moduark\Analysis\Source\SourceIndex;
 use Cluion\Moduark\Discovery\DiscoveredModule;
 use Cluion\Moduark\Metadata\ModuleDescriptor;
 use Cluion\Moduark\Module;
@@ -18,11 +19,17 @@ final readonly class AnalysisContext
     /** @var array<class-string<Module>, DiscoveredModule> */
     private array $modulesByClass;
 
+    /** @var array<class-string<Module>, ModuleDescriptor> */
+    private array $descriptorsByClass;
+
     /**
      * @param list<ModuleDescriptor> $descriptors
      */
-    public function __construct(ModuleRegistry $registry, array $descriptors)
-    {
+    public function __construct(
+        ModuleRegistry $registry,
+        array $descriptors,
+        private SourceIndex $sourceIndex,
+    ) {
         $modulesByClass = [];
 
         foreach ($registry->all() as $module) {
@@ -63,6 +70,7 @@ final readonly class AnalysisContext
 
         $this->descriptors = $orderedDescriptors;
         $this->modulesByClass = $modulesByClass;
+        $this->descriptorsByClass = $descriptorsByClass;
     }
 
     /**
@@ -71,6 +79,19 @@ final readonly class AnalysisContext
     public function descriptors(): array
     {
         return $this->descriptors;
+    }
+
+    /**
+     * @param class-string<Module> $moduleClass
+     */
+    public function descriptor(string $moduleClass): ?ModuleDescriptor
+    {
+        return $this->descriptorsByClass[$moduleClass] ?? null;
+    }
+
+    public function sourceIndex(): SourceIndex
+    {
+        return $this->sourceIndex;
     }
 
     /**

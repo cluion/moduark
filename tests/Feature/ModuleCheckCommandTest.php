@@ -36,7 +36,7 @@ final class ModuleCheckCommandTest extends TestCase
         $this->command('module:check')
             ->expectsOutputToContain('Architecture analysis is incomplete at Level 1 (Modular).')
             ->expectsOutputToContain(
-                'Unavailable rule implementations: undeclared_dependencies, internal_api_access',
+                'Unavailable rule implementations: internal_api_access',
             )
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }
@@ -71,6 +71,22 @@ final class ModuleCheckCommandTest extends TestCase
                     'Architecture check passed: 2 rules evaluated at Level 0 (Organization).',
                 )
                 ->assertSuccessful();
+        } finally {
+            $this->command('config:clear')->run();
+        }
+    }
+
+    public function test_default_level_source_analysis_survives_config_cache(): void
+    {
+        try {
+            $this->command('config:cache')->assertSuccessful();
+            $this->refreshApplication();
+
+            $this->command('module:check')
+                ->expectsOutputToContain(
+                    'Unavailable rule implementations: internal_api_access',
+                )
+                ->assertExitCode(ExitPolicy::TOOL_ERROR);
         } finally {
             $this->command('config:clear')->run();
         }

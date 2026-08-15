@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Cluion\Moduark\Analysis;
 
+use Cluion\Moduark\Analysis\Source\SourceIndex;
+use Cluion\Moduark\Analysis\Source\SourceIndexBuilder;
 use Cluion\Moduark\Architecture\Level;
+use Cluion\Moduark\Architecture\RuleId;
 use Cluion\Moduark\Architecture\RuleResolver;
 use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
@@ -15,6 +18,7 @@ final readonly class ArchitectureChecker implements ArchitectureCheck
     public function __construct(
         private ModuleRegistry $registry,
         private ModuleMetadataCompiler $compiler,
+        private SourceIndexBuilder $sourceIndexBuilder,
         private ModulesConfig $configuration,
         private RuleResolver $resolver,
         private RuleRunner $runner,
@@ -23,14 +27,20 @@ final readonly class ArchitectureChecker implements ArchitectureCheck
 
     public function check(?Level $level = null): CheckReport
     {
+        $architecture = $this->resolver->resolve($this->configuration, $level);
+        $descriptors = $this->compiler->compileAll($this->registry->moduleClasses());
+        $sourceIndex = $architecture->rules()->get(RuleId::UndeclaredDependencies)->enabled()
+            ? $this->sourceIndexBuilder->build()
+            : new SourceIndex([], []);
         $context = new AnalysisContext(
             $this->registry,
-            $this->compiler->compileAll($this->registry->moduleClasses()),
+            $descriptors,
+            $sourceIndex,
         );
 
         return $this->runner->run(
             $context,
-            $this->resolver->resolve($this->configuration, $level),
+            $architecture,
         );
     }
 }

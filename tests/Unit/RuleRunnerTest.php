@@ -10,8 +10,10 @@ use Cluion\Moduark\Analysis\CheckReport;
 use Cluion\Moduark\Analysis\RuleRunner;
 use Cluion\Moduark\Analysis\Rules\CyclesRule;
 use Cluion\Moduark\Analysis\Rules\MissingDependenciesRule;
+use Cluion\Moduark\Analysis\Rules\UndeclaredDependenciesRule;
 use Cluion\Moduark\Analysis\Rules\UniqueModuleIdentityRule;
 use Cluion\Moduark\Analysis\Rules\ValidModuleStructureRule;
+use Cluion\Moduark\Analysis\Source\SourceIndex;
 use Cluion\Moduark\Architecture\EffectiveArchitecture;
 use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Architecture\RuleId;
@@ -94,15 +96,15 @@ final class RuleRunnerTest extends TestCase
         self::assertSame(ExitPolicy::SUCCESS, $report->exitCode(new ExitPolicy));
     }
 
-    public function test_enabled_rules_without_implementations_make_the_report_incomplete(): void
+    public function test_enabled_rule_without_an_implementation_makes_the_report_incomplete(): void
     {
         $report = $this->runner()->run($this->validGraph(), $this->architecture(1));
 
         self::assertFalse($report->complete());
         self::assertSame([
-            RuleId::UndeclaredDependencies,
             RuleId::InternalApiAccess,
         ], $report->unavailableRules());
+        self::assertCount(5, $report->results());
         self::assertSame(ExitPolicy::TOOL_ERROR, $report->exitCode(new ExitPolicy));
     }
 
@@ -132,7 +134,7 @@ final class RuleRunnerTest extends TestCase
             new ModuleDescriptor(CheckCycleAlphaModule::class, [CheckCycleBetaModule::class], []),
             new ModuleDescriptor(CheckCycleBetaModule::class, [CheckCycleAlphaModule::class], []),
             new ModuleDescriptor(CheckSelfCycleModule::class, [CheckSelfCycleModule::class], []),
-        ]);
+        ], new SourceIndex([], []));
         $result = (new CyclesRule)->inspect(
             $context,
             RuleId::Cycles->defaultSeverity(),
@@ -192,6 +194,7 @@ final class RuleRunnerTest extends TestCase
             new ValidModuleStructureRule,
             new UniqueModuleIdentityRule,
             new MissingDependenciesRule,
+            new UndeclaredDependenciesRule,
             new CyclesRule,
         ]);
     }
@@ -217,7 +220,7 @@ final class RuleRunnerTest extends TestCase
         return new AnalysisContext($registry, [
             new ModuleDescriptor(CheckOrderModule::class, [CheckUserModule::class], []),
             new ModuleDescriptor(CheckUserModule::class, [], []),
-        ]);
+        ], new SourceIndex([], []));
     }
 
     private function invalidGraph(): AnalysisContext
@@ -232,7 +235,7 @@ final class RuleRunnerTest extends TestCase
             new ModuleDescriptor(CheckOrderModule::class, [MissingModule::class], []),
             new ModuleDescriptor(CheckCycleAlphaModule::class, [CheckCycleBetaModule::class], []),
             new ModuleDescriptor(CheckCycleBetaModule::class, [CheckCycleAlphaModule::class], []),
-        ]);
+        ], new SourceIndex([], []));
     }
 
     /**
