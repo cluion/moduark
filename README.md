@@ -4,9 +4,10 @@ Moduark is a Laravel-native modular architecture toolkit. It keeps Modules in a
 normal Laravel application while making their dependencies, lifecycle order,
 resources, and architecture boundaries executable and inspectable.
 
-> **Pre-release status:** `0.2.0-beta.1` guarantees Level 0, Level 1, and Level
-> 2. It completes typed Capability metadata, runtime Adapter composition, and
-> both Capability architecture rules. Level 3 remains incomplete.
+> **Pre-release status:** `0.2.0-beta.2` guarantees Level 0, Level 1, and Level
+> 2. It includes typed Capability metadata, runtime Adapter composition,
+> complete Capability and combined graphs, and focused Module inspection. Level
+> 3 remains incomplete.
 
 ## Requirements
 
@@ -215,10 +216,8 @@ Selecting a Module in the Capability view retains its connected Capabilities,
 providers, and other consumers so the relationship remains complete. The
 combined view overlays labeled `depends`, `requires`, and `provides` edges and
 uses the union of direct and Capability neighborhoods. JSON graph output remains
-later work. These views are currently on `main` and are scheduled for the next
-`0.2` beta; they are not part of the tagged `v0.2.0-beta.1` package.
-`module:check` does
-not yet support JSON, suppressions, or per-Module filtering.
+later work. These views are included in `v0.2.0-beta.2`. `module:check` does not
+yet support JSON, suppressions, or per-Module filtering.
 
 Use `module:inspect Order` when one Module needs more detail than the graph. It
 shows the effective architecture level, discovered or missing direct
@@ -226,8 +225,7 @@ dependencies, Module ServiceProviders, each required Capability's resolved
 provider, consumer Port and Adapter, provided Capabilities, and symbols exposed
 by the current `Contracts/`, `Data/`, `Events/`, and Module-entry convention.
 This is an inspection of today's Public API convention, not the future Level 3
-explicit `exports()` contract. The command is currently on `main` for the next
-`0.2` beta and is not part of `v0.2.0-beta.1`.
+explicit `exports()` contract. The command is included in `v0.2.0-beta.2`.
 
 Application bootstrap happens before Artisan invokes a command. A configuration,
 discovery, metadata, or runtime Capability-resolution exception raised during
@@ -285,14 +283,13 @@ contract.
 
 ## Current Scope
 
-The released `v0.2.0-beta.1` guarantees foundation plus complete Level 1 and
+The released `v0.2.0-beta.2` guarantees foundation plus complete Level 1 and
 Level 2 presets. Level 2 includes typed Capability metadata, descriptor-only
 provider resolution, lifecycle preflight, consumer-owned Port wiring,
-Capability contract validation, and source-enforced Adapter boundaries. Current
-`main` additionally includes deterministic text or Mermaid Capability and
-combined graph output, `module:inspect`, and the large Level 2 acceptance
-fixture for the next `0.2` beta. Database or migration ownership, raw SQL
-analysis, explicit exports, JSON diagnostics, and IDE integration remain later
-work. Level 3 rule names in configuration are not claims of enforcement.
+Capability contract validation, source-enforced Adapter boundaries,
+deterministic Capability and combined graphs, `module:inspect`, and the large
+Level 2 acceptance fixture. Database or migration ownership, raw SQL analysis,
+explicit exports, JSON diagnostics, and IDE integration remain later work.
+Level 3 rule names in configuration are not claims of enforcement.
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

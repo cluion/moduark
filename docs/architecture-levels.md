@@ -177,7 +177,7 @@ exception. Provider selection errors remain owned by `capability_contracts`, so
 the source rule defers provider-specific checks when the provider graph is
 missing or ambiguous instead of emitting cascading diagnostics.
 
-On current `main`, inspect the direct dependency and Capability views
+In `v0.2.0-beta.2`, inspect the direct dependency and Capability views
 separately:
 
 ```bash

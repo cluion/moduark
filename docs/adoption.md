@@ -190,10 +190,11 @@ not be presented as a fully passing Level 1 architecture.
 
 ## Adopt Level 2 with the `0.2` Beta
 
-`v0.2.0-beta.1` completes the eight-rule Level 2 preset: typed Capability
+`v0.2.0-beta.2` includes the complete eight-rule Level 2 preset: typed Capability
 metadata, provider preflight, runtime Port-to-Adapter wiring, Capability
-contracts, and source-backed Adapter boundaries. Install the `0.2` beta from
-Packagist before adopting this contract:
+contracts, source-backed Adapter boundaries, Capability and combined graphs,
+and focused Module inspection. Install the `0.2` beta from Packagist before
+adopting this contract:
 
 ```bash
 composer require cluion/moduark:^0.2@beta
@@ -205,10 +206,6 @@ references out of consumer core code. Run `module:check --level=2`; only change
 the shared default after the complete eight-rule check exits 0.
 
 Inspect both the direct and inverted relationships before enabling Level 2:
-
-> The Capability and combined views plus `module:inspect` are currently
-> available on `main` and are scheduled for the next `0.2` beta; the tagged
-> `v0.2.0-beta.1` package does not include them.
 
 ```bash
 php artisan module:graph

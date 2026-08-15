@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0-beta.2] - 2026-08-15
+
+This beta adds complete Level 2 architecture observability through Capability
+and combined graphs, focused Module inspection, and one connected acceptance
+fixture that exercises the full contract.
+
 ### Added
 
 - Added a typed, deterministic Capability graph domain and builder that retain
@@ -86,7 +92,8 @@ incomplete and are not part of this release contract.
 - Clean installation acceptance from release-tag checkouts by explicitly
   mapping the local path repository to `dev-main`.
 
-[Unreleased]: https://github.com/cluion/moduark/compare/v0.2.0-beta.1...HEAD
+[Unreleased]: https://github.com/cluion/moduark/compare/v0.2.0-beta.2...HEAD
+[0.2.0-beta.2]: https://github.com/cluion/moduark/compare/v0.2.0-beta.1...v0.2.0-beta.2
 [0.2.0-beta.1]: https://github.com/cluion/moduark/compare/v0.1.0-beta.2...v0.2.0-beta.1
 [0.1.0-beta.2]: https://github.com/cluion/moduark/compare/v0.1.0-beta.1...v0.1.0-beta.2
 [0.1.0-beta.1]: https://github.com/cluion/moduark/releases/tag/v0.1.0-beta.1
