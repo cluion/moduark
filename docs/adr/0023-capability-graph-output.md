@@ -54,3 +54,5 @@ direct dependencies.
   projection, preventing format-specific graph meaning.
 - A future combined view must preserve direct, `requires`, and `provides` edge
   kinds; it cannot merge them into unlabeled Module edges.
+- [ADR-0024](0024-combined-graph-output.md) subsequently adds that combined
+  view while preserving the three edge kinds and union neighborhood semantics.

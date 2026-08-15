@@ -185,13 +185,18 @@ php artisan module:graph
 php artisan module:graph --view=capability
 php artisan module:graph Order --view=capability
 php artisan module:graph --view=capability --format=mermaid
+php artisan module:graph --view=combined
+php artisan module:graph Order --view=combined --format=mermaid
 ```
 
 The Capability view preserves `requires` and `provides` as different edge kinds.
 A selected Module retains the complete provider/consumer relationship for each
-connected Capability. Combined and JSON graph output remain separate work. See
-[ADR-0022](adr/0022-capability-graph-domain.md) and
-[ADR-0023](adr/0023-capability-graph-output.md).
+connected Capability. The combined view adds labeled `depends` edges and uses
+the union of direct and Capability neighborhoods without flattening their
+meaning. JSON graph output remains separate work. See
+[ADR-0022](adr/0022-capability-graph-domain.md),
+[ADR-0023](adr/0023-capability-graph-output.md), and
+[ADR-0024](adr/0024-combined-graph-output.md).
 
 Running the normal preset demonstrates this explicitly:
 

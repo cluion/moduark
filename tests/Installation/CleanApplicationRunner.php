@@ -192,6 +192,17 @@ final class CleanApplicationRunner
             'module:graph Capability view did not include the generated User Module.',
         );
 
+        $combinedGraph = $this->artisan(
+            $application,
+            ['module:graph', '--view=combined'],
+            $environment,
+        );
+        $this->assertContains(
+            'User -> —',
+            $combinedGraph,
+            'module:graph combined view did not include the generated User Module.',
+        );
+
         $this->artisan($application, ['config:cache'], $environment);
 
         try {

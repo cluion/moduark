@@ -8,13 +8,15 @@ use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Capabilities\CapabilityResolver;
 use Cluion\Moduark\Discovery\DiscoveredModule;
 use Cluion\Moduark\Graph\CapabilityGraphBuilder;
+use Cluion\Moduark\Graph\CombinedGraphBuilder;
+use Cluion\Moduark\Graph\ModuleGraphBuilder;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
 use Cluion\Moduark\Module;
 use Cluion\Moduark\Registry\ModuleRegistry;
-use Tests\TestCase;
 use Tests\Fixtures\LevelTwo\Modules\Checkout\CheckoutModule;
 use Tests\Fixtures\LevelTwo\Modules\Order\OrderModule;
 use Tests\Fixtures\LevelTwo\Modules\User\UserModule;
+use Tests\TestCase;
 
 final class ModuleGraphCommandTest extends TestCase
 {
@@ -61,7 +63,7 @@ final class ModuleGraphCommandTest extends TestCase
 
     public function test_it_displays_the_capability_graph_as_text(): void
     {
-        $this->useCapabilityFixture();
+        $this->useLevelTwoGraphFixture();
 
         $this->command('module:graph --view=capability')
             ->expectsOutputToContain('Checkout -[requires]-> UserLookup')
@@ -73,7 +75,7 @@ final class ModuleGraphCommandTest extends TestCase
 
     public function test_it_displays_the_capability_graph_as_mermaid(): void
     {
-        $this->useCapabilityFixture();
+        $this->useLevelTwoGraphFixture();
 
         $this->command('module:graph --view=capability --format=mermaid')
             ->expectsOutputToContain('flowchart LR')
@@ -85,7 +87,7 @@ final class ModuleGraphCommandTest extends TestCase
 
     public function test_it_limits_the_capability_view_to_the_complete_module_neighborhood(): void
     {
-        $this->useCapabilityFixture();
+        $this->useLevelTwoGraphFixture();
 
         $this->command('module:graph Order --view=capability')
             ->expectsOutputToContain('Checkout -[requires]-> UserLookup')
@@ -97,7 +99,7 @@ final class ModuleGraphCommandTest extends TestCase
 
     public function test_unknown_capability_graph_module_is_a_tool_error(): void
     {
-        $this->useCapabilityFixture();
+        $this->useLevelTwoGraphFixture();
 
         $this->command('module:graph Unknown --view=capability')
             ->expectsOutputToContain(
@@ -106,10 +108,60 @@ final class ModuleGraphCommandTest extends TestCase
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }
 
+    public function test_it_displays_the_combined_graph_as_text(): void
+    {
+        $this->useLevelTwoGraphFixture();
+
+        $this->command('module:graph --view=combined')
+            ->expectsOutputToContain('Checkout -[depends]-> User')
+            ->expectsOutputToContain('Checkout -[requires]-> UserLookup')
+            ->expectsOutputToContain('Inventory -> —')
+            ->expectsOutputToContain('User -[provides]-> UserLookup')
+            ->assertSuccessful();
+    }
+
+    public function test_it_displays_the_combined_graph_as_mermaid(): void
+    {
+        $this->useLevelTwoGraphFixture();
+
+        $this->command('module:graph --view=combined --format=mermaid')
+            ->expectsOutputToContain('flowchart LR')
+            ->expectsOutputToContain('C0(["UserLookup"])')
+            ->expectsOutputToContain('M0 -->|"depends"| M3')
+            ->expectsOutputToContain('M3 -->|"provides"| C0')
+            ->assertSuccessful();
+    }
+
+    public function test_it_limits_the_combined_view_to_the_union_neighborhood(): void
+    {
+        $this->useLevelTwoGraphFixture();
+
+        $this->command('module:graph Order --view=combined')
+            ->expectsOutputToContain('Checkout -[depends]-> User')
+            ->expectsOutputToContain('Checkout -[requires]-> UserLookup')
+            ->expectsOutputToContain('Order -[depends]-> User')
+            ->expectsOutputToContain('User -[provides]-> UserLookup')
+            ->doesntExpectOutputToContain('Inventory')
+            ->assertSuccessful();
+    }
+
+    public function test_unknown_combined_graph_module_is_a_tool_error(): void
+    {
+        $this->useLevelTwoGraphFixture();
+
+        $this->command('module:graph Unknown --view=combined')
+            ->expectsOutputToContain(
+                'Module graph could not be generated: Module [Unknown] was not found in the combined graph.',
+            )
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
+    }
+
     public function test_unknown_graph_view_is_a_tool_error(): void
     {
-        $this->command('module:graph --view=combined')
-            ->expectsOutputToContain('The --view option must be module or capability.')
+        $this->command('module:graph --view=architecture')
+            ->expectsOutputToContain(
+                'The --view option must be module, capability, or combined.',
+            )
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }
 
@@ -134,7 +186,7 @@ final class ModuleGraphCommandTest extends TestCase
             ->assertSuccessful();
     }
 
-    private function useCapabilityFixture(): void
+    private function useLevelTwoGraphFixture(): void
     {
         $modules = [
             $this->module('Order', OrderModule::class),
@@ -143,12 +195,18 @@ final class ModuleGraphCommandTest extends TestCase
             $this->module('Checkout', CheckoutModule::class),
         ];
 
+        $registry = new ModuleRegistry($modules);
+        $capabilityBuilder = new CapabilityGraphBuilder(
+            $registry,
+            new ModuleMetadataCompiler,
+            new CapabilityResolver,
+        );
+        $this->application()->instance(CapabilityGraphBuilder::class, $capabilityBuilder);
         $this->application()->instance(
-            CapabilityGraphBuilder::class,
-            new CapabilityGraphBuilder(
-                new ModuleRegistry($modules),
-                new ModuleMetadataCompiler,
-                new CapabilityResolver,
+            CombinedGraphBuilder::class,
+            new CombinedGraphBuilder(
+                new ModuleGraphBuilder($registry, new ModuleMetadataCompiler),
+                $capabilityBuilder,
             ),
         );
     }
