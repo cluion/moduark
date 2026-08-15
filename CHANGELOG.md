@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added a typed, deterministic Capability graph domain and builder that retain
+  `requires()` / `provides()` evidence and consumer Port / Adapter metadata
+  while reusing runtime provider-resolution validation.
+
 ## [0.2.0-beta.1] - 2026-08-15
 
 This beta completes Moduark's Level 2 Decoupled architecture contract with

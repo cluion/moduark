@@ -29,6 +29,7 @@ use Cluion\Moduark\Console\ModuleCheckCommand;
 use Cluion\Moduark\Console\ModuleGraphCommand;
 use Cluion\Moduark\Console\ModuleListCommand;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
+use Cluion\Moduark\Graph\CapabilityGraphBuilder;
 use Cluion\Moduark\Graph\Export\MermaidModuleGraphExporter;
 use Cluion\Moduark\Graph\Export\TextModuleGraphExporter;
 use Cluion\Moduark\Graph\ModuleGraphBuilder;
@@ -83,6 +84,7 @@ final class ModuarkServiceProvider extends ServiceProvider
         );
         $this->app->singleton(ModuleMetadataCompiler::class);
         $this->app->singleton(SourceIndexBuilder::class);
+        $this->app->singleton(CapabilityGraphBuilder::class);
         $this->app->singleton(ModuleGraphBuilder::class);
         $this->app->singleton(TextModuleGraphExporter::class);
         $this->app->singleton(MermaidModuleGraphExporter::class);

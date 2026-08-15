@@ -16,6 +16,7 @@ use Cluion\Moduark\Architecture\RuleResolver;
 use Cluion\Moduark\Capabilities\CapabilityResolver;
 use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
+use Cluion\Moduark\Graph\CapabilityGraphBuilder;
 use Cluion\Moduark\Graph\Export\MermaidModuleGraphExporter;
 use Cluion\Moduark\Graph\Export\TextModuleGraphExporter;
 use Cluion\Moduark\Graph\ModuleGraphBuilder;
@@ -48,6 +49,7 @@ final class PackageBaselineTest extends TestCase
         self::assertTrue($application->bound(ModuleDiscoverer::class));
         self::assertTrue($application->bound(ModuleRegistry::class));
         self::assertTrue($application->bound(ModuleMetadataCompiler::class));
+        self::assertTrue($application->bound(CapabilityGraphBuilder::class));
         self::assertTrue($application->bound(ModuleGraphBuilder::class));
         self::assertTrue($application->bound(TextModuleGraphExporter::class));
         self::assertTrue($application->bound(MermaidModuleGraphExporter::class));
