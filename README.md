@@ -30,6 +30,17 @@ Laravel package discovery registers `Cluion\Moduark\ModuarkServiceProvider`.
 Configuration publishing is optional because package defaults are merged even
 when `config/modules.php` does not exist in the application.
 
+For PHPStan or Larastan diagnostics, install the optional development-only
+companion package and follow the loading and configuration guide:
+
+```bash
+composer require --dev cluion/moduark-phpstan:^0.1@beta
+```
+
+See [PHPStan and Larastan Integration](docs/phpstan-integration.md). The
+companion extension currently covers `internal_api_access`; `module:check`
+remains authoritative for the complete rule set.
+
 ## Quick Start
 
 Create the smallest valid Module:
@@ -616,6 +627,7 @@ contract.
 
 - [Architecture Levels](docs/architecture-levels.md)
 - [Adopting Moduark](docs/adoption.md)
+- [PHPStan and Larastan Integration](docs/phpstan-integration.md)
 - [Architecture Decision Records](docs/adr/0001-package-baseline.md)
 - [Changelog](CHANGELOG.md)
 
@@ -642,14 +654,17 @@ covers literal Facade queries, Schema mutations, Blueprint constraints, and
 direct Query Builder writes inside transaction callbacks, while unresolved
 expressions remain reviewable warnings. Explicit `exports()` metadata narrows the
 convention-based Public API. The complete fourteen-rule Level 3 preset can now
-produce a complete pass; suppression expiry and IDE integration remain later
-work. See
+produce a complete pass. The optional `cluion/moduark-phpstan` companion beta
+integrates `internal_api_access` with PHPStan and Larastan; suppression expiry
+and extension coverage for the remaining rules remain later work. See
 [ADR-0035](docs/adr/0035-cross-module-model-access.md),
 [ADR-0036](docs/adr/0036-table-ownership-index.md),
 [ADR-0037](docs/adr/0037-database-ownership-rule.md),
 [ADR-0038](docs/adr/0038-migration-ownership-rule.md),
 [ADR-0039](docs/adr/0039-cross-module-foreign-keys-rule.md),
 [ADR-0040](docs/adr/0040-cross-module-transactions-rule.md), and
-[ADR-0041](docs/adr/0041-explicit-public-exports-rule.md).
+[ADR-0041](docs/adr/0041-explicit-public-exports-rule.md). The optional
+integration boundary is defined by
+[ADR-0042](docs/adr/0042-phpstan-extension-integration-boundary.md).
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

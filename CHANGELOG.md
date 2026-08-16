@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added a public PHPStan and Larastan integration guide for the optional
+  `cluion/moduark-phpstan` companion package, including beta installation,
+  automatic and manual extension loading, effective configuration alignment,
+  baseline and suppression reuse, CI recipes, diagnostics, and current scope.
+
 ## [0.4.0-beta.1] - 2026-08-16
 
 This beta completes the Level 3 Isolated preset with explicit persistence and
