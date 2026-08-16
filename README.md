@@ -8,8 +8,8 @@ resources, and architecture boundaries executable and inspectable.
 > 2. It adds versioned JSON check reports, native GitHub Actions annotations,
 > deterministic Module metadata caching, and a reviewable architecture baseline
 > workflow, Module-aware Makers, incremental source analysis, and auditable
-> architecture suppressions. Development toward `0.4` adds Level 3 Model and
-> database-ownership rules, but the Level 3 preset remains incomplete.
+> architecture suppressions. Development toward `0.4` adds the first four
+> Level 3 persistence-isolation rules, but the Level 3 preset remains incomplete.
 
 ## Requirements
 
@@ -184,6 +184,32 @@ Schema macros, custom wrappers, raw SQL schema statements, application-level
 migrations outside discovered Modules, connection/schema mapping, and table
 prefixes are not inferred. See
 [ADR-0038](docs/adr/0038-migration-ownership-rule.md).
+
+## Level 3 Cross-Module Foreign Keys
+
+`cross_module_foreign_keys` audits extraction coupling between tables owned by
+different Modules. Its Level 3 default is a warning: a relational monolith may
+intentionally keep database integrity while accepting the migration coupling.
+It reports:
+
+- `MOD-FK-001` for a resolved foreign key whose tables have different owners;
+- warning `MOD-FK-002` when either table cannot be resolved safely;
+- `MOD-FK-003` when either resolved table has no declared owner.
+
+The analyzer recognizes `foreign(...)->references(...)->on(...)` and
+`foreignId()`, `foreignUuid()`, or `foreignUlid()` followed by
+`constrained(...)` on the first Blueprint callback parameter of recognized
+`Schema::create()` and `Schema::table()` calls, including connection variants.
+Laravel's conventional target-table inference is retained. Model-based
+`foreignIdFor()` targets, plus Laravel 13's `foreignUuidFor()` and
+`foreignUlidFor()` targets, stay unresolved unless the table is supplied
+explicitly because the model table is a runtime decision.
+
+Custom Blueprint macros or wrappers, raw SQL, global migrations, callback
+data-flow, runtime model tables, connection/schema mapping, and prefixes are not
+inferred. Disable the rule when cross-Module FKs are the project-wide policy, or
+use a narrow reviewed suppression for an intentional exception. See
+[ADR-0039](docs/adr/0039-cross-module-foreign-keys-rule.md).
 
 ## Level 1 Public API
 
@@ -456,9 +482,9 @@ When an enabled rule needs the PHP source index, `module:check` stores an
 internal per-file analysis manifest at `bootstrap/cache/moduark-analysis.php`.
 Every run still reads each current Module PHP file and computes its SHA-256
 content hash. Only entries with the same content hash, Module owner, and cache
-schema reuse their symbol, unresolved class-reference, query table-access, and
-schema mutation summaries; global symbol ownership and references are resolved
-again on every check.
+schema reuse their symbol, unresolved class-reference, query table-access,
+schema mutation, and foreign-key summaries; global symbol and table ownership
+are resolved again on every check.
 
 Changed files are parsed again, removed files are pruned, and a moved file is a
 new cache entry. An unknown, malformed, or semantically invalid cache falls back
@@ -553,15 +579,16 @@ with narrow selectors, mandatory reasons, and stale/inactive reporting.
 Module-aware Makers generate models and controllers inside existing application
 Modules, while content-hash caching reuses unchanged per-file source analysis
 without persisting cross-file ownership decisions.
-The first three Level 3 rules reject direct cross-Module Eloquent Model, table,
-and migration access. Explicit `tables()` metadata feeds a deterministic
-single-owner index; Laravel-aware AST evidence covers literal Facade queries and
-Schema mutations, while unowned literals block and unresolved expressions
-remain reviewable warnings. FK and transaction rules, explicit exports,
+The first four Level 3 rules audit direct cross-Module Eloquent Model, table,
+migration, and foreign-key access. Explicit `tables()` metadata feeds a
+deterministic single-owner index; Laravel-aware AST evidence covers literal
+Facade queries, Schema mutations, and Blueprint constraints, while unresolved
+expressions remain reviewable warnings. Transaction warnings, explicit exports,
 suppression expiry, and IDE integration remain later work. See
 [ADR-0035](docs/adr/0035-cross-module-model-access.md),
 [ADR-0036](docs/adr/0036-table-ownership-index.md),
-[ADR-0037](docs/adr/0037-database-ownership-rule.md), and
-[ADR-0038](docs/adr/0038-migration-ownership-rule.md).
+[ADR-0037](docs/adr/0037-database-ownership-rule.md),
+[ADR-0038](docs/adr/0038-migration-ownership-rule.md), and
+[ADR-0039](docs/adr/0039-cross-module-foreign-keys-rule.md).
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

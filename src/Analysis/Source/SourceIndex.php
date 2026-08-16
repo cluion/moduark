@@ -26,17 +26,22 @@ final readonly class SourceIndex
     /** @var list<SchemaMutation> */
     private array $schemaMutations;
 
+    /** @var list<ForeignKeyReference> */
+    private array $foreignKeyReferences;
+
     /**
      * @param list<SourceSymbol> $symbols
      * @param list<SourceReference> $references
      * @param list<TableAccess> $tableAccesses
      * @param list<SchemaMutation> $schemaMutations
+     * @param list<ForeignKeyReference> $foreignKeyReferences
      */
     public function __construct(
         array $symbols,
         array $references,
         array $tableAccesses = [],
         array $schemaMutations = [],
+        array $foreignKeyReferences = [],
     ) {
         $symbolsByName = [];
 
@@ -131,11 +136,31 @@ final readonly class SourceIndex
             ];
         });
 
+        usort(
+            $foreignKeyReferences,
+            static function (ForeignKeyReference $left, ForeignKeyReference $right): int {
+                return [
+                    $left->source(),
+                    $left->file(),
+                    $left->line(),
+                    strtolower($left->operation()),
+                    $left->evidence(),
+                ] <=> [
+                    $right->source(),
+                    $right->file(),
+                    $right->line(),
+                    strtolower($right->operation()),
+                    $right->evidence(),
+                ];
+            },
+        );
+
         $this->symbols = $symbols;
         $this->symbolsByName = $symbolsByName;
         $this->references = $references;
         $this->tableAccesses = $tableAccesses;
         $this->schemaMutations = $schemaMutations;
+        $this->foreignKeyReferences = $foreignKeyReferences;
     }
 
     /**
@@ -239,6 +264,26 @@ final readonly class SourceIndex
         return array_values(array_filter(
             $this->schemaMutations,
             static fn (SchemaMutation $mutation): bool => $mutation->source() === $moduleClass,
+        ));
+    }
+
+    /**
+     * @return list<ForeignKeyReference>
+     */
+    public function foreignKeyReferences(): array
+    {
+        return $this->foreignKeyReferences;
+    }
+
+    /**
+     * @param class-string<Module> $moduleClass
+     * @return list<ForeignKeyReference>
+     */
+    public function foreignKeyReferencesFrom(string $moduleClass): array
+    {
+        return array_values(array_filter(
+            $this->foreignKeyReferences,
+            static fn (ForeignKeyReference $reference): bool => $reference->source() === $moduleClass,
         ));
     }
 }

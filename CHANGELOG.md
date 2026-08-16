@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the Level 3 `migration_ownership` rule for Laravel Schema mutations,
   enforcing canonical Module migration locations and explicit ownership for
   created, altered, renamed, and dropped tables with source-cache schema `4`.
+- Added the advisory Level 3 `cross_module_foreign_keys` rule for Laravel
+  Blueprint constraints, reporting cross-owner, unowned, and unresolved table
+  evidence with source-cache schema `5`.
 
 ## [0.3.0-beta.5] - 2026-08-16
 

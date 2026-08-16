@@ -158,7 +158,7 @@ PHP);
 
         self::assertTrue($cold->isEloquentModel('Incremental\Internal\Tracked'));
         self::assertTrue($warm->isEloquentModel('Incremental\Internal\Tracked'));
-        self::assertSame(4, $this->cachePayload()['schema_version']);
+        self::assertSame(5, $this->cachePayload()['schema_version']);
     }
 
     public function test_table_access_evidence_survives_a_warm_source_analysis_cache(): void
@@ -191,7 +191,7 @@ PHP);
             $cold->tableAccesses(),
         ));
         self::assertSame($this->indexPayload($cold), $this->indexPayload($warm));
-        self::assertSame(4, $this->cachePayload()['schema_version']);
+        self::assertSame(5, $this->cachePayload()['schema_version']);
     }
 
     public function test_schema_mutation_evidence_survives_a_warm_source_analysis_cache(): void
@@ -230,7 +230,39 @@ PHP);
             $cold->schemaMutations(),
         ));
         self::assertSame($this->indexPayload($cold), $this->indexPayload($warm));
-        self::assertSame(4, $this->cachePayload()['schema_version']);
+        self::assertSame(5, $this->cachePayload()['schema_version']);
+    }
+
+    public function test_foreign_key_evidence_survives_a_warm_source_analysis_cache(): void
+    {
+        $this->write($this->trackedPath, <<<'PHP'
+<?php
+
+namespace Incremental\Internal;
+
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+Schema::table('orders', function (Blueprint $table): void {
+    $table->foreignId('user_id')->constrained('users');
+});
+PHP);
+        $builder = $this->builder(IncrementalSourceModule::class);
+
+        $cold = $builder->build();
+        $warm = $builder->build();
+
+        self::assertSame([
+            ['Blueprint::foreignId()->constrained', 'orders -> users'],
+        ], array_map(
+            static fn ($reference): array => [
+                $reference->operation(),
+                $reference->evidence(),
+            ],
+            $cold->foreignKeyReferences(),
+        ));
+        self::assertSame($this->indexPayload($cold), $this->indexPayload($warm));
+        self::assertSame(5, $this->cachePayload()['schema_version']);
     }
 
     public function test_an_invalid_cache_falls_back_to_a_complete_cold_analysis(): void
@@ -302,6 +334,35 @@ PHP);
         $repaired = $this->cachePayload()['files'][$this->trackedPath] ?? null;
         self::assertIsArray($repaired);
         self::assertSame([], $repaired['schema_mutations'] ?? []);
+    }
+
+    public function test_malformed_current_schema_foreign_key_evidence_falls_back_to_cold_analysis(): void
+    {
+        $builder = $this->builder(IncrementalSourceModule::class);
+        $expected = $this->indexPayload($builder->build());
+        $payload = $this->cachePayload();
+        $tracked = $payload['files'][$this->trackedPath] ?? null;
+        self::assertIsArray($tracked);
+        $tracked['foreign_keys'] = [[
+            'from_table' => 'orders as o',
+            'from_expression' => null,
+            'to_table' => 'users',
+            'to_expression' => null,
+            'operation' => 'Blueprint::foreignId()->constrained',
+            'line' => 1,
+        ]];
+        $payload['files'][$this->trackedPath] = $tracked;
+        self::assertIsInt(file_put_contents(
+            $this->store->path(),
+            "<?php\n\ndeclare(strict_types=1);\n\nreturn ".var_export($payload, true).";\n",
+        ));
+
+        $actual = $builder->build();
+
+        self::assertSame($expected, $this->indexPayload($actual));
+        $repaired = $this->cachePayload()['files'][$this->trackedPath] ?? null;
+        self::assertIsArray($repaired);
+        self::assertSame([], $repaired['foreign_keys'] ?? []);
     }
 
     public function test_a_changed_file_with_invalid_syntax_never_reuses_or_replaces_the_cache(): void
@@ -433,6 +494,16 @@ PHP);
      *         operand: string,
      *         file: string,
      *         line: int
+     *     }>,
+     *     foreign_keys: list<array{
+     *         source: class-string<Module>,
+     *         from_table: ?string,
+     *         from_expression: ?string,
+     *         to_table: ?string,
+     *         to_expression: ?string,
+     *         operation: string,
+     *         file: string,
+     *         line: int
      *     }>
      * }
      */
@@ -454,6 +525,10 @@ PHP);
             'schema_mutations' => array_map(
                 static fn ($mutation): array => $mutation->toArray(),
                 $index->schemaMutations(),
+            ),
+            'foreign_keys' => array_map(
+                static fn ($reference): array => $reference->toArray(),
+                $index->foreignKeyReferences(),
             ),
         ];
     }

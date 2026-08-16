@@ -16,7 +16,7 @@ preset plus explicit boolean overrides into an effective rule set, and
 
 The package default is Level 1. In the `0.2` beta, the normal Level 2 preset has
 eight implemented rules and can produce a complete pass. Level 3 now has its
-first three implemented rules but still returns exit code 2 because three
+first four implemented rules but still returns exit code 2 because two
 enabled rules remain unavailable; that is an incomplete analysis, not an
 architecture pass.
 
@@ -38,7 +38,7 @@ preset leaves the rule disabled.
 | `cross_module_model_access` | — | — | — | E | Yes |
 | `database_ownership` | — | — | — | E | Yes |
 | `migration_ownership` | — | — | — | E | Yes |
-| `cross_module_foreign_keys` | — | — | — | W | No |
+| `cross_module_foreign_keys` | — | — | — | W | Yes |
 | `cross_module_transactions` | — | — | — | W | No |
 | `explicit_public_exports` | — | — | — | E | No |
 
@@ -287,7 +287,22 @@ custom wrappers, raw SQL, application-level migrations outside discovered
 Modules, connection/schema mapping, and prefixes are not inferred. See
 [ADR-0038](adr/0038-migration-ownership-rule.md).
 
-The remaining three Level 3 rules are still unavailable. Selecting Level 3
+`cross_module_foreign_keys` recognizes Blueprint constraints only when they are
+rooted on the first callback parameter of an imported or fully qualified
+`Schema::create()` or `Schema::table()` call, including connection variants.
+It covers `foreign(...)->references(...)->on(...)`, explicit or conventional
+`foreignId()`, `foreignUuid()`, and `foreignUlid()` targets, and explicit
+`foreignIdFor()` targets, plus Laravel 13's `foreignUuidFor()` and
+`foreignUlidFor()` targets, when `constrained('table')` makes the runtime table
+explicit. It emits advisory
+`MOD-FK-001` for different owners, non-blocking `MOD-FK-002` for unresolved
+evidence, and `MOD-FK-003` for missing ownership. The Level 3 preset uses
+warning severity because cross-Module FKs can be an intentional integrity versus
+extraction trade-off. Runtime model tables, macros, wrappers, raw SQL, callback
+data-flow, global migrations, connection/schema mapping, and prefixes are not
+inferred. See [ADR-0039](adr/0039-cross-module-foreign-keys-rule.md).
+
+The remaining two Level 3 rules are still unavailable. Selecting Level 3
 therefore continues to exit 2 with an incomplete report.
 
 ## Rule Overrides

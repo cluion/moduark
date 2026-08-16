@@ -94,3 +94,6 @@ write cost but are not portable release thresholds.
   `database_ownership` in [ADR-0037](0037-database-ownership-rule.md).
 - Schema `4` retains Laravel Schema mutation candidates for
   `migration_ownership` in [ADR-0038](0038-migration-ownership-rule.md).
+- Schema `5` retains Blueprint foreign-key candidates for
+  `cross_module_foreign_keys` in
+  [ADR-0039](0039-cross-module-foreign-keys-rule.md).

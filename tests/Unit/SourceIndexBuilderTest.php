@@ -283,6 +283,116 @@ PHP));
         );
     }
 
+    public function test_it_collects_blueprint_foreign_key_targets_from_schema_callbacks(): void
+    {
+        $this->temporaryPath = sys_get_temp_dir().'/moduark-foreign-key-'.bin2hex(random_bytes(6));
+        $modulePath = $this->temporaryPath.'/ForeignKey/ForeignKeyModule.php';
+        $migrationPath = $this->temporaryPath
+            .'/ForeignKey/Database/Migrations/2026_08_16_000000_orders.php';
+        self::assertTrue(mkdir(dirname($migrationPath), 0755, true));
+        self::assertNotFalse(file_put_contents(
+            $modulePath,
+            "<?php\nnamespace ForeignKeyFixture;\nfinal class ForeignKeyModuleEntry {}\n",
+        ));
+        self::assertNotFalse(file_put_contents($migrationPath, <<<'PHP'
+<?php
+
+namespace ForeignKeyFixture;
+
+use Domain\UserModel;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema as DatabaseSchema;
+
+DatabaseSchema::create('orders', function (Blueprint $table) use ($dynamic, $custom): void {
+    $table->foreign('user_id')->references('id')->on('users');
+    $table->foreignId('account_id')->constrained();
+    $table->foreignUuid('profile_uuid')->nullable()->constrained(
+        table: 'profiles',
+        column: 'uuid',
+    );
+    $table->foreignUlid('team_ulid')->constrained(null, 'ulid');
+    $table->foreignIdFor(UserModel::class)->constrained();
+    $table->foreignIdFor(UserModel::class)->constrained('users');
+    $table->foreignUuidFor(UserModel::class)->constrained();
+    $table->foreignUlidFor(UserModel::class)->constrained(table: 'users');
+    $table->foreignId('dynamic_id')->constrained($dynamic);
+    $custom->foreignId('ignored_id')->constrained('ignored');
+
+    $later = function () use ($table): void {
+        $table->foreignId('nested_id')->constrained('ignored_nested');
+    };
+});
+
+DatabaseSchema::connection('tenant')->table(
+    'tenant.orders',
+    function (Blueprint $schema): void {
+        $schema->foreignId('tenant_user_id')->constrained('tenant.users');
+    },
+);
+
+DatabaseSchema::table(
+    $dynamic,
+    fn (Blueprint $blueprint) => $blueprint->foreignId('order_id')->constrained('orders'),
+);
+PHP));
+        $registry = new ModuleRegistry([
+            new DiscoveredModule(
+                'ForeignKey',
+                ForeignKeySourceModule::class,
+                $modulePath,
+                'ForeignKeyFixture',
+            ),
+        ]);
+
+        $first = (new SourceIndexBuilder($registry))->build();
+        $second = (new SourceIndexBuilder($registry))->build();
+        $evidence = array_map(
+            static fn ($reference): array => [
+                $reference->operation(),
+                $reference->evidence(),
+            ],
+            $first->foreignKeyReferencesFrom(ForeignKeySourceModule::class),
+        );
+
+        self::assertSame([
+            ['Blueprint::foreign()->on', 'orders -> users'],
+            ['Blueprint::foreignId()->constrained', 'orders -> accounts'],
+            ['Blueprint::foreignUuid()->constrained', 'orders -> profiles'],
+            ['Blueprint::foreignUlid()->constrained', 'orders -> teams'],
+            ['Blueprint::foreignIdFor()->constrained', 'orders -> Domain\\UserModel::class'],
+            ['Blueprint::foreignIdFor()->constrained', 'orders -> users'],
+            ['Blueprint::foreignUuidFor()->constrained', 'orders -> Domain\\UserModel::class'],
+            ['Blueprint::foreignUlidFor()->constrained', 'orders -> users'],
+            ['Blueprint::foreignId()->constrained', 'orders -> Blueprint::foreignId()->constrained(to:*)'],
+            ['Blueprint::foreignId()->constrained', 'tenant.orders -> tenant.users'],
+            ['Blueprint::foreignId()->constrained', 'Blueprint::foreignId()->constrained(from:*) -> orders'],
+        ], $evidence);
+        self::assertSame(
+            array_map(
+                static fn ($reference): array => $reference->toArray(),
+                $first->foreignKeyReferences(),
+            ),
+            array_map(
+                static fn ($reference): array => $reference->toArray(),
+                $second->foreignKeyReferences(),
+            ),
+        );
+        self::assertNotContains(
+            'orders -> ignored',
+            array_map(
+                static fn ($reference): string => $reference->evidence(),
+                $first->foreignKeyReferences(),
+            ),
+        );
+        self::assertNotContains(
+            'orders -> ignored_nested',
+            array_map(
+                static fn ($reference): string => $reference->evidence(),
+                $first->foreignKeyReferences(),
+            ),
+        );
+    }
+
     private function registry(): ModuleRegistry
     {
         $root = dirname(__DIR__).'/Fixtures/Analysis/Modules';
@@ -320,5 +430,9 @@ final class QuerySourceModule extends Module
 }
 
 final class MigrationSourceModule extends Module
+{
+}
+
+final class ForeignKeySourceModule extends Module
 {
 }

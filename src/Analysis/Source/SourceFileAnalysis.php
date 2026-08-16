@@ -18,6 +18,7 @@ final readonly class SourceFileAnalysis
      * @param list<array{symbol: string, line: int}> $references
      * @param list<array{table: ?string, expression: ?string, operation: string, line: int}> $tableAccesses
      * @param list<array{table: ?string, expression: ?string, operation: string, operand: string, line: int}> $schemaMutations
+     * @param list<array{from_table: ?string, from_expression: ?string, to_table: ?string, to_expression: ?string, operation: string, line: int}> $foreignKeyReferences
      */
     public function __construct(
         private string $hash,
@@ -27,6 +28,7 @@ final readonly class SourceFileAnalysis
         private array $references,
         private array $tableAccesses,
         private array $schemaMutations,
+        private array $foreignKeyReferences,
     ) {
         if (preg_match('/\A[a-f0-9]{64}\z/D', $this->hash) !== 1) {
             throw new InvalidArgumentException('A source analysis hash must be SHA-256.');
@@ -73,6 +75,19 @@ final readonly class SourceFileAnalysis
             }
         }
 
+        foreach ($this->foreignKeyReferences as $reference) {
+            if (! $this->validTableEvidence(
+                $reference['from_table'],
+                $reference['from_expression'],
+            ) || ! $this->validTableEvidence(
+                $reference['to_table'],
+                $reference['to_expression'],
+            ) || trim($reference['operation']) === ''
+                || $reference['line'] < 1) {
+                throw new InvalidArgumentException('Cached foreign-key references must have valid evidence.');
+            }
+        }
+
         $this->owner = $owner;
     }
 
@@ -87,12 +102,14 @@ final readonly class SourceFileAnalysis
         $referenceRows = $payload['references'] ?? null;
         $tableAccessRows = $payload['table_accesses'] ?? [];
         $schemaMutationRows = $payload['schema_mutations'] ?? [];
+        $foreignKeyRows = $payload['foreign_keys'] ?? [];
 
         if (! is_string($hash) || ! is_string($owner)
             || ! is_array($symbolRows) || ! array_is_list($symbolRows)
             || ! is_array($referenceRows) || ! array_is_list($referenceRows)
             || ! is_array($tableAccessRows) || ! array_is_list($tableAccessRows)
-            || ! is_array($schemaMutationRows) || ! array_is_list($schemaMutationRows)) {
+            || ! is_array($schemaMutationRows) || ! array_is_list($schemaMutationRows)
+            || ! is_array($foreignKeyRows) || ! array_is_list($foreignKeyRows)) {
             throw new InvalidArgumentException('The source analysis cache entry is invalid.');
         }
 
@@ -175,6 +192,33 @@ final readonly class SourceFileAnalysis
             ];
         }
 
+        $foreignKeyReferences = [];
+
+        foreach ($foreignKeyRows as $row) {
+            if (! is_array($row)
+                || ! array_key_exists('from_table', $row)
+                || (! is_string($row['from_table']) && $row['from_table'] !== null)
+                || ! array_key_exists('from_expression', $row)
+                || (! is_string($row['from_expression']) && $row['from_expression'] !== null)
+                || ! array_key_exists('to_table', $row)
+                || (! is_string($row['to_table']) && $row['to_table'] !== null)
+                || ! array_key_exists('to_expression', $row)
+                || (! is_string($row['to_expression']) && $row['to_expression'] !== null)
+                || ! is_string($row['operation'] ?? null)
+                || ! is_int($row['line'] ?? null)) {
+                throw new InvalidArgumentException('The cached foreign-key references are invalid.');
+            }
+
+            $foreignKeyReferences[] = [
+                'from_table' => $row['from_table'],
+                'from_expression' => $row['from_expression'],
+                'to_table' => $row['to_table'],
+                'to_expression' => $row['to_expression'],
+                'operation' => $row['operation'],
+                'line' => $row['line'],
+            ];
+        }
+
         /** @var class-string<Module> $owner */
         return new self(
             $hash,
@@ -184,6 +228,7 @@ final readonly class SourceFileAnalysis
             $references,
             $tableAccesses,
             $schemaMutations,
+            $foreignKeyReferences,
         );
     }
 
@@ -230,13 +275,22 @@ final readonly class SourceFileAnalysis
     }
 
     /**
+     * @return list<array{from_table: ?string, from_expression: ?string, to_table: ?string, to_expression: ?string, operation: string, line: int}>
+     */
+    public function foreignKeyReferences(): array
+    {
+        return $this->foreignKeyReferences;
+    }
+
+    /**
      * @return array{
      *     hash: string,
      *     owner: class-string<Module>,
      *     symbols: list<array{name: string, line: int, parent: ?string}>,
      *     references: list<array{symbol: string, line: int}>,
      *     table_accesses?: list<array{table: ?string, expression: ?string, operation: string, line: int}>,
-     *     schema_mutations?: list<array{table: ?string, expression: ?string, operation: string, operand: string, line: int}>
+     *     schema_mutations?: list<array{table: ?string, expression: ?string, operation: string, operand: string, line: int}>,
+     *     foreign_keys?: list<array{from_table: ?string, from_expression: ?string, to_table: ?string, to_expression: ?string, operation: string, line: int}>
      * }
      */
     public function toArray(): array
@@ -263,6 +317,17 @@ final readonly class SourceFileAnalysis
             $payload['schema_mutations'] = $this->schemaMutations;
         }
 
+        if ($this->foreignKeyReferences !== []) {
+            $payload['foreign_keys'] = $this->foreignKeyReferences;
+        }
+
         return $payload;
+    }
+
+    private function validTableEvidence(?string $table, ?string $expression): bool
+    {
+        return ($table === null || TableName::valid($table))
+            && ($table === null || $expression === null)
+            && ($expression === null || trim($expression) !== '');
     }
 }
