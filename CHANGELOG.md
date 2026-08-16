@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0-beta.1] - 2026-08-16
+
+This beta starts the Developer Experience release line with deterministic
+machine-readable checks and native GitHub Actions annotations.
+
 ### Added
 
 - Added deterministic `module:check --format=json` output with a versioned
@@ -112,7 +117,8 @@ incomplete and are not part of this release contract.
 - Clean installation acceptance from release-tag checkouts by explicitly
   mapping the local path repository to `dev-main`.
 
-[Unreleased]: https://github.com/cluion/moduark/compare/v0.2.0-beta.3...HEAD
+[Unreleased]: https://github.com/cluion/moduark/compare/v0.3.0-beta.1...HEAD
+[0.3.0-beta.1]: https://github.com/cluion/moduark/compare/v0.2.0-beta.3...v0.3.0-beta.1
 [0.2.0-beta.3]: https://github.com/cluion/moduark/compare/v0.2.0-beta.2...v0.2.0-beta.3
 [0.2.0-beta.2]: https://github.com/cluion/moduark/compare/v0.2.0-beta.1...v0.2.0-beta.2
 [0.2.0-beta.1]: https://github.com/cluion/moduark/compare/v0.1.0-beta.2...v0.2.0-beta.1

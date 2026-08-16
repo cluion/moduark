@@ -4,10 +4,9 @@ Moduark is a Laravel-native modular architecture toolkit. It keeps Modules in a
 normal Laravel application while making their dependencies, lifecycle order,
 resources, and architecture boundaries executable and inspectable.
 
-> **Pre-release status:** `0.2.0-beta.3` guarantees Level 0, Level 1, and Level
-> 2. It includes typed Capability metadata, runtime Adapter composition,
-> complete Capability and combined graphs, and focused Module inspection. Level
-> 3 remains incomplete.
+> **Pre-release status:** `0.3.0-beta.1` guarantees Level 0, Level 1, and Level
+> 2. It also adds versioned JSON check reports and native GitHub Actions
+> annotations. Level 3 remains incomplete.
 
 ## Requirements
 
@@ -20,7 +19,7 @@ resources, and architecture boundaries executable and inspectable.
 Install the current beta from Packagist:
 
 ```bash
-composer require cluion/moduark:^0.2@beta
+composer require cluion/moduark:^0.3@beta
 ```
 
 The package is pre-release software. Pin an exact beta version when an
@@ -204,7 +203,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `2` | Command input, analyzer, or unavailable-rule tool error; result is incomplete |
 
 Use JSON when another tool needs the complete result without parsing terminal
-formatting. This option is currently on `main` for the next pre-release:
+formatting. This option is included in `v0.3.0-beta.1`:
 
 ```bash
 php artisan module:check --format=json
@@ -246,8 +245,8 @@ providers, and other consumers so the relationship remains complete. The
 combined view overlays labeled `depends`, `requires`, and `provides` edges and
 uses the union of direct and Capability neighborhoods. JSON graph output remains
 later work. These views are included in `v0.2.0-beta.2`. `module:check` JSON and
-GitHub Actions annotations are available on `main` for the next pre-release;
-suppressions and per-Module filtering remain later work.
+GitHub Actions annotations are included in `v0.3.0-beta.1`; suppressions and
+per-Module filtering remain later work.
 
 Use `module:inspect Order` when one Module needs more detail than the graph. It
 shows the effective architecture level, discovered or missing direct
@@ -309,7 +308,7 @@ acceptance against the Packagist dist instead of the local path repository. This
 mode also verifies the installed archive layout:
 
 ```bash
-composer test:installation -- --package=0.2.0-beta.3
+composer test:installation -- --package=0.3.0-beta.1
 ```
 
 The GitHub Actions compatibility workflow runs PHPUnit on all four
@@ -328,14 +327,15 @@ contract.
 
 ## Current Scope
 
-The released `v0.2.0-beta.3` guarantees foundation plus complete Level 1 and
+The `v0.3.0-beta.1` release guarantees foundation plus complete Level 1 and
 Level 2 presets. Level 2 includes typed Capability metadata, descriptor-only
 provider resolution, lifecycle preflight, consumer-owned Port wiring,
 Capability contract validation, source-enforced Adapter boundaries,
 deterministic Capability and combined graphs, `module:inspect`, and the large
-Level 2 acceptance fixture. Database or migration ownership, raw SQL analysis,
-explicit exports, baseline files, suppressions, incremental analysis, and IDE
-integration remain later work. Level 3 rule names in configuration are not
-claims of enforcement.
+Level 2 acceptance fixture. Developer Experience output includes versioned JSON
+reports and GitHub Actions annotations. Database or migration ownership, raw
+SQL analysis, explicit exports, baseline files, suppressions, incremental
+analysis, and IDE integration remain later work. Level 3 rule names in
+configuration are not claims of enforcement.
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).
