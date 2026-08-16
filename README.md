@@ -4,9 +4,9 @@ Moduark is a Laravel-native modular architecture toolkit. It keeps Modules in a
 normal Laravel application while making their dependencies, lifecycle order,
 resources, and architecture boundaries executable and inspectable.
 
-> **Pre-release status:** `0.3.0-beta.1` guarantees Level 0, Level 1, and Level
-> 2. It also adds versioned JSON check reports and native GitHub Actions
-> annotations. Level 3 remains incomplete.
+> **Pre-release status:** `0.3.0-beta.2` guarantees Level 0, Level 1, and Level
+> 2. It adds versioned JSON check reports, native GitHub Actions annotations,
+> and deterministic Module metadata caching. Level 3 remains incomplete.
 
 ## Requirements
 
@@ -295,7 +295,8 @@ php artisan optimize:clear
 An unknown cache schema or a manifest for another configured Module root is
 ignored safely. A malformed current-schema manifest fails with its exact cache
 path instead of silently booting from ambiguous metadata. See
-[ADR-0030](docs/adr/0030-module-metadata-cache.md).
+[ADR-0030](docs/adr/0030-module-metadata-cache.md). This integration is included
+in `v0.3.0-beta.2`.
 
 ## Development
 
@@ -344,7 +345,7 @@ acceptance against the Packagist dist instead of the local path repository. This
 mode also verifies the installed archive layout:
 
 ```bash
-composer test:installation -- --package=0.3.0-beta.1
+composer test:installation -- --package=0.3.0-beta.2
 ```
 
 The GitHub Actions compatibility workflow runs PHPUnit on all four
@@ -363,16 +364,16 @@ contract.
 
 ## Current Scope
 
-The `v0.3.0-beta.1` release guarantees foundation plus complete Level 1 and
+The `v0.3.0-beta.2` release guarantees foundation plus complete Level 1 and
 Level 2 presets. Level 2 includes typed Capability metadata, descriptor-only
 provider resolution, lifecycle preflight, consumer-owned Port wiring,
 Capability contract validation, source-enforced Adapter boundaries,
 deterministic Capability and combined graphs, `module:inspect`, and the large
 Level 2 acceptance fixture. Developer Experience output includes versioned JSON
-reports and GitHub Actions annotations. Current main additionally includes
-deterministic Module metadata caching with Laravel optimize integration.
-Database or migration ownership, raw SQL analysis, explicit exports, baseline
-files, suppressions, incremental analysis, and IDE integration remain later
-work. Level 3 rule names in configuration are not claims of enforcement.
+reports, GitHub Actions annotations, and deterministic Module metadata caching
+with Laravel optimize integration. Database or migration ownership, raw SQL
+analysis, explicit exports, baseline files, suppressions, incremental analysis,
+and IDE integration remain later work. Level 3 rule names in configuration are
+not claims of enforcement.
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).
