@@ -164,6 +164,7 @@ return [
 
     'architecture' => [
         'level' => 1,
+        'baseline' => base_path('moduark-baseline.json'),
         'rules' => [
             // 'internal_api_access' => false,
         ],
@@ -190,6 +191,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | Command | Current contract |
 |---|---|
 | `make:module {name}` | Create one minimal, non-overwriting Module entry class |
+| `module:baseline [--level=0..3] [--force] [--prune]` | Adopt current violations explicitly or safely remove stale baseline debt |
 | `module:cache` | Cache deterministic Module discovery and typed metadata |
 | `module:clear` | Remove the cached Module discovery and metadata manifest |
 | `module:list` | List discovered Modules in deterministic order |
@@ -215,9 +217,10 @@ php artisan module:check --level=2 --format=json
 
 Schema version `1` includes `status`, `complete`, `exit_code`, effective
 architecture and rule configuration, summary counts, unavailable rules,
-per-rule violations, and an `error` object for failures that occur before a
-report is produced. Status is `passed`, `violations_found`, or `incomplete`;
-the exit codes remain exactly the same as text output. See
+per-rule violations, additive baseline audit metadata, and an `error` object for
+failures that occur before a report is produced. Status is `passed`,
+`violations_found`, or `incomplete`; the exit codes remain exactly the same as
+text output. See
 [ADR-0028](docs/adr/0028-module-check-json-output.md).
 
 Use GitHub output in an Actions workflow to attach each violation to its source
@@ -231,6 +234,34 @@ file and line while preserving the same exit-code contract:
 Errors and warnings become workflow annotations; a clean run emits one notice.
 Incomplete analysis and command failures remain errors with exit code `2`. See
 [ADR-0029](docs/adr/0029-github-actions-annotations.md).
+
+## Architecture Baseline
+
+For a brownfield application, first review the raw violations, then create one
+repository-visible baseline:
+
+```bash
+php artisan module:check --level=1
+php artisan module:baseline --level=1
+git add moduark-baseline.json
+```
+
+Normal `module:check` runs automatically apply the configured baseline. The
+identity excludes diagnostic wording and line number, but retains rule, code,
+severity, file, Module endpoints, and symbol. If the number of matching current
+violations grows beyond the recorded count, the whole group is reported so a
+new occurrence cannot be guessed away.
+
+Routine cleanup is one-way and cannot adopt new debt:
+
+```bash
+php artisan module:baseline --prune
+```
+
+The command refuses to overwrite an existing baseline by default. Use
+`--force` only after reviewing the complete raw result because replacement can
+adopt regressions. Text, JSON, and GitHub output report matched, stale, and
+exceeded counts. See [ADR-0031](docs/adr/0031-architecture-baseline-adoption.md).
 
 The graph command defaults to direct Module dependencies. The Capability view
 renders typed `requires` and `provides` edges:
@@ -248,8 +279,8 @@ providers, and other consumers so the relationship remains complete. The
 combined view overlays labeled `depends`, `requires`, and `provides` edges and
 uses the union of direct and Capability neighborhoods. JSON graph output remains
 later work. These views are included in `v0.2.0-beta.2`. `module:check` JSON and
-GitHub Actions annotations are included in `v0.3.0-beta.1`; suppressions and
-per-Module filtering remain later work.
+GitHub Actions annotations are included in `v0.3.0-beta.1`; inline suppressions
+and per-Module filtering remain later work.
 
 Use `module:inspect Order` when one Module needs more detail than the graph. It
 shows the effective architecture level, discovered or missing direct
@@ -371,9 +402,10 @@ Capability contract validation, source-enforced Adapter boundaries,
 deterministic Capability and combined graphs, `module:inspect`, and the large
 Level 2 acceptance fixture. Developer Experience output includes versioned JSON
 reports, GitHub Actions annotations, and deterministic Module metadata caching
-with Laravel optimize integration. Database or migration ownership, raw SQL
-analysis, explicit exports, baseline files, suppressions, incremental analysis,
-and IDE integration remain later work. Level 3 rule names in configuration are
-not claims of enforcement.
+with Laravel optimize integration. The current unreleased line adds a
+reviewable architecture baseline workflow. Database or migration ownership, raw
+SQL analysis, explicit exports, inline suppressions, incremental analysis, and
+IDE integration remain later work. Level 3 rule names in configuration are not
+claims of enforcement.
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

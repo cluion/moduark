@@ -24,7 +24,7 @@ source analysis fails before a `CheckReport` exists.
   presentation changes.
 - Every payload contains these fields in a stable order:
   `schema_version`, `status`, `complete`, `exit_code`, `architecture`, `summary`,
-  `unavailable_rules`, `results`, and `error`.
+  additive `baseline`, `unavailable_rules`, `results`, and `error`.
 - A produced report uses status `passed`, `violations_found`, or `incomplete`.
   Its `architecture` contains configured and effective levels, labels, override
   state, and every effective rule. Its ordered `results` retain each rule's
@@ -63,6 +63,8 @@ source analysis fails before a `CheckReport` exists.
   invokes `module:check`; Laravel may render those failures outside this JSON
   contract.
 - GitHub Actions annotations are added separately by
-  [ADR-0029](0029-github-actions-annotations.md). Baseline files, suppressions,
+  [ADR-0029](0029-github-actions-annotations.md), and the later additive
+  `baseline` field is defined by
+  [ADR-0031](0031-architecture-baseline-adoption.md). Inline suppressions,
   incremental analysis, IDE integration, and JSON graph output remain future
   slices.

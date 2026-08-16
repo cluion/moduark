@@ -255,8 +255,10 @@ Only boolean overrides are accepted:
   returns exit 2.
 
 Overrides are global rule switches. The beta does not provide per-file
-suppressions or a baseline file, so record why a Level guarantee is intentionally
-weakened and remove the override as soon as the migration permits.
+suppressions. When the rule should remain active, prefer a reviewed architecture
+baseline over disabling it globally, and use `module:baseline --prune` as debt is
+removed. Record why a Level guarantee is intentionally weakened and remove a
+rule override as soon as the migration permits.
 
 ## Diagnostics and Exit Policy
 

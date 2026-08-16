@@ -6,8 +6,11 @@ return [
     'path' => app_path('Modules'),
 
     'architecture' => [
-        // The beta only guarantees the Level 0 and Level 1 rule sets.
+        // The beta currently guarantees the Level 0, Level 1, and Level 2 rule sets.
         'level' => 1,
+
+        // Existing violations can be adopted explicitly with module:baseline.
+        'baseline' => base_path('moduark-baseline.json'),
 
         // Only declare exceptions here. Unlisted rules inherit the level preset.
         'rules' => [],

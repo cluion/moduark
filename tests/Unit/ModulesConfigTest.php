@@ -18,6 +18,7 @@ final class ModulesConfigTest extends TestCase
                 'path' => '/app/Modules',
                 'architecture' => [
                     'level' => 1,
+                    'baseline' => '/app/moduark-baseline.json',
                     'rules' => [
                         'cycles' => true,
                         'internal_api_access' => true,
@@ -34,6 +35,7 @@ final class ModulesConfigTest extends TestCase
         );
 
         self::assertSame(Level::Modular, $configuration->level());
+        self::assertSame('/app/moduark-baseline.json', $configuration->baselinePath());
         self::assertSame([
             'cycles' => false,
             'internal_api_access' => true,
@@ -69,6 +71,26 @@ final class ModulesConfigTest extends TestCase
             ],
             [
                 'architecture' => ['level' => '2'],
+            ],
+        );
+    }
+
+    public function test_invalid_baseline_path_is_rejected(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('baseline configuration must be a non-empty string');
+
+        ModulesConfig::from(
+            [
+                'path' => '/app/Modules',
+                'architecture' => [
+                    'level' => 1,
+                    'baseline' => '/app/moduark-baseline.json',
+                    'rules' => [],
+                ],
+            ],
+            [
+                'architecture' => ['baseline' => ''],
             ],
         );
     }

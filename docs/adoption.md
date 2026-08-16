@@ -185,8 +185,42 @@ its migration reason beside the configuration:
 ```
 
 This weakens the Level 1 guarantee for the entire application. The beta has no
-per-file suppression, expiry, or baseline mechanism, so a broad override should
-not be presented as a fully passing Level 1 architecture.
+per-file suppression or expiry mechanism. Prefer the reviewable baseline below
+when the rule itself should remain enabled; a broad override should not be
+presented as a fully passing Level 1 architecture.
+
+## Adopt Existing Debt with a Baseline
+
+When the raw Level 1 result is too large to fix in one change, keep the rules
+enabled and capture the reviewed starting point:
+
+```bash
+php artisan module:check --level=1
+php artisan module:baseline --level=1
+git add moduark-baseline.json
+```
+
+The default file is `moduark-baseline.json` at the application root. Set
+`modules.architecture.baseline` to a different non-empty path when necessary.
+The JSON is deterministic and should be reviewed like source code.
+
+After creation, normal checks ignore matching existing counts but continue to
+report new identities. If an existing identity grows from one occurrence to
+two, Moduark reports both current occurrences rather than guessing which one is
+new. Line-number and message changes do not invalidate an otherwise stable
+identity; file, rule, diagnostic code, severity, Module endpoints, and symbol
+remain part of the match.
+
+As debt is repaired, safely remove stale counts:
+
+```bash
+php artisan module:baseline --prune
+```
+
+Prune never adds an identity or raises an allowance. A normal creation refuses
+to overwrite an existing file; `module:baseline --force` is deliberately
+separate because it replaces the file with all current raw violations and can
+adopt regressions.
 
 ## Adopt Level 2 with the `0.2` Beta
 
@@ -241,4 +275,5 @@ persistence isolation, and explicit exports.
 - [ ] Before Level 2 adoption, consumer Ports and provider-scoped Adapters pass
       `module:check --level=2` with all eight rules enabled.
 - [ ] Configuration and CI both run the same default Level.
+- [ ] Any architecture baseline is committed, reviewed, and routinely pruned.
 - [ ] Any rule override has an owner, reason, and removal condition.

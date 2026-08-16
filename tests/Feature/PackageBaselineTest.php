@@ -6,8 +6,10 @@ namespace Tests\Feature;
 
 use Cluion\Moduark\Analysis\ArchitectureCheck;
 use Cluion\Moduark\Analysis\ArchitectureChecker;
+use Cluion\Moduark\Analysis\Baseline\ArchitectureBaselineStore;
 use Cluion\Moduark\Analysis\Boundary\PublicApi;
 use Cluion\Moduark\Analysis\RuleRunner;
+use Cluion\Moduark\Analysis\RawArchitectureCheck;
 use Cluion\Moduark\Analysis\Source\SourceIndexBuilder;
 use Cluion\Moduark\Architecture\EffectiveArchitecture;
 use Cluion\Moduark\Architecture\Level;
@@ -52,6 +54,8 @@ final class PackageBaselineTest extends TestCase
         self::assertTrue($application->bound(RuleRunner::class));
         self::assertTrue($application->bound(ArchitectureCheck::class));
         self::assertTrue($application->bound(ArchitectureChecker::class));
+        self::assertTrue($application->bound(RawArchitectureCheck::class));
+        self::assertTrue($application->bound(ArchitectureBaselineStore::class));
         self::assertTrue($application->bound(PublicApi::class));
         self::assertTrue($application->bound(SourceIndexBuilder::class));
         self::assertTrue($application->bound(ModuleDiscoverer::class));
@@ -85,6 +89,7 @@ final class PackageBaselineTest extends TestCase
 
         self::assertSame(dirname(__DIR__, 2).'/workbench/app/Modules', $configuration->path());
         self::assertSame(Level::Modular, $configuration->level());
+        self::assertSame($this->application()->basePath('moduark-baseline.json'), $configuration->baselinePath());
         self::assertSame(1, config('modules.architecture.level'));
     }
 
@@ -100,6 +105,10 @@ final class PackageBaselineTest extends TestCase
 
             self::assertSame(Level::Modular, $configuration->level());
             self::assertSame(dirname(__DIR__, 2).'/workbench/app/Modules', $configuration->path());
+            self::assertSame(
+                $this->application()->basePath('moduark-baseline.json'),
+                $configuration->baselinePath(),
+            );
             self::assertSame(
                 $expected,
                 $this->application()->make(EffectiveArchitecture::class)->toArray(),

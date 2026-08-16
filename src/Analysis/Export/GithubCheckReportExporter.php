@@ -49,6 +49,23 @@ final class GithubCheckReportExporter
             );
         }
 
+        $baseline = $report->baseline();
+
+        if ($baseline !== null) {
+            $commands[] = $this->command(
+                'notice',
+                ['title' => 'Moduark architecture baseline'],
+                sprintf(
+                    'Baseline matched %d existing violation%s from %s; %d stale; %d exceeded.',
+                    $baseline->matched(),
+                    $baseline->matched() === 1 ? '' : 's',
+                    $baseline->path(),
+                    $baseline->stale(),
+                    $baseline->exceeded(),
+                ),
+            );
+        }
+
         return implode(PHP_EOL, $commands);
     }
 

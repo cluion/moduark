@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added a deterministic, reviewable architecture baseline workflow with
+  `module:baseline`, conservative count matching, explicit replacement,
+  safe stale-entry pruning, and audit metadata in text, JSON, and GitHub output.
+
 ## [0.3.0-beta.2] - 2026-08-16
 
 This beta adds deterministic production caching for Module discovery and typed

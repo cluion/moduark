@@ -109,6 +109,7 @@ final class ModuleCheckCommand extends Command
         }
 
         $this->renderViolations($report->violations());
+        $this->renderBaseline($report);
 
         if (! $report->complete()) {
             $rules = array_map(
@@ -150,9 +151,11 @@ final class ModuleCheckCommand extends Command
             return $report->exitCode($this->exitPolicy);
         }
 
+        $rulesEvaluated = count($report->results());
         $this->components->info(sprintf(
-            'Architecture check passed: %d rules evaluated at Level %d (%s).',
-            count($report->results()),
+            'Architecture check passed: %d rule%s evaluated at Level %d (%s).',
+            $rulesEvaluated,
+            $rulesEvaluated === 1 ? '' : 's',
             $report->architecture()->level()->value,
             $report->architecture()->level()->label(),
         ));
@@ -171,6 +174,38 @@ final class ModuleCheckCommand extends Command
 
         $this->line('Suggestion: '.$exception->suggestion());
         $this->line('Result: incomplete; no architecture pass result was produced.');
+    }
+
+    private function renderBaseline(CheckReport $report): void
+    {
+        $baseline = $report->baseline();
+
+        if ($baseline === null) {
+            return;
+        }
+
+        $this->line(sprintf(
+            'Baseline: %d existing violation%s matched from [%s].',
+            $baseline->matched(),
+            $baseline->matched() === 1 ? '' : 's',
+            $baseline->path(),
+        ));
+
+        if ($baseline->stale() > 0) {
+            $this->components->warn(sprintf(
+                '%d stale baseline violation%s can be removed with module:baseline --prune.',
+                $baseline->stale(),
+                $baseline->stale() === 1 ? '' : 's',
+            ));
+        }
+
+        if ($baseline->exceeded() > 0) {
+            $this->components->warn(sprintf(
+                'Baseline allowance was exceeded; all %d matching violation%s were reported.',
+                $baseline->exceeded(),
+                $baseline->exceeded() === 1 ? '' : 's',
+            ));
+        }
     }
 
     private function level(): Level|false|null

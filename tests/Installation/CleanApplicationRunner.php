@@ -192,6 +192,7 @@ final class CleanApplicationRunner
         foreach (
             [
                 'make:module',
+                'module:baseline',
                 'module:cache',
                 'module:check',
                 'module:clear',
@@ -232,6 +233,17 @@ final class CleanApplicationRunner
             'Architecture check passed: 6 rules evaluated at Level 1 (Modular).',
             $check,
             'module:check did not complete the default Level 1 rule set.',
+        );
+
+        $baseline = $this->artisan($application, ['module:baseline'], $environment);
+        $this->assertContains(
+            'Created architecture baseline with 0 violations',
+            $baseline,
+            'module:baseline did not create the initial architecture baseline.',
+        );
+        $this->assertFileExists(
+            $application.'/moduark-baseline.json',
+            'module:baseline did not write moduark-baseline.json.',
         );
 
         $jsonCheck = $this->artisan(

@@ -13,7 +13,7 @@ use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
 use Cluion\Moduark\Registry\ModuleRegistry;
 
-final readonly class ArchitectureChecker implements ArchitectureCheck
+final readonly class ArchitectureChecker implements RawArchitectureCheck
 {
     public function __construct(
         private ModuleRegistry $registry,

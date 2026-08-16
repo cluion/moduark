@@ -6,11 +6,14 @@ namespace Cluion\Moduark;
 
 use Cluion\Moduark\Analysis\ArchitectureCheck;
 use Cluion\Moduark\Analysis\ArchitectureChecker;
+use Cluion\Moduark\Analysis\Baseline\ArchitectureBaselineStore;
+use Cluion\Moduark\Analysis\Baseline\BaselineArchitectureCheck;
 use Cluion\Moduark\Analysis\Boundary\ConventionPublicApi;
 use Cluion\Moduark\Analysis\Boundary\PublicApi;
 use Cluion\Moduark\Analysis\Export\GithubCheckReportExporter;
 use Cluion\Moduark\Analysis\Export\JsonCheckReportExporter;
 use Cluion\Moduark\Analysis\RuleRunner;
+use Cluion\Moduark\Analysis\RawArchitectureCheck;
 use Cluion\Moduark\Analysis\Rules\AdapterBoundariesRule;
 use Cluion\Moduark\Analysis\Rules\CapabilityContractsRule;
 use Cluion\Moduark\Analysis\Rules\CyclesRule;
@@ -29,6 +32,7 @@ use Cluion\Moduark\Cache\ModuleCacheBuilder;
 use Cluion\Moduark\Cache\ModuleCacheStore;
 use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Console\MakeModuleCommand;
+use Cluion\Moduark\Console\ModuleBaselineCommand;
 use Cluion\Moduark\Console\ModuleCacheCommand;
 use Cluion\Moduark\Console\ModuleCheckCommand;
 use Cluion\Moduark\Console\ModuleClearCommand;
@@ -113,6 +117,7 @@ final class ModuarkServiceProvider extends ServiceProvider
         $this->app->singleton(SourceIndexBuilder::class);
         $this->app->singleton(GithubCheckReportExporter::class);
         $this->app->singleton(JsonCheckReportExporter::class);
+        $this->app->singleton(ArchitectureBaselineStore::class);
         $this->app->singleton(CapabilityGraphBuilder::class);
         $this->app->singleton(CombinedGraphBuilder::class);
         $this->app->singleton(ModuleGraphBuilder::class);
@@ -144,8 +149,17 @@ final class ModuarkServiceProvider extends ServiceProvider
         );
         $this->app->singleton(ArchitectureChecker::class);
         $this->app->singleton(
+            RawArchitectureCheck::class,
+            fn (): RawArchitectureCheck => $this->app->make(ArchitectureChecker::class),
+        );
+        $this->app->singleton(
             ArchitectureCheck::class,
-            fn (): ArchitectureCheck => $this->app->make(ArchitectureChecker::class),
+            fn (): ArchitectureCheck => new BaselineArchitectureCheck(
+                $this->app->make(RawArchitectureCheck::class),
+                $this->app->make(ArchitectureBaselineStore::class),
+                $this->app->make(ModulesConfig::class),
+                $this->app->basePath(),
+            ),
         );
 
         $registry = $this->app->make(ModuleRegistry::class);
@@ -164,6 +178,7 @@ final class ModuarkServiceProvider extends ServiceProvider
 
         $this->commands([
             MakeModuleCommand::class,
+            ModuleBaselineCommand::class,
             ModuleCacheCommand::class,
             ModuleCheckCommand::class,
             ModuleClearCommand::class,

@@ -72,6 +72,7 @@ final class ModuleCheckCommandTest extends TestCase
             'warnings' => 0,
         ], $first['summary']);
         self::assertSame([], $first['unavailable_rules']);
+        self::assertNull($first['baseline']);
         $results = $first['results'];
         self::assertIsArray($results);
         self::assertCount(6, $results);
@@ -195,6 +196,7 @@ final class ModuleCheckCommandTest extends TestCase
             'warnings' => 0,
         ], $payload['summary']);
         self::assertSame([], $payload['unavailable_rules']);
+        self::assertNull($payload['baseline']);
         self::assertSame([], $payload['results']);
         self::assertSame([
             'code' => 'MOD-CHECK-OPTION-001',

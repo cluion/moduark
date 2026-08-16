@@ -47,6 +47,14 @@ final readonly class ModulesConfig
         return Level::from($architecture['level']);
     }
 
+    public function baselinePath(): ?string
+    {
+        /** @var array{baseline?: string, level: int, rules: array<string, mixed>} $architecture */
+        $architecture = $this->values['architecture'];
+
+        return $architecture['baseline'] ?? null;
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -88,6 +96,15 @@ final readonly class ModulesConfig
 
         if (! isset($architecture['rules']) || ! is_array($architecture['rules'])) {
             throw new InvalidArgumentException('The modules.architecture.rules configuration must be an array.');
+        }
+
+        if (
+            array_key_exists('baseline', $architecture)
+            && (! is_string($architecture['baseline']) || trim($architecture['baseline']) === '')
+        ) {
+            throw new InvalidArgumentException(
+                'The modules.architecture.baseline configuration must be a non-empty string.',
+            );
         }
     }
 

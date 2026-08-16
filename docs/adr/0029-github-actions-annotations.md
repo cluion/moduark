@@ -57,5 +57,7 @@ also requires reserved characters in messages and properties to be escaped.
   lose evidence.
 - GitHub output is presentation-specific and intentionally is not a replacement
   for the complete versioned JSON schema.
-- Baseline files, suppressions, incremental analysis, IDE integration, and JSON
-  graph output remain separate future slices.
+- Architecture baseline notices are defined separately by
+  [ADR-0031](0031-architecture-baseline-adoption.md). Inline suppressions,
+  incremental analysis, IDE integration, and JSON graph output remain separate
+  future slices.
