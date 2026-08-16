@@ -16,6 +16,7 @@ use Cluion\Moduark\Analysis\RuleRunner;
 use Cluion\Moduark\Analysis\RawArchitectureCheck;
 use Cluion\Moduark\Analysis\Rules\AdapterBoundariesRule;
 use Cluion\Moduark\Analysis\Rules\CapabilityContractsRule;
+use Cluion\Moduark\Analysis\Rules\CrossModuleModelAccessRule;
 use Cluion\Moduark\Analysis\Rules\CyclesRule;
 use Cluion\Moduark\Analysis\Rules\InternalApiAccessRule;
 use Cluion\Moduark\Analysis\Rules\MissingDependenciesRule;
@@ -165,6 +166,7 @@ final class ModuarkServiceProvider extends ServiceProvider
                 new InternalApiAccessRule($this->app->make(PublicApi::class)),
                 new CapabilityContractsRule,
                 new AdapterBoundariesRule,
+                new CrossModuleModelAccessRule,
             ]),
         );
         $this->app->singleton(ArchitectureChecker::class);

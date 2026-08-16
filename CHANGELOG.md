@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added the first Level 3 rule, `cross_module_model_access`, with AST-resolved
+  direct and indexed indirect Eloquent Model inheritance, source-level evidence
+  for cross-Module type and expression references, and a versioned source-cache
+  schema for retained parent metadata.
+
 ## [0.3.0-beta.5] - 2026-08-16
 
 This beta adds auditable, narrowly scoped architecture suppressions without

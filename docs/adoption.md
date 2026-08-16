@@ -301,8 +301,10 @@ selected Module's resolved Capability provider, Port, Adapter, ServiceProviders,
 dependency status, and current convention-based Public API. It does not define
 the future Level 3 explicit export metadata.
 
-Level 3 remains unavailable and additionally requires database ownership,
-persistence isolation, and explicit exports.
+Level 3 remains incomplete. Its first rule can already audit direct cross-Module
+Eloquent Model references, but database and migration ownership, query/FK/
+transaction analysis, and explicit exports must be implemented before Level 3
+can produce a complete pass.
 
 ## Adoption Checklist
 

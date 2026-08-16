@@ -138,6 +138,29 @@ PHP);
         );
     }
 
+    public function test_eloquent_model_ancestry_survives_a_warm_source_analysis_cache(): void
+    {
+        $this->write($this->trackedPath, <<<'PHP'
+<?php
+
+namespace Incremental\Internal;
+
+use Illuminate\Database\Eloquent\Model as EloquentModel;
+
+final class Tracked extends EloquentModel
+{
+}
+PHP);
+        $builder = $this->builder(IncrementalSourceModule::class);
+
+        $cold = $builder->build();
+        $warm = $builder->build();
+
+        self::assertTrue($cold->isEloquentModel('Incremental\Internal\Tracked'));
+        self::assertTrue($warm->isEloquentModel('Incremental\Internal\Tracked'));
+        self::assertSame(2, $this->cachePayload()['schema_version']);
+    }
+
     public function test_an_invalid_cache_falls_back_to_a_complete_cold_analysis(): void
     {
         $builder = $this->builder(IncrementalSourceModule::class);
@@ -253,7 +276,13 @@ PHP);
 
     /**
      * @return array{
-     *     symbols: list<array{name: string, owner: class-string<Module>, file: string, line: int}>,
+     *     symbols: list<array{
+     *         name: string,
+     *         owner: class-string<Module>,
+     *         file: string,
+     *         line: int,
+     *         parent: ?string
+     *     }>,
      *     references: list<array{
      *         source: class-string<Module>,
      *         target: class-string<Module>,

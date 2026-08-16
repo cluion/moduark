@@ -12,12 +12,12 @@ preset plus explicit boolean overrides into an effective rule set, and
 | 0 | Organization | Implemented | Valid, uniquely identified Module structure |
 | 1 | Modular | Implemented | Explicit dependencies, acyclic graph, provider-owned Public API |
 | 2 | Decoupled | Implemented in `0.2` beta | Consumer-owned Ports, adapters, capability contracts |
-| 3 | Isolated | Reserved, incomplete | Model, database, migration, transaction, and export boundaries |
+| 3 | Isolated | Partially implemented, incomplete | Model, database, migration, transaction, and export boundaries |
 
 The package default is Level 1. In the `0.2` beta, the normal Level 2 preset has
-eight implemented rules and can produce a complete pass. Level 3 still returns
-exit code 2 because enabled rules remain unavailable; that is an incomplete
-analysis, not an architecture pass.
+eight implemented rules and can produce a complete pass. Level 3 now has its
+first implemented rule but still returns exit code 2 because five enabled rules
+remain unavailable; that is an incomplete analysis, not an architecture pass.
 
 ## Preset Matrix
 
@@ -34,7 +34,7 @@ preset leaves the rule disabled.
 | `internal_api_access` | — | E | E | E | Yes |
 | `capability_contracts` | — | — | E | E | Yes |
 | `adapter_boundaries` | — | — | E | E | Yes |
-| `cross_module_model_access` | — | — | — | E | No |
+| `cross_module_model_access` | — | — | — | E | Yes |
 | `database_ownership` | — | — | — | E | No |
 | `migration_ownership` | — | — | — | E | No |
 | `cross_module_foreign_keys` | — | — | — | W | No |
@@ -231,8 +231,23 @@ On a valid architecture, the command evaluates all eight Level 2 rules and exits
 
 Level 3 is reserved for Eloquent/model access, table ownership, migration
 ownership, foreign keys, transaction warnings, and explicit export metadata.
-Those rules need Laravel-aware AST and ownership indexes and are not implemented.
-Selecting Level 3 therefore exits 2 with an incomplete report.
+
+The first implemented Level 3 rule is `cross_module_model_access`. It identifies
+classes that directly extend `Illuminate\Database\Eloquent\Model` or inherit
+from an indexed Module class that does, then reports every direct cross-Module
+reference as `MOD-MODEL-001`. Existing AST evidence covers declared types,
+inheritance, `new`, static access, `::class`, and `instanceof`; Eloquent relation
+targets written as `OtherModel::class` are therefore included. Same-Module
+references, non-Model symbols, PHPDoc, dynamic class strings, unused imports,
+and ancestry outside indexed Module source are not inferred.
+
+This Model rule remains independent from the Level 1 Public API rule: one direct
+Model access can correctly violate both visibility and persistence-isolation
+contracts. Use an identifier plus a Port or exported boundary instead of sharing
+the Eloquent object. See [ADR-0035](adr/0035-cross-module-model-access.md).
+
+The remaining five Level 3 rules still need Laravel-aware ownership indexes.
+Selecting Level 3 therefore continues to exit 2 with an incomplete report.
 
 ## Rule Overrides
 

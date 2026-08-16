@@ -9,6 +9,8 @@ use Cluion\Moduark\Module;
 
 final readonly class SourceIndex
 {
+    private const ELOQUENT_MODEL = 'illuminate\\database\\eloquent\\model';
+
     /** @var list<SourceSymbol> */
     private array $symbols;
 
@@ -99,6 +101,37 @@ final readonly class SourceIndex
     public function symbol(string $name): ?SourceSymbol
     {
         return $this->symbolsByName[strtolower(ltrim($name, '\\'))] ?? null;
+    }
+
+    public function isEloquentModel(string|SourceSymbol $symbol): bool
+    {
+        $candidate = is_string($symbol) ? $this->symbol($symbol) : $symbol;
+        $visited = [];
+
+        while ($candidate !== null) {
+            $key = strtolower(ltrim($candidate->name(), '\\'));
+
+            if (isset($visited[$key])) {
+                return false;
+            }
+
+            $visited[$key] = true;
+            $parent = $candidate->parent();
+
+            if ($parent === null) {
+                return false;
+            }
+
+            $normalizedParent = strtolower(ltrim($parent, '\\'));
+
+            if ($normalizedParent === self::ELOQUENT_MODEL) {
+                return true;
+            }
+
+            $candidate = $this->symbolsByName[$normalizedParent] ?? null;
+        }
+
+        return false;
     }
 
     /**

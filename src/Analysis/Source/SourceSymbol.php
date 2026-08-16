@@ -17,6 +17,7 @@ final readonly class SourceSymbol
         string $owner,
         private string $file,
         private int $line,
+        private ?string $parent = null,
     ) {
         if (trim($name) === '') {
             throw new InvalidArgumentException('A source symbol name must not be empty.');
@@ -28,6 +29,10 @@ final readonly class SourceSymbol
 
         if (trim($file) === '' || $line < 1) {
             throw new InvalidArgumentException('A source symbol must have a file and positive line.');
+        }
+
+        if ($this->parent !== null && trim($this->parent) === '') {
+            throw new InvalidArgumentException('A source symbol parent must be null or a non-empty class name.');
         }
 
         $this->owner = $owner;
@@ -56,8 +61,19 @@ final readonly class SourceSymbol
         return $this->line;
     }
 
+    public function parent(): ?string
+    {
+        return $this->parent;
+    }
+
     /**
-     * @return array{name: string, owner: class-string<Module>, file: string, line: int}
+     * @return array{
+     *     name: string,
+     *     owner: class-string<Module>,
+     *     file: string,
+     *     line: int,
+     *     parent: ?string
+     * }
      */
     public function toArray(): array
     {
@@ -66,6 +82,7 @@ final readonly class SourceSymbol
             'owner' => $this->owner,
             'file' => $this->file,
             'line' => $this->line,
+            'parent' => $this->parent,
         ];
     }
 }

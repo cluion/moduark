@@ -8,7 +8,8 @@ resources, and architecture boundaries executable and inspectable.
 > 2. It adds versioned JSON check reports, native GitHub Actions annotations,
 > deterministic Module metadata caching, and a reviewable architecture baseline
 > workflow, Module-aware Makers, incremental source analysis, and auditable
-> architecture suppressions. Level 3 remains incomplete.
+> architecture suppressions. Development toward `0.4` adds the first Level 3
+> Model-isolation rule, but the Level 3 preset remains incomplete.
 
 ## Requirements
 
@@ -500,8 +501,11 @@ with narrow selectors, mandatory reasons, and stale/inactive reporting.
 Module-aware Makers generate models and controllers inside existing application
 Modules, while content-hash caching reuses unchanged per-file source analysis
 without persisting cross-file ownership decisions.
-Database or migration ownership, raw SQL analysis, explicit exports, suppression
-expiry, and IDE integration remain later work.
-Level 3 rule names in configuration are not claims of enforcement.
+The first Level 3 rule, `cross_module_model_access`, rejects direct references
+to an Eloquent Model owned by another Module using resolved AST inheritance and
+source evidence. The complete Level 3 preset remains unavailable while database
+and migration ownership, query/FK/transaction analysis, and explicit exports
+are still pending. Suppression expiry and IDE integration also remain later
+work. See [ADR-0035](docs/adr/0035-cross-module-model-access.md).
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

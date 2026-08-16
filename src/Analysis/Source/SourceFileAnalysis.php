@@ -71,11 +71,19 @@ final readonly class SourceFileAnalysis
         foreach ($symbolRows as $row) {
             if (! is_array($row)
                 || ! is_string($row['name'] ?? null)
-                || ! is_int($row['line'] ?? null)) {
+                || ! is_int($row['line'] ?? null)
+                || ! array_key_exists('parent', $row)
+                || (! is_string($row['parent']) && $row['parent'] !== null)) {
                 throw new InvalidArgumentException('The cached source symbols are invalid.');
             }
 
-            $symbols[] = new SourceSymbol($row['name'], $owner, $file, $row['line']);
+            $symbols[] = new SourceSymbol(
+                $row['name'],
+                $owner,
+                $file,
+                $row['line'],
+                $row['parent'],
+            );
         }
 
         $references = [];
@@ -127,7 +135,7 @@ final readonly class SourceFileAnalysis
      * @return array{
      *     hash: string,
      *     owner: class-string<Module>,
-     *     symbols: list<array{name: string, line: int}>,
+     *     symbols: list<array{name: string, line: int, parent: ?string}>,
      *     references: list<array{symbol: string, line: int}>
      * }
      */
@@ -140,6 +148,7 @@ final readonly class SourceFileAnalysis
                 static fn (SourceSymbol $symbol): array => [
                     'name' => $symbol->name(),
                     'line' => $symbol->line(),
+                    'parent' => $symbol->parent(),
                 ],
                 $this->symbols,
             ),
