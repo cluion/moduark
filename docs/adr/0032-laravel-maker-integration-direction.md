@@ -61,6 +61,12 @@ Moduark's compatibility surface.
   is sufficient.
 - The package's Laravel 12 and 13 CI matrix runs this feasibility contract
   against both supported framework majors.
+- `ModuleMakeCommandTest` covers case-insensitive Module lookup, nested model
+  names, invokable and API resource controllers, native force behavior, invalid
+  type and name input, incompatible options, external paths, and namespace
+  mismatches.
+- The clean Laravel installation matrix creates a model and controller through
+  the production `module:make` command on Laravel 12 and 13.
 - The framework source inspection used the exact supported high versions,
   Laravel 12.66.0 and Laravel 13.25.0, rather than assuming the two majors share
   Maker internals.

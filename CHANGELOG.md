@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added `module:make {module} {type} {name}` for Laravel-native model and
+  controller generation inside existing application Modules, with explicit safe
+  options and deterministic rejection of unsupported paths or related artifacts.
+
 ## [0.3.0-beta.3] - 2026-08-16
 
 This beta adds a reviewable architecture baseline workflow for adopting existing

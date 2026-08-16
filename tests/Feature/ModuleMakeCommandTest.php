@@ -1,0 +1,249 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature;
+
+use Cluion\Moduark\Architecture\ExitPolicy;
+use Cluion\Moduark\Discovery\DiscoveredModule;
+use Cluion\Moduark\Generation\ModuleMakerTargetResolver;
+use Cluion\Moduark\Module;
+use Cluion\Moduark\Registry\ModuleRegistry;
+use FilesystemIterator;
+use Illuminate\Filesystem\Filesystem;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
+use Tests\TestCase;
+
+final class ModuleMakeCommandTest extends TestCase
+{
+    private string $temporaryBasePath;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->temporaryBasePath = sys_get_temp_dir().'/moduark-module-maker-'.bin2hex(random_bytes(8));
+
+        self::assertTrue(mkdir($this->temporaryBasePath.'/app/Modules/User', 0755, true));
+        self::assertIsInt(file_put_contents(
+            $this->temporaryBasePath.'/composer.json',
+            json_encode([
+                'autoload' => [
+                    'psr-4' => [
+                        'MakerFixture\\' => 'app/',
+                    ],
+                ],
+            ], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR),
+        ));
+        self::assertIsInt(file_put_contents(
+            $this->temporaryBasePath.'/app/Modules/User/UserModule.php',
+            "<?php\n",
+        ));
+
+        $this->application()->setBasePath($this->temporaryBasePath);
+        $this->useModule(
+            $this->temporaryBasePath.'/app/Modules/User/UserModule.php',
+            'MakerFixture\\Modules\\User',
+        );
+    }
+
+    protected function tearDown(): void
+    {
+        (new Filesystem)->deleteDirectory($this->temporaryBasePath);
+
+        parent::tearDown();
+    }
+
+    public function test_it_generates_a_model_inside_an_existing_module(): void
+    {
+        $path = $this->temporaryBasePath.'/app/Modules/User/Models/Admin/Profile.php';
+
+        $this->command('module:make user model Admin/Profile')->assertSuccessful();
+
+        self::assertFileExists($path);
+        self::assertStringContainsString(
+            'namespace MakerFixture\\Modules\\User\\Models\\Admin;',
+            (string) file_get_contents($path),
+        );
+    }
+
+    public function test_it_generates_an_invokable_controller_with_native_stubs(): void
+    {
+        $path = $this->temporaryBasePath.'/app/Modules/User/Http/Controllers/ProfileController.php';
+
+        $this->command('module:make User controller ProfileController --invokable')->assertSuccessful();
+
+        $source = (string) file_get_contents($path);
+
+        self::assertStringContainsString(
+            'namespace MakerFixture\\Modules\\User\\Http\\Controllers;',
+            $source,
+        );
+        self::assertStringContainsString('public function __invoke(', $source);
+    }
+
+    public function test_it_generates_an_api_resource_controller_without_related_files(): void
+    {
+        $path = $this->temporaryBasePath.'/app/Modules/User/Http/Controllers/ProfileController.php';
+
+        $this->command('module:make User controller ProfileController --resource --api')
+            ->assertSuccessful();
+
+        $source = (string) file_get_contents($path);
+
+        self::assertStringContainsString('public function index()', $source);
+        self::assertStringContainsString('public function store(Request $request)', $source);
+        self::assertStringNotContainsString('public function create()', $source);
+        self::assertStringNotContainsString('public function edit(', $source);
+        self::assertSame([$path, $this->temporaryBasePath.'/app/Modules/User/UserModule.php'], $this->files());
+    }
+
+    public function test_force_preserves_native_overwrite_behavior(): void
+    {
+        $path = $this->temporaryBasePath.'/app/Modules/User/Models/Profile.php';
+
+        $this->command('module:make User model Profile')->assertSuccessful();
+        self::assertIsInt(file_put_contents($path, 'existing source'));
+
+        $this->command('module:make User model Profile')->assertFailed();
+        self::assertSame('existing source', file_get_contents($path));
+
+        $this->command('module:make User model Profile --force')->assertSuccessful();
+        self::assertNotSame('existing source', file_get_contents($path));
+    }
+
+    public function test_it_rejects_an_unknown_module(): void
+    {
+        $this->command('module:make Unknown model Profile')
+            ->expectsOutputToContain('Module Maker failed: Module [Unknown] was not found.')
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
+    }
+
+    public function test_it_rejects_an_unsupported_maker_type(): void
+    {
+        $this->command('module:make User request ProfileRequest')
+            ->expectsOutputToContain(
+                'Module Maker failed: Maker type [request] is not supported; expected model or controller.',
+            )
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
+    }
+
+    public function test_it_rejects_unsafe_class_names(): void
+    {
+        $this->command('module:make User model ../Profile')
+            ->expectsOutputToContain(
+                'Module Maker failed: Maker name [../Profile] must contain one or more StudlyCase class segments.',
+            )
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
+    }
+
+    public function test_it_rejects_php_reserved_class_names_after_qualification(): void
+    {
+        $this->command('module:make User model Admin/Class')
+            ->expectsOutputToContain(
+                'Module Maker failed: Maker class name [Class] is reserved by PHP.',
+            )
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
+
+        self::assertFileDoesNotExist(
+            $this->temporaryBasePath.'/app/Modules/User/Models/Admin/Class.php',
+        );
+    }
+
+    public function test_it_rejects_controller_options_for_models(): void
+    {
+        $this->command('module:make User model Profile --invokable')
+            ->expectsOutputToContain(
+                'Module Maker failed: The --invokable option is not supported for Maker type [model].',
+            )
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
+    }
+
+    public function test_it_rejects_conflicting_controller_modes(): void
+    {
+        $this->command('module:make User controller ProfileController --invokable --resource')
+            ->expectsOutputToContain(
+                'Module Maker failed: The controller Maker options [--invokable, --resource] cannot be combined.',
+            )
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
+    }
+
+    public function test_it_rejects_a_module_outside_the_laravel_application_path(): void
+    {
+        $path = $this->temporaryBasePath.'/domain/Modules/User/UserModule.php';
+
+        self::assertTrue(mkdir(dirname($path), 0755, true));
+        self::assertIsInt(file_put_contents($path, "<?php\n"));
+        $this->useModule($path, 'Domain\\Modules\\User');
+
+        $this->command('module:make User model Profile')
+            ->expectsOutputToContain(
+                'must be inside Laravel application path',
+            )
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
+    }
+
+    public function test_it_rejects_a_module_namespace_that_does_not_match_its_path(): void
+    {
+        $this->useModule(
+            $this->temporaryBasePath.'/app/Modules/User/UserModule.php',
+            'Wrong\\Modules\\User',
+        );
+
+        $this->command('module:make User model Profile')
+            ->expectsOutputToContain(
+                'Module Maker failed: Module [User] namespace [Wrong\\Modules\\User]'
+                    .' must match application path namespace [MakerFixture\\Modules\\User] for module:make.',
+            )
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
+    }
+
+    public function test_it_reports_an_unresolvable_application_namespace_as_a_tool_error(): void
+    {
+        self::assertIsInt(file_put_contents($this->temporaryBasePath.'/composer.json', "{}\n"));
+
+        $this->command('module:make User model Profile')
+            ->expectsOutputToContain(
+                'Module Maker failed: The Laravel application namespace could not be resolved.',
+            )
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
+    }
+
+    private function useModule(string $path, string $namespace): void
+    {
+        $registry = new ModuleRegistry([
+            new DiscoveredModule('User', Module::class, $path, $namespace),
+        ]);
+
+        $this->application()->instance(
+            ModuleMakerTargetResolver::class,
+            new ModuleMakerTargetResolver($this->application(), $registry),
+        );
+    }
+
+    /** @return list<string> */
+    private function files(): array
+    {
+        /** @var list<string> $files */
+        $files = [];
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator(
+                $this->temporaryBasePath.'/app/Modules/User',
+                FilesystemIterator::SKIP_DOTS,
+            ),
+        );
+
+        /** @var SplFileInfo $entry */
+        foreach ($iterator as $entry) {
+            if ($entry->isFile()) {
+                $files[] = $entry->getPathname();
+            }
+        }
+
+        sort($files, SORT_STRING);
+
+        return $files;
+    }
+}

@@ -199,6 +199,7 @@ final class CleanApplicationRunner
                 'module:graph',
                 'module:inspect',
                 'module:list',
+                'module:make',
             ] as $command
         ) {
             $this->assertMatches(
@@ -219,6 +220,21 @@ final class CleanApplicationRunner
         $modulePath = $application.'/app/Modules/User/UserModule.php';
         $this->assertFileExists($modulePath, 'make:module did not create UserModule.php.');
         $this->assertOnlyGeneratedModuleFile($application.'/app/Modules/User', $modulePath);
+
+        $this->artisan($application, ['module:make', 'User', 'model', 'Profile'], $environment);
+        $this->assertFileExists(
+            $application.'/app/Modules/User/Models/Profile.php',
+            'module:make did not create the User Profile model.',
+        );
+        $this->artisan(
+            $application,
+            ['module:make', 'User', 'controller', 'ProfileController', '--invokable'],
+            $environment,
+        );
+        $this->assertFileExists(
+            $application.'/app/Modules/User/Http/Controllers/ProfileController.php',
+            'module:make did not create the User ProfileController.',
+        );
 
         $list = $this->artisan($application, ['module:list'], $environment);
         $this->assertContains('User', $list, 'module:list did not report the generated User Module.');

@@ -54,6 +54,29 @@ final class UserModule extends Module
 }
 ```
 
+Generate classes inside an existing Module through Moduark's single Maker entry
+point:
+
+```bash
+php artisan module:make User model Profile
+php artisan module:make User controller ProfileController
+php artisan module:make User controller ProfileController --invokable
+php artisan module:make User controller ProfileController --resource --api
+```
+
+Models are generated below `Models/`; controllers are generated below
+`Http/Controllers/`. Both types support `--force`. Controllers additionally
+support `--invokable`, `--resource`, and `--api`; `--invokable` cannot be combined
+with the resource or API modes.
+
+The target Module must already exist and its configured path must be inside the
+Laravel application source root. Composite Laravel Maker options that create
+related factories, migrations, controllers, requests, policies, seeds, or tests
+are deliberately not exposed until every generated file can retain Module
+ownership. Moduark does not inject `--module` into Laravel or third-party
+`make:*` commands. See
+[ADR-0032](docs/adr/0032-laravel-maker-integration-direction.md).
+
 Inspect the discovered architecture:
 
 ```bash
@@ -192,6 +215,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | Command | Current contract |
 |---|---|
 | `make:module {name}` | Create one minimal, non-overwriting Module entry class |
+| `module:make {module} {type} {name}` | Generate a model or controller inside an existing application Module |
 | `module:baseline [--level=0..3] [--force] [--prune]` | Adopt current violations explicitly or safely remove stale baseline debt |
 | `module:cache` | Cache deterministic Module discovery and typed metadata |
 | `module:clear` | Remove the cached Module discovery and metadata manifest |
