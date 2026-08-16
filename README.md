@@ -66,6 +66,7 @@ php artisan module:graph --view=capability
 php artisan module:graph --view=capability --format=mermaid
 php artisan module:graph --view=combined
 php artisan module:inspect Order
+php artisan module:cache
 ```
 
 The default configuration uses Level 1, so a successful check evaluates six
@@ -189,6 +190,8 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | Command | Current contract |
 |---|---|
 | `make:module {name}` | Create one minimal, non-overwriting Module entry class |
+| `module:cache` | Cache deterministic Module discovery and typed metadata |
+| `module:clear` | Remove the cached Module discovery and metadata manifest |
 | `module:list` | List discovered Modules in deterministic order |
 | `module:check [--level=0..3] [--format=text\|json\|github]` | Run the effective architecture rules and optionally emit JSON or GitHub Actions annotations |
 | `module:graph [module] [--view=module\|capability\|combined] [--format=text\|mermaid]` | Render direct, Capability, or combined relationships and optionally select one neighborhood |
@@ -260,6 +263,39 @@ Application bootstrap happens before Artisan invokes a command. A configuration,
 discovery, metadata, or runtime Capability-resolution exception raised during
 bootstrap may therefore be rendered by Laravel itself rather than by
 `module:check`'s exit-code renderer.
+
+## Module Cache
+
+For deployment, cache Module discovery and typed metadata directly or through
+Laravel's optimization command:
+
+```bash
+php artisan module:cache
+# or
+php artisan optimize
+```
+
+The versioned scalar PHP manifest is stored at
+`bootstrap/cache/moduark.php`. It contains the configured Module root, sorted
+discovery records, and dependency-ordered descriptors. Runtime lifecycle,
+Capability validation, graphs, inspection, and checks reuse those descriptors;
+routes, views, translations, migrations, and Module commands still use their
+normal Laravel resource loading.
+
+Rebuild the cache after adding, removing, or moving a Module, or after changing
+`dependencies()`, `providers()`, `requires()`, or `provides()`. Clear it to
+return to fresh discovery:
+
+```bash
+php artisan module:clear
+# or
+php artisan optimize:clear
+```
+
+An unknown cache schema or a manifest for another configured Module root is
+ignored safely. A malformed current-schema manifest fails with its exact cache
+path instead of silently booting from ambiguous metadata. See
+[ADR-0030](docs/adr/0030-module-metadata-cache.md).
 
 ## Development
 
@@ -333,9 +369,10 @@ provider resolution, lifecycle preflight, consumer-owned Port wiring,
 Capability contract validation, source-enforced Adapter boundaries,
 deterministic Capability and combined graphs, `module:inspect`, and the large
 Level 2 acceptance fixture. Developer Experience output includes versioned JSON
-reports and GitHub Actions annotations. Database or migration ownership, raw
-SQL analysis, explicit exports, baseline files, suppressions, incremental
-analysis, and IDE integration remain later work. Level 3 rule names in
-configuration are not claims of enforcement.
+reports and GitHub Actions annotations. Current main additionally includes
+deterministic Module metadata caching with Laravel optimize integration.
+Database or migration ownership, raw SQL analysis, explicit exports, baseline
+files, suppressions, incremental analysis, and IDE integration remain later
+work. Level 3 rule names in configuration are not claims of enforcement.
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

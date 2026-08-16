@@ -190,8 +190,15 @@ final class CleanApplicationRunner
         $commands = $this->artisan($application, ['list', '--raw'], $environment);
 
         foreach (
-            ['make:module', 'module:list', 'module:check', 'module:graph', 'module:inspect']
-            as $command
+            [
+                'make:module',
+                'module:cache',
+                'module:check',
+                'module:clear',
+                'module:graph',
+                'module:inspect',
+                'module:list',
+            ] as $command
         ) {
             $this->assertMatches(
                 '/^'.preg_quote($command, '/').'\b/m',
@@ -278,6 +285,36 @@ final class CleanApplicationRunner
             'User -> —',
             $combinedGraph,
             'module:graph combined view did not include the generated User Module.',
+        );
+
+        $moduleCachePath = $application.'/bootstrap/cache/moduark.php';
+        $moduleCache = $this->artisan($application, ['module:cache'], $environment);
+        $this->assertContains(
+            'Module cache created successfully: 1 Module cached.',
+            $moduleCache,
+            'module:cache did not report the generated User Module.',
+        );
+        $this->assertFileExists($moduleCachePath, 'module:cache did not create its manifest.');
+
+        $cachedModuleCheck = $this->artisan($application, ['module:check'], $environment);
+        $this->assertContains(
+            'Architecture check passed: 6 rules evaluated at Level 1 (Modular).',
+            $cachedModuleCheck,
+            'module:check did not use the Module cache successfully.',
+        );
+
+        $this->artisan($application, ['module:clear'], $environment);
+        $this->assertFileMissing($moduleCachePath, 'module:clear did not remove its manifest.');
+
+        $this->artisan($application, ['optimize'], $environment);
+        $this->assertFileExists(
+            $moduleCachePath,
+            'Laravel optimize did not create the Module cache manifest.',
+        );
+        $this->artisan($application, ['optimize:clear'], $environment);
+        $this->assertFileMissing(
+            $moduleCachePath,
+            'Laravel optimize:clear did not remove the Module cache manifest.',
         );
 
         $this->artisan($application, ['config:cache'], $environment);

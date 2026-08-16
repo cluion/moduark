@@ -25,9 +25,13 @@ use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Architecture\RulePresets;
 use Cluion\Moduark\Architecture\RuleResolver;
 use Cluion\Moduark\Capabilities\CapabilityResolver;
+use Cluion\Moduark\Cache\ModuleCacheBuilder;
+use Cluion\Moduark\Cache\ModuleCacheStore;
 use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Console\MakeModuleCommand;
+use Cluion\Moduark\Console\ModuleCacheCommand;
 use Cluion\Moduark\Console\ModuleCheckCommand;
+use Cluion\Moduark\Console\ModuleClearCommand;
 use Cluion\Moduark\Console\ModuleGraphCommand;
 use Cluion\Moduark\Console\ModuleInspectCommand;
 use Cluion\Moduark\Console\ModuleListCommand;
@@ -87,11 +91,25 @@ final class ModuarkServiceProvider extends ServiceProvider
         );
         $this->app->singleton(ModuleDiscoverer::class);
         $this->app->singleton(
-            ModuleRegistry::class,
-            fn (): ModuleRegistry => $this->app->make(ModuleDiscoverer::class)
-                ->discover($this->app->make(ModulesConfig::class)->path()),
+            ModuleCacheStore::class,
+            fn (): ModuleCacheStore => new ModuleCacheStore($this->app->bootstrapPath('cache/moduark.php')),
         );
-        $this->app->singleton(ModuleMetadataCompiler::class);
+        $manifest = $this->app->make(ModuleCacheStore::class)->load($configuration->path());
+
+        if ($manifest === null) {
+            $this->app->singleton(
+                ModuleRegistry::class,
+                fn (): ModuleRegistry => $this->app->make(ModuleDiscoverer::class)
+                    ->discover($this->app->make(ModulesConfig::class)->path()),
+            );
+            $this->app->singleton(ModuleMetadataCompiler::class);
+        } else {
+            $this->app->instance(ModuleRegistry::class, $manifest->registry());
+            $this->app->instance(
+                ModuleMetadataCompiler::class,
+                new ModuleMetadataCompiler($manifest->descriptors()),
+            );
+        }
         $this->app->singleton(SourceIndexBuilder::class);
         $this->app->singleton(GithubCheckReportExporter::class);
         $this->app->singleton(JsonCheckReportExporter::class);
@@ -107,6 +125,7 @@ final class ModuarkServiceProvider extends ServiceProvider
         $this->app->singleton(ModuleInspectionBuilder::class);
         $this->app->singleton(ModuleOrderer::class);
         $this->app->singleton(CapabilityResolver::class);
+        $this->app->singleton(ModuleCacheBuilder::class);
         $this->app->singleton(ModuleLifecycleRegistrar::class);
         $this->app->singleton(ModuleResourceDiscoverer::class);
         $this->app->singleton(ExitPolicy::class);
@@ -145,11 +164,15 @@ final class ModuarkServiceProvider extends ServiceProvider
 
         $this->commands([
             MakeModuleCommand::class,
+            ModuleCacheCommand::class,
             ModuleCheckCommand::class,
+            ModuleClearCommand::class,
             ModuleGraphCommand::class,
             ModuleInspectCommand::class,
             ModuleListCommand::class,
         ]);
+
+        $this->optimizes('module:cache', 'module:clear');
 
         $this->publishes([
             dirname(__DIR__).'/config/modules.php' => config_path('modules.php'),

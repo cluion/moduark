@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added deterministic `module:cache` and idempotent `module:clear` commands for
+  versioned Module discovery and typed metadata manifests, including runtime
+  loading and Laravel `optimize` / `optimize:clear` integration.
+
 ## [0.3.0-beta.1] - 2026-08-16
 
 This beta starts the Developer Experience release line with deterministic

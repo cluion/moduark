@@ -13,8 +13,33 @@ use ReflectionClass;
 
 final class ModuleMetadataCompiler
 {
+    /**
+     * @var array<class-string<Module>, ModuleDescriptor>
+     */
+    private array $cached = [];
+
+    /**
+     * @param list<ModuleDescriptor> $cached
+     */
+    public function __construct(array $cached = [])
+    {
+        foreach ($cached as $descriptor) {
+            $moduleClass = $descriptor->moduleClass();
+
+            if (isset($this->cached[$moduleClass])) {
+                throw InvalidModuleMetadata::duplicateModule($moduleClass);
+            }
+
+            $this->cached[$moduleClass] = $descriptor;
+        }
+    }
+
     public function compile(string $moduleClass): ModuleDescriptor
     {
+        if (isset($this->cached[$moduleClass])) {
+            return $this->cached[$moduleClass];
+        }
+
         if (! is_a($moduleClass, Module::class, true)) {
             throw InvalidModuleMetadata::invalidModuleClass($moduleClass);
         }

@@ -14,6 +14,8 @@ use Cluion\Moduark\Architecture\Level;
 use Cluion\Moduark\Architecture\RulePresets;
 use Cluion\Moduark\Architecture\RuleResolver;
 use Cluion\Moduark\Capabilities\CapabilityResolver;
+use Cluion\Moduark\Cache\ModuleCacheBuilder;
+use Cluion\Moduark\Cache\ModuleCacheStore;
 use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
 use Cluion\Moduark\Graph\CapabilityGraphBuilder;
@@ -55,6 +57,8 @@ final class PackageBaselineTest extends TestCase
         self::assertTrue($application->bound(ModuleDiscoverer::class));
         self::assertTrue($application->bound(ModuleRegistry::class));
         self::assertTrue($application->bound(ModuleMetadataCompiler::class));
+        self::assertTrue($application->bound(ModuleCacheBuilder::class));
+        self::assertTrue($application->bound(ModuleCacheStore::class));
         self::assertTrue($application->bound(CapabilityGraphBuilder::class));
         self::assertTrue($application->bound(CombinedGraphBuilder::class));
         self::assertTrue($application->bound(ModuleGraphBuilder::class));
