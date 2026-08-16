@@ -42,6 +42,9 @@ Moduark's compatibility surface.
   class name when the configured Module path is inside Laravel's application
   source root. This keeps Laravel's stubs, output, overwrite behavior, and
   supported native options authoritative.
+- Invoke the delegated Maker non-interactively. `module:make` owns the complete
+  option contract, and Laravel prompts must not create related artifacts outside
+  the selected Module.
 - Reject a configured Module path outside the application source root in the
   initial production slice with an actionable error. Writing to an inferred or
   incorrect path is not an acceptable fallback.

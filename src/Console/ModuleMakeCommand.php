@@ -52,6 +52,8 @@ final class ModuleMakeCommand extends Command
             return ExitPolicy::TOOL_ERROR;
         }
 
+        $parameters['--no-interaction'] = true;
+
         return $this->call($target->command(), $parameters);
     }
 

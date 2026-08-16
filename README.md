@@ -73,8 +73,9 @@ The target Module must already exist and its configured path must be inside the
 Laravel application source root. Composite Laravel Maker options that create
 related factories, migrations, controllers, requests, policies, seeds, or tests
 are deliberately not exposed until every generated file can retain Module
-ownership. Moduark does not inject `--module` into Laravel or third-party
-`make:*` commands. See
+ownership. Delegated Laravel Makers run non-interactively so framework prompts
+cannot create undeclared related artifacts. Moduark does not inject `--module`
+into Laravel or third-party `make:*` commands. See
 [ADR-0032](docs/adr/0032-laravel-maker-integration-direction.md).
 
 Inspect the discovered architecture:
