@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the advisory Level 3 `cross_module_foreign_keys` rule for Laravel
   Blueprint constraints, reporting cross-owner, unowned, and unresolved table
   evidence with source-cache schema `5`.
+- Added the advisory Level 3 `cross_module_transactions` rule for direct Query
+  Builder writes inside inline Laravel transaction callbacks, reporting
+  cross-owner, unowned, and unresolved write evidence with source-cache schema
+  `6`.
 
 ## [0.3.0-beta.5] - 2026-08-16
 

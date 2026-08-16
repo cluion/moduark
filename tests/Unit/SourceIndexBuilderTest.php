@@ -393,6 +393,106 @@ PHP));
         );
     }
 
+    public function test_it_collects_direct_query_writes_from_inline_database_transactions(): void
+    {
+        $this->temporaryPath = sys_get_temp_dir().'/moduark-transaction-'.bin2hex(random_bytes(6));
+        $modulePath = $this->temporaryPath.'/Transaction/TransactionModule.php';
+        self::assertTrue(mkdir(dirname($modulePath), 0755, true));
+        self::assertNotFalse(file_put_contents($modulePath, <<<'PHP'
+<?php
+
+namespace TransactionFixture;
+
+use Illuminate\Support\Facades\DB as Database;
+
+final class TransactionModuleEntry
+{
+    public function run(string $dynamic, object $custom, callable $callback): void
+    {
+        Database::transaction(callback: function () use ($dynamic, $custom): void {
+            Database::table('orders as o')->where('id', 1)->update(['status' => 'paid']);
+            Database::query()->from('users')->insert(['name' => 'Ada']);
+            Database::table('order_items')->insertOrIgnore(['order_id' => 1]);
+            Database::table($dynamic)->delete();
+            Database::update('update users set active = 1');
+            Database::connection('tenant')->delete('delete from users');
+            Database::table('logs')->get();
+            $custom->table('ignored')->update([]);
+
+            $later = function (): void {
+                Database::table('nested')->delete();
+            };
+        }, attempts: 3);
+
+        Database::connection('tenant')->transaction(
+            fn () => Database::connection('tenant')
+                ->query()
+                ->from('tenant.orders')
+                ->increment('attempts'),
+        );
+
+        Database::transaction($callback);
+        Database::beginTransaction();
+        Database::table('outside')->update(['status' => 'ignored']);
+        Database::commit();
+    }
+}
+PHP));
+        $registry = new ModuleRegistry([
+            new DiscoveredModule(
+                'Transaction',
+                TransactionSourceModule::class,
+                $modulePath,
+                'TransactionFixture',
+            ),
+        ]);
+
+        $first = (new SourceIndexBuilder($registry))->build();
+        $second = (new SourceIndexBuilder($registry))->build();
+        $scopes = array_map(
+            static fn ($scope): array => [
+                $scope->operation(),
+                array_map(
+                    static fn ($write): array => [$write->operation(), $write->evidence()],
+                    $scope->writes(),
+                ),
+            ],
+            $first->transactionScopes(),
+        );
+
+        self::assertSame([
+            [
+                'DB::transaction',
+                [
+                    ['QueryBuilder::update', 'orders'],
+                    ['QueryBuilder::insert', 'users'],
+                    ['QueryBuilder::insertOrIgnore', 'order_items'],
+                    ['QueryBuilder::delete', 'DB::table(table:*)'],
+                    ['DB::update', 'DB::update(sql:*)'],
+                    ['DB::connection()->delete', 'DB::connection()->delete(sql:*)'],
+                ],
+            ],
+            [
+                'DB::connection()->transaction',
+                [
+                    ['QueryBuilder::increment', 'tenant.orders'],
+                ],
+            ],
+        ], $scopes);
+        self::assertSame(
+            array_map(static fn ($scope): array => $scope->toArray(), $first->transactionScopes()),
+            array_map(static fn ($scope): array => $scope->toArray(), $second->transactionScopes()),
+        );
+        $evidence = array_map(
+            static fn ($scope): string => $scope->evidence(),
+            $first->transactionScopes(),
+        );
+        self::assertStringNotContainsString('logs', implode(', ', $evidence));
+        self::assertStringNotContainsString('ignored', implode(', ', $evidence));
+        self::assertStringNotContainsString('nested', implode(', ', $evidence));
+        self::assertStringNotContainsString('outside', implode(', ', $evidence));
+    }
+
     private function registry(): ModuleRegistry
     {
         $root = dirname(__DIR__).'/Fixtures/Analysis/Modules';
@@ -434,5 +534,9 @@ final class MigrationSourceModule extends Module
 }
 
 final class ForeignKeySourceModule extends Module
+{
+}
+
+final class TransactionSourceModule extends Module
 {
 }

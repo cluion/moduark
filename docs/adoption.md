@@ -301,19 +301,21 @@ selected Module's resolved Capability provider, Port, Adapter, ServiceProviders,
 dependency status, explicit owned tables, and current convention-based Public
 API. It does not define the future Level 3 explicit export metadata.
 
-Level 3 remains incomplete. Its first four rules audit direct cross-Module
+Level 3 remains incomplete. Its first five rules audit direct cross-Module
 Eloquent Model references, literal Laravel table access, Laravel Schema
-mutations, and Blueprint foreign keys. Declare every queried, migrated, or
-referenced table in one authoritative `tables()` owner. Keep historical renamed
+mutations, Blueprint foreign keys, and direct Query Builder writes inside inline
+Laravel transactions. Declare every queried, migrated, referenced, or directly
+mutated table in one authoritative `tables()` owner. Keep historical renamed
 or dropped names while shipped migrations reference them. Move schema mutations
 into the owning Module's `Database/Migrations/`; cross-Module orchestration
 requires a narrow reviewed suppression. Foreign-key diagnostics default to
 warnings because retaining database integrity can be an intentional modular
 monolith trade-off. Disable that rule only for a project-wide FK policy; use a
-narrow suppression for individual reviewed constraints. Unresolved expressions
-remain explicit warnings rather than guessed owners. Transaction analysis and
-explicit exports must still be implemented before Level 3 can produce a
-complete pass.
+narrow suppression for individual reviewed constraints. Review each transaction
+that directly writes multiple owners; retain deliberate atomic orchestration with
+a narrow suppression or move it behind Module Ports. Unresolved expressions and
+raw DB writes remain explicit warnings rather than guessed owners. Explicit
+exports must still be implemented before Level 3 can produce a complete pass.
 
 ## Adoption Checklist
 
@@ -335,4 +337,7 @@ complete pass.
       unresolved table warnings are reviewed rather than assumed safe.
 - [ ] Every recognized Blueprint foreign key has two declared owners, and each
       cross-owner warning is removed, narrowly suppressed, or explicitly kept.
+- [ ] Every inline Laravel transaction with direct Query Builder writes has
+      resolved ownership, and each cross-owner warning is removed, narrowly
+      suppressed, or explicitly kept.
 - [ ] Any rule override has an owner, reason, and removal condition.

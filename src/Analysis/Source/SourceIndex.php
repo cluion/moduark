@@ -29,12 +29,16 @@ final readonly class SourceIndex
     /** @var list<ForeignKeyReference> */
     private array $foreignKeyReferences;
 
+    /** @var list<TransactionScope> */
+    private array $transactionScopes;
+
     /**
      * @param list<SourceSymbol> $symbols
      * @param list<SourceReference> $references
      * @param list<TableAccess> $tableAccesses
      * @param list<SchemaMutation> $schemaMutations
      * @param list<ForeignKeyReference> $foreignKeyReferences
+     * @param list<TransactionScope> $transactionScopes
      */
     public function __construct(
         array $symbols,
@@ -42,6 +46,7 @@ final readonly class SourceIndex
         array $tableAccesses = [],
         array $schemaMutations = [],
         array $foreignKeyReferences = [],
+        array $transactionScopes = [],
     ) {
         $symbolsByName = [];
 
@@ -155,12 +160,32 @@ final readonly class SourceIndex
             },
         );
 
+        usort(
+            $transactionScopes,
+            static function (TransactionScope $left, TransactionScope $right): int {
+                return [
+                    $left->source(),
+                    $left->file(),
+                    $left->line(),
+                    strtolower($left->operation()),
+                    $left->evidence(),
+                ] <=> [
+                    $right->source(),
+                    $right->file(),
+                    $right->line(),
+                    strtolower($right->operation()),
+                    $right->evidence(),
+                ];
+            },
+        );
+
         $this->symbols = $symbols;
         $this->symbolsByName = $symbolsByName;
         $this->references = $references;
         $this->tableAccesses = $tableAccesses;
         $this->schemaMutations = $schemaMutations;
         $this->foreignKeyReferences = $foreignKeyReferences;
+        $this->transactionScopes = $transactionScopes;
     }
 
     /**
@@ -284,6 +309,24 @@ final readonly class SourceIndex
         return array_values(array_filter(
             $this->foreignKeyReferences,
             static fn (ForeignKeyReference $reference): bool => $reference->source() === $moduleClass,
+        ));
+    }
+
+    /** @return list<TransactionScope> */
+    public function transactionScopes(): array
+    {
+        return $this->transactionScopes;
+    }
+
+    /**
+     * @param class-string<Module> $moduleClass
+     * @return list<TransactionScope>
+     */
+    public function transactionScopesFrom(string $moduleClass): array
+    {
+        return array_values(array_filter(
+            $this->transactionScopes,
+            static fn (TransactionScope $scope): bool => $scope->source() === $moduleClass,
         ));
     }
 }

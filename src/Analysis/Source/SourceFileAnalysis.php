@@ -19,6 +19,7 @@ final readonly class SourceFileAnalysis
      * @param list<array{table: ?string, expression: ?string, operation: string, line: int}> $tableAccesses
      * @param list<array{table: ?string, expression: ?string, operation: string, operand: string, line: int}> $schemaMutations
      * @param list<array{from_table: ?string, from_expression: ?string, to_table: ?string, to_expression: ?string, operation: string, line: int}> $foreignKeyReferences
+     * @param list<array{operation: string, writes: list<array{table: ?string, expression: ?string, operation: string, line: int}>, line: int}> $transactionScopes
      */
     public function __construct(
         private string $hash,
@@ -29,6 +30,7 @@ final readonly class SourceFileAnalysis
         private array $tableAccesses,
         private array $schemaMutations,
         private array $foreignKeyReferences,
+        private array $transactionScopes,
     ) {
         if (preg_match('/\A[a-f0-9]{64}\z/D', $this->hash) !== 1) {
             throw new InvalidArgumentException('A source analysis hash must be SHA-256.');
@@ -88,6 +90,22 @@ final readonly class SourceFileAnalysis
             }
         }
 
+        foreach ($this->transactionScopes as $scope) {
+            if (trim($scope['operation']) === ''
+                || $scope['writes'] === []
+                || $scope['line'] < 1) {
+                throw new InvalidArgumentException('Cached transaction scopes must have valid evidence.');
+            }
+
+            foreach ($scope['writes'] as $write) {
+                if (! $this->validTableEvidence($write['table'], $write['expression'])
+                    || trim($write['operation']) === ''
+                    || $write['line'] < 1) {
+                    throw new InvalidArgumentException('Cached transaction writes must have valid evidence.');
+                }
+            }
+        }
+
         $this->owner = $owner;
     }
 
@@ -103,13 +121,15 @@ final readonly class SourceFileAnalysis
         $tableAccessRows = $payload['table_accesses'] ?? [];
         $schemaMutationRows = $payload['schema_mutations'] ?? [];
         $foreignKeyRows = $payload['foreign_keys'] ?? [];
+        $transactionScopeRows = $payload['transaction_scopes'] ?? [];
 
         if (! is_string($hash) || ! is_string($owner)
             || ! is_array($symbolRows) || ! array_is_list($symbolRows)
             || ! is_array($referenceRows) || ! array_is_list($referenceRows)
             || ! is_array($tableAccessRows) || ! array_is_list($tableAccessRows)
             || ! is_array($schemaMutationRows) || ! array_is_list($schemaMutationRows)
-            || ! is_array($foreignKeyRows) || ! array_is_list($foreignKeyRows)) {
+            || ! is_array($foreignKeyRows) || ! array_is_list($foreignKeyRows)
+            || ! is_array($transactionScopeRows) || ! array_is_list($transactionScopeRows)) {
             throw new InvalidArgumentException('The source analysis cache entry is invalid.');
         }
 
@@ -219,6 +239,45 @@ final readonly class SourceFileAnalysis
             ];
         }
 
+        $transactionScopes = [];
+
+        foreach ($transactionScopeRows as $row) {
+            if (! is_array($row)
+                || ! is_string($row['operation'] ?? null)
+                || ! is_array($row['writes'] ?? null)
+                || ! array_is_list($row['writes'])
+                || ! is_int($row['line'] ?? null)) {
+                throw new InvalidArgumentException('The cached transaction scopes are invalid.');
+            }
+
+            $writes = [];
+
+            foreach ($row['writes'] as $write) {
+                if (! is_array($write)
+                    || ! array_key_exists('table', $write)
+                    || (! is_string($write['table']) && $write['table'] !== null)
+                    || ! array_key_exists('expression', $write)
+                    || (! is_string($write['expression']) && $write['expression'] !== null)
+                    || ! is_string($write['operation'] ?? null)
+                    || ! is_int($write['line'] ?? null)) {
+                    throw new InvalidArgumentException('The cached transaction writes are invalid.');
+                }
+
+                $writes[] = [
+                    'table' => $write['table'],
+                    'expression' => $write['expression'],
+                    'operation' => $write['operation'],
+                    'line' => $write['line'],
+                ];
+            }
+
+            $transactionScopes[] = [
+                'operation' => $row['operation'],
+                'writes' => $writes,
+                'line' => $row['line'],
+            ];
+        }
+
         /** @var class-string<Module> $owner */
         return new self(
             $hash,
@@ -229,6 +288,7 @@ final readonly class SourceFileAnalysis
             $tableAccesses,
             $schemaMutations,
             $foreignKeyReferences,
+            $transactionScopes,
         );
     }
 
@@ -283,6 +343,14 @@ final readonly class SourceFileAnalysis
     }
 
     /**
+     * @return list<array{operation: string, writes: list<array{table: ?string, expression: ?string, operation: string, line: int}>, line: int}>
+     */
+    public function transactionScopes(): array
+    {
+        return $this->transactionScopes;
+    }
+
+    /**
      * @return array{
      *     hash: string,
      *     owner: class-string<Module>,
@@ -290,7 +358,8 @@ final readonly class SourceFileAnalysis
      *     references: list<array{symbol: string, line: int}>,
      *     table_accesses?: list<array{table: ?string, expression: ?string, operation: string, line: int}>,
      *     schema_mutations?: list<array{table: ?string, expression: ?string, operation: string, operand: string, line: int}>,
-     *     foreign_keys?: list<array{from_table: ?string, from_expression: ?string, to_table: ?string, to_expression: ?string, operation: string, line: int}>
+     *     foreign_keys?: list<array{from_table: ?string, from_expression: ?string, to_table: ?string, to_expression: ?string, operation: string, line: int}>,
+     *     transaction_scopes?: list<array{operation: string, writes: list<array{table: ?string, expression: ?string, operation: string, line: int}>, line: int}>
      * }
      */
     public function toArray(): array
@@ -319,6 +388,10 @@ final readonly class SourceFileAnalysis
 
         if ($this->foreignKeyReferences !== []) {
             $payload['foreign_keys'] = $this->foreignKeyReferences;
+        }
+
+        if ($this->transactionScopes !== []) {
+            $payload['transaction_scopes'] = $this->transactionScopes;
         }
 
         return $payload;

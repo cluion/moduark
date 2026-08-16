@@ -11,6 +11,7 @@ use Cluion\Moduark\Analysis\Rules\AdapterBoundariesRule;
 use Cluion\Moduark\Analysis\Rules\CapabilityContractsRule;
 use Cluion\Moduark\Analysis\Rules\CrossModuleForeignKeysRule;
 use Cluion\Moduark\Analysis\Rules\CrossModuleModelAccessRule;
+use Cluion\Moduark\Analysis\Rules\CrossModuleTransactionsRule;
 use Cluion\Moduark\Analysis\Rules\DatabaseOwnershipRule;
 use Cluion\Moduark\Analysis\Rules\CyclesRule;
 use Cluion\Moduark\Analysis\Rules\InternalApiAccessRule;
@@ -302,6 +303,41 @@ final class ArchitectureCheckerTest extends TestCase
         $checker->check(Level::Organization);
     }
 
+    public function test_cross_module_transactions_rule_alone_still_builds_the_source_index(): void
+    {
+        $path = $this->temporaryPath.'/OrganizationModule.php';
+        self::assertNotFalse(file_put_contents($path, "<?php\nfinal class InvalidSource {"));
+        $registry = new ModuleRegistry([
+            new DiscoveredModule(
+                'Organization',
+                OrganizationModule::class,
+                $path,
+                __NAMESPACE__,
+            ),
+        ]);
+        $configuration = ModulesConfig::from([
+            'path' => $this->temporaryPath,
+            'architecture' => [
+                'level' => 0,
+                'rules' => [
+                    'cross_module_transactions' => true,
+                ],
+            ],
+        ], []);
+        $checker = new ArchitectureChecker(
+            $registry,
+            new ModuleMetadataCompiler,
+            new SourceIndexBuilder($registry),
+            $configuration,
+            new RuleResolver(new RulePresets),
+            $this->runner(),
+        );
+
+        $this->expectException(SourceAnalysisFailed::class);
+
+        $checker->check(Level::Organization);
+    }
+
     private function runner(): RuleRunner
     {
         return new RuleRunner([
@@ -317,6 +353,7 @@ final class ArchitectureCheckerTest extends TestCase
             new DatabaseOwnershipRule,
             new MigrationOwnershipRule,
             new CrossModuleForeignKeysRule,
+            new CrossModuleTransactionsRule,
         ]);
     }
 

@@ -158,7 +158,7 @@ PHP);
 
         self::assertTrue($cold->isEloquentModel('Incremental\Internal\Tracked'));
         self::assertTrue($warm->isEloquentModel('Incremental\Internal\Tracked'));
-        self::assertSame(5, $this->cachePayload()['schema_version']);
+        self::assertSame(6, $this->cachePayload()['schema_version']);
     }
 
     public function test_table_access_evidence_survives_a_warm_source_analysis_cache(): void
@@ -191,7 +191,7 @@ PHP);
             $cold->tableAccesses(),
         ));
         self::assertSame($this->indexPayload($cold), $this->indexPayload($warm));
-        self::assertSame(5, $this->cachePayload()['schema_version']);
+        self::assertSame(6, $this->cachePayload()['schema_version']);
     }
 
     public function test_schema_mutation_evidence_survives_a_warm_source_analysis_cache(): void
@@ -230,7 +230,7 @@ PHP);
             $cold->schemaMutations(),
         ));
         self::assertSame($this->indexPayload($cold), $this->indexPayload($warm));
-        self::assertSame(5, $this->cachePayload()['schema_version']);
+        self::assertSame(6, $this->cachePayload()['schema_version']);
     }
 
     public function test_foreign_key_evidence_survives_a_warm_source_analysis_cache(): void
@@ -262,7 +262,48 @@ PHP);
             $cold->foreignKeyReferences(),
         ));
         self::assertSame($this->indexPayload($cold), $this->indexPayload($warm));
-        self::assertSame(5, $this->cachePayload()['schema_version']);
+        self::assertSame(6, $this->cachePayload()['schema_version']);
+    }
+
+    public function test_transaction_scope_evidence_survives_a_warm_source_analysis_cache(): void
+    {
+        $this->write($this->trackedPath, <<<'PHP'
+<?php
+
+namespace Incremental\Internal;
+
+use Illuminate\Support\Facades\DB;
+
+DB::transaction(function (): void {
+    DB::table('orders')->update(['status' => 'paid']);
+    DB::query()->from('users')->insert(['name' => 'Ada']);
+});
+PHP);
+        $builder = $this->builder(IncrementalSourceModule::class);
+
+        $cold = $builder->build();
+        $warm = $builder->build();
+
+        self::assertSame([
+            [
+                'DB::transaction',
+                [
+                    ['QueryBuilder::update', 'orders'],
+                    ['QueryBuilder::insert', 'users'],
+                ],
+            ],
+        ], array_map(
+            static fn ($scope): array => [
+                $scope->operation(),
+                array_map(
+                    static fn ($write): array => [$write->operation(), $write->evidence()],
+                    $scope->writes(),
+                ),
+            ],
+            $cold->transactionScopes(),
+        ));
+        self::assertSame($this->indexPayload($cold), $this->indexPayload($warm));
+        self::assertSame(6, $this->cachePayload()['schema_version']);
     }
 
     public function test_an_invalid_cache_falls_back_to_a_complete_cold_analysis(): void
@@ -363,6 +404,37 @@ PHP);
         $repaired = $this->cachePayload()['files'][$this->trackedPath] ?? null;
         self::assertIsArray($repaired);
         self::assertSame([], $repaired['foreign_keys'] ?? []);
+    }
+
+    public function test_malformed_current_schema_transaction_evidence_falls_back_to_cold_analysis(): void
+    {
+        $builder = $this->builder(IncrementalSourceModule::class);
+        $expected = $this->indexPayload($builder->build());
+        $payload = $this->cachePayload();
+        $tracked = $payload['files'][$this->trackedPath] ?? null;
+        self::assertIsArray($tracked);
+        $tracked['transaction_scopes'] = [[
+            'operation' => 'DB::transaction',
+            'writes' => [[
+                'table' => 'orders as o',
+                'expression' => null,
+                'operation' => 'QueryBuilder::update',
+                'line' => 2,
+            ]],
+            'line' => 1,
+        ]];
+        $payload['files'][$this->trackedPath] = $tracked;
+        self::assertIsInt(file_put_contents(
+            $this->store->path(),
+            "<?php\n\ndeclare(strict_types=1);\n\nreturn ".var_export($payload, true).";\n",
+        ));
+
+        $actual = $builder->build();
+
+        self::assertSame($expected, $this->indexPayload($actual));
+        $repaired = $this->cachePayload()['files'][$this->trackedPath] ?? null;
+        self::assertIsArray($repaired);
+        self::assertSame([], $repaired['transaction_scopes'] ?? []);
     }
 
     public function test_a_changed_file_with_invalid_syntax_never_reuses_or_replaces_the_cache(): void
@@ -504,6 +576,18 @@ PHP);
      *         operation: string,
      *         file: string,
      *         line: int
+     *     }>,
+     *     transaction_scopes: list<array{
+     *         source: class-string<Module>,
+     *         operation: string,
+     *         writes: list<array{
+     *             table: ?string,
+     *             expression: ?string,
+     *             operation: string,
+     *             line: int
+     *         }>,
+     *         file: string,
+     *         line: int
      *     }>
      * }
      */
@@ -529,6 +613,10 @@ PHP);
             'foreign_keys' => array_map(
                 static fn ($reference): array => $reference->toArray(),
                 $index->foreignKeyReferences(),
+            ),
+            'transaction_scopes' => array_map(
+                static fn ($scope): array => $scope->toArray(),
+                $index->transactionScopes(),
             ),
         ];
     }

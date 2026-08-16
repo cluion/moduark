@@ -24,10 +24,11 @@ passes or tool errors.
 - Continue scanning, reading, and hashing every current Module PHP file. Reuse a
   file analysis only when its SHA-256 content hash, owning Module class, and
   cache schema all match.
-- Cache only per-file symbols, unresolved class-reference candidates, and
-  Laravel query table-access candidates. Rebuild the global symbol index and
-  resolve class/table ownership on every check so a change in one declaration
-  or descriptor correctly affects unchanged consumers.
+- Cache only per-file symbols, unresolved class-reference candidates, Laravel
+  query table-access candidates, Schema mutations, Blueprint foreign keys, and
+  inline transaction writes. Rebuild the global symbol index and resolve
+  class/table ownership on every check so a change in one declaration or
+  descriptor correctly affects unchanged consumers.
 - Reparse changed or ownership-moved files and omit removed files from the next
   manifest. Absolute paths make a moved project cold naturally.
 - Treat an unknown schema, malformed payload, invalid owner, or invalid cached
@@ -97,3 +98,6 @@ write cost but are not portable release thresholds.
 - Schema `5` retains Blueprint foreign-key candidates for
   `cross_module_foreign_keys` in
   [ADR-0039](0039-cross-module-foreign-keys-rule.md).
+- Schema `6` retains inline transaction scopes and their direct write candidates
+  for `cross_module_transactions` in
+  [ADR-0040](0040-cross-module-transactions-rule.md).

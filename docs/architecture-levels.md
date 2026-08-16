@@ -16,8 +16,8 @@ preset plus explicit boolean overrides into an effective rule set, and
 
 The package default is Level 1. In the `0.2` beta, the normal Level 2 preset has
 eight implemented rules and can produce a complete pass. Level 3 now has its
-first four implemented rules but still returns exit code 2 because two
-enabled rules remain unavailable; that is an incomplete analysis, not an
+first five implemented rules but still returns exit code 2 because one enabled
+rule remains unavailable; that is an incomplete analysis, not an
 architecture pass.
 
 ## Preset Matrix
@@ -39,7 +39,7 @@ preset leaves the rule disabled.
 | `database_ownership` | — | — | — | E | Yes |
 | `migration_ownership` | — | — | — | E | Yes |
 | `cross_module_foreign_keys` | — | — | — | W | Yes |
-| `cross_module_transactions` | — | — | — | W | No |
+| `cross_module_transactions` | — | — | — | W | Yes |
 | `explicit_public_exports` | — | — | — | E | No |
 
 Disabling an enabled rule weakens that preset's guarantee. The `0.2` beta
@@ -302,8 +302,19 @@ extraction trade-off. Runtime model tables, macros, wrappers, raw SQL, callback
 data-flow, global migrations, connection/schema mapping, and prefixes are not
 inferred. See [ADR-0039](adr/0039-cross-module-foreign-keys-rule.md).
 
-The remaining two Level 3 rules are still unavailable. Selecting Level 3
-therefore continues to exit 2 with an incomplete report.
+`cross_module_transactions` inspects inline `DB::transaction()` and
+`DB::connection()->transaction()` callbacks for direct Query Builder writes
+rooted in `DB::table()` or `DB::query()->from()`, including connection variants.
+It emits advisory `MOD-TRANSACTION-001` when one transaction mutates more than
+one table owner, fixed warning `MOD-TRANSACTION-002` for unresolved direct write
+targets, and `MOD-TRANSACTION-003` for missing ownership. Raw DB write methods
+remain unresolved evidence. Eloquent and Repository writes, builder variables,
+nested arbitrary callbacks, SQL parsing, and manual transaction scopes are not
+inferred. See [ADR-0040](adr/0040-cross-module-transactions-rule.md).
+
+The remaining explicit-public-exports rule is still unavailable. Selecting
+Level 3 therefore continues to exit 2 with an incomplete report after evaluating
+thirteen implemented rules.
 
 ## Rule Overrides
 

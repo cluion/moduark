@@ -9,6 +9,7 @@ use Cluion\Moduark\Analysis\Source\Visitors\DatabaseTableAccessCollector;
 use Cluion\Moduark\Analysis\Source\Visitors\ForeignKeyReferenceCollector;
 use Cluion\Moduark\Analysis\Source\Visitors\SchemaMutationCollector;
 use Cluion\Moduark\Analysis\Source\Visitors\SymbolCollector;
+use Cluion\Moduark\Analysis\Source\Visitors\TransactionScopeCollector;
 use Cluion\Moduark\Discovery\DiscoveredModule;
 use Cluion\Moduark\Exceptions\SourceAnalysisFailed;
 use Cluion\Moduark\Module;
@@ -43,6 +44,7 @@ final readonly class SourceIndexBuilder
         $tableAccesses = [];
         $schemaMutations = [];
         $foreignKeyReferences = [];
+        $transactionScopes = [];
 
         foreach ($this->registry->all() as $module) {
             foreach ($this->phpFiles($module) as $file) {
@@ -103,6 +105,25 @@ final readonly class SourceIndexBuilder
                         $reference['line'],
                     );
                 }
+
+                foreach ($analysis->transactionScopes() as $scope) {
+                    $writes = array_map(
+                        static fn (array $write): TransactionWrite => new TransactionWrite(
+                            $write['table'],
+                            $write['expression'],
+                            $write['operation'],
+                            $write['line'],
+                        ),
+                        $scope['writes'],
+                    );
+                    $transactionScopes[] = new TransactionScope(
+                        $module->moduleClass(),
+                        $scope['operation'],
+                        $writes,
+                        $file,
+                        $scope['line'],
+                    );
+                }
             }
         }
 
@@ -131,6 +152,7 @@ final readonly class SourceIndexBuilder
             $tableAccesses,
             $schemaMutations,
             $foreignKeyReferences,
+            $transactionScopes,
         );
 
         if ($this->cache !== null) {
@@ -158,6 +180,7 @@ final readonly class SourceIndexBuilder
             $tableAccessCollector = new DatabaseTableAccessCollector;
             $schemaMutationCollector = new SchemaMutationCollector;
             $foreignKeyReferenceCollector = new ForeignKeyReferenceCollector;
+            $transactionScopeCollector = new TransactionScopeCollector;
             $traverser = new NodeTraverser(
                 new NameResolver,
                 $symbolCollector,
@@ -165,6 +188,7 @@ final readonly class SourceIndexBuilder
                 $tableAccessCollector,
                 $schemaMutationCollector,
                 $foreignKeyReferenceCollector,
+                $transactionScopeCollector,
             );
             $traverser->traverse($statements);
         } catch (Error $error) {
@@ -184,6 +208,7 @@ final readonly class SourceIndexBuilder
             $tableAccessCollector->accesses(),
             $schemaMutationCollector->mutations(),
             $foreignKeyReferenceCollector->references(),
+            $transactionScopeCollector->scopes(),
         );
     }
 

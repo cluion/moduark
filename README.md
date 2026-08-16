@@ -8,7 +8,7 @@ resources, and architecture boundaries executable and inspectable.
 > 2. It adds versioned JSON check reports, native GitHub Actions annotations,
 > deterministic Module metadata caching, and a reviewable architecture baseline
 > workflow, Module-aware Makers, incremental source analysis, and auditable
-> architecture suppressions. Development toward `0.4` adds the first four
+> architecture suppressions. Development toward `0.4` adds the first five
 > Level 3 persistence-isolation rules, but the Level 3 preset remains incomplete.
 
 ## Requirements
@@ -210,6 +210,31 @@ data-flow, runtime model tables, connection/schema mapping, and prefixes are not
 inferred. Disable the rule when cross-Module FKs are the project-wide policy, or
 use a narrow reviewed suppression for an intentional exception. See
 [ADR-0039](docs/adr/0039-cross-module-foreign-keys-rule.md).
+
+## Level 3 Cross-Module Transactions
+
+`cross_module_transactions` audits direct Query Builder writes inside inline
+`DB::transaction()` and `DB::connection()->transaction()` callbacks. Its Level 3
+default is a warning because an atomic cross-owner workflow can be deliberate in
+a modular monolith. It reports:
+
+- `MOD-TRANSACTION-001` when one transaction directly mutates tables owned by
+  multiple Modules;
+- warning `MOD-TRANSACTION-002` when a direct write target cannot be resolved;
+- `MOD-TRANSACTION-003` when a resolved write table has no declared owner.
+
+The analyzer recognizes direct mutation chains rooted in `DB::table()` or
+`DB::query()->from()`, including connection variants, and Laravel Query Builder
+`insert*`, `update*`, `upsert`, increment/decrement, `delete`, and `truncate`
+methods. Raw `DB::insert()`, `update()`, `delete()`, and
+`affectingStatement()` remain unresolved warnings because Moduark does not parse
+SQL strings.
+
+Repository or Port calls, Eloquent writes, builder variables, nested arbitrary
+callbacks, raw SQL target parsing, and manual `beginTransaction()` / `commit()` /
+`rollBack()` scopes are not inferred. Keep intentional atomic orchestration with
+a narrow reviewed suppression, or move cross-owner writes behind Module Ports.
+See [ADR-0040](docs/adr/0040-cross-module-transactions-rule.md).
 
 ## Level 1 Public API
 
@@ -483,8 +508,8 @@ internal per-file analysis manifest at `bootstrap/cache/moduark-analysis.php`.
 Every run still reads each current Module PHP file and computes its SHA-256
 content hash. Only entries with the same content hash, Module owner, and cache
 schema reuse their symbol, unresolved class-reference, query table-access,
-schema mutation, and foreign-key summaries; global symbol and table ownership
-are resolved again on every check.
+schema mutation, foreign-key, and inline transaction summaries; global symbol
+and table ownership are resolved again on every check.
 
 Changed files are parsed again, removed files are pruned, and a moved file is a
 new cache entry. An unknown, malformed, or semantically invalid cache falls back
@@ -579,16 +604,18 @@ with narrow selectors, mandatory reasons, and stale/inactive reporting.
 Module-aware Makers generate models and controllers inside existing application
 Modules, while content-hash caching reuses unchanged per-file source analysis
 without persisting cross-file ownership decisions.
-The first four Level 3 rules audit direct cross-Module Eloquent Model, table,
-migration, and foreign-key access. Explicit `tables()` metadata feeds a
-deterministic single-owner index; Laravel-aware AST evidence covers literal
-Facade queries, Schema mutations, and Blueprint constraints, while unresolved
-expressions remain reviewable warnings. Transaction warnings, explicit exports,
-suppression expiry, and IDE integration remain later work. See
+The first five Level 3 rules audit direct cross-Module Eloquent Model, table,
+migration, foreign-key, and inline transaction access. Explicit `tables()`
+metadata feeds a deterministic single-owner index; Laravel-aware AST evidence
+covers literal Facade queries, Schema mutations, Blueprint constraints, and
+direct Query Builder writes inside transaction callbacks, while unresolved
+expressions remain reviewable warnings. Explicit exports, suppression expiry,
+and IDE integration remain later work. See
 [ADR-0035](docs/adr/0035-cross-module-model-access.md),
 [ADR-0036](docs/adr/0036-table-ownership-index.md),
 [ADR-0037](docs/adr/0037-database-ownership-rule.md),
-[ADR-0038](docs/adr/0038-migration-ownership-rule.md), and
-[ADR-0039](docs/adr/0039-cross-module-foreign-keys-rule.md).
+[ADR-0038](docs/adr/0038-migration-ownership-rule.md),
+[ADR-0039](docs/adr/0039-cross-module-foreign-keys-rule.md), and
+[ADR-0040](docs/adr/0040-cross-module-transactions-rule.md).
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).
