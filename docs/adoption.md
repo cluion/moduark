@@ -268,17 +268,21 @@ Suppressions run before the baseline. Consequently `module:baseline` never
 captures a violation already covered by an explicit suppression, and prune sees
 the same suppression-aware, unbaselined report as normal baseline creation.
 
-## Adopt Level 2 with the `0.2` Beta
+## Adopt Level 2
 
-`v0.2.0-beta.2` includes the complete eight-rule Level 2 preset: typed Capability
-metadata, provider preflight, runtime Port-to-Adapter wiring, Capability
-contracts, source-backed Adapter boundaries, Capability and combined graphs,
-and focused Module inspection. Install the `0.2` beta from Packagist before
-adopting this contract:
+Level 2 became complete in `v0.2.0-beta.2`, and the current `0.4` beta retains
+its complete eight-rule preset: typed Capability metadata, provider preflight,
+runtime Port-to-Adapter wiring, Capability contracts, source-backed Adapter
+boundaries, Capability and combined graphs, and focused Module inspection.
+Install the current beta from Packagist before adopting this contract:
 
 ```bash
-composer require cluion/moduark:^0.2@beta
+composer require cluion/moduark:^0.4@beta
 ```
+
+For a concrete continuation of the `User` / `Order` example, including runtime
+Port wiring, graph inspection, rollback boundaries, and acceptance checkpoints,
+follow the [Brownfield Level 1 to Level 2 recipe](recipes/level-1-to-level-2.md).
 
 Before selecting Level 2, give every consumer its own interface below `Ports/`,
 place each declared Adapter below `Adapters/{Provider}/`, and keep provider API

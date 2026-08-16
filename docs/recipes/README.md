@@ -8,6 +8,9 @@ the next Level passes as a temporary probe.
   boundaries, preserve application behavior, declare direct dependencies, move
   cross-Module access to provider-owned Public APIs, and enable the first
   architecture CI gate.
+- [Brownfield Level 1 to Level 2](level-1-to-level-2.md): invert consumer core
+  dependencies through consumer-owned Ports, provider-scoped Adapters, and
+  provider-neutral Capability metadata without removing Level 1 Public APIs.
 
 Use [Adopting Moduark](../adoption.md) for the complete adoption policy and
 [Architecture Levels](../architecture-levels.md) for the preset matrix.

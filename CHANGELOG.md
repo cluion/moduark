@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a brownfield Level 0 to Level 1 migration recipe with concrete Module
   metadata and provider-owned Public API changes, staged acceptance checkpoints,
   baseline and suppression decisions, rollback boundaries, and a CI gate.
+- Added a brownfield Level 1 to Level 2 migration recipe covering provider-neutral
+  Capability identities, consumer-owned Ports, provider-scoped Adapters,
+  automatic runtime wiring, graph inspection, rollback boundaries, and CI gates.
 
 ## [0.4.0-beta.1] - 2026-08-16
 
