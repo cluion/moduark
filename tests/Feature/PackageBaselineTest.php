@@ -37,6 +37,7 @@ use Cluion\Moduark\Inspection\ModuleInspectionBuilder;
 use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
 use Cluion\Moduark\Lifecycle\ModuleOrderer;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
+use Cluion\Moduark\Persistence\TableOwnershipIndex;
 use Cluion\Moduark\ModuarkServiceProvider;
 use Cluion\Moduark\Registry\ModuleRegistry;
 use Illuminate\Contracts\Config\Repository;
@@ -68,6 +69,7 @@ final class PackageBaselineTest extends TestCase
         self::assertTrue($application->bound(ModuleDiscoverer::class));
         self::assertTrue($application->bound(ModuleRegistry::class));
         self::assertTrue($application->bound(ModuleMetadataCompiler::class));
+        self::assertTrue($application->bound(TableOwnershipIndex::class));
         self::assertTrue($application->bound(ModuleCacheBuilder::class));
         self::assertTrue($application->bound(ModuleCacheStore::class));
         self::assertTrue($application->bound(CapabilityGraphBuilder::class));
@@ -87,6 +89,10 @@ final class PackageBaselineTest extends TestCase
         self::assertSame(
             $application->make(CapabilityResolver::class),
             $application->make(CapabilityResolver::class),
+        );
+        self::assertSame(
+            $application->make(TableOwnershipIndex::class),
+            $application->make(TableOwnershipIndex::class),
         );
         self::assertTrue($application->bound('moduark.workbench.loaded'));
     }

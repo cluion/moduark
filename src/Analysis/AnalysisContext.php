@@ -8,6 +8,7 @@ use Cluion\Moduark\Analysis\Source\SourceIndex;
 use Cluion\Moduark\Discovery\DiscoveredModule;
 use Cluion\Moduark\Metadata\ModuleDescriptor;
 use Cluion\Moduark\Module;
+use Cluion\Moduark\Persistence\TableOwnershipIndex;
 use Cluion\Moduark\Registry\ModuleRegistry;
 use InvalidArgumentException;
 
@@ -21,6 +22,8 @@ final readonly class AnalysisContext
 
     /** @var array<class-string<Module>, ModuleDescriptor> */
     private array $descriptorsByClass;
+
+    private TableOwnershipIndex $tableOwnership;
 
     /**
      * @param list<ModuleDescriptor> $descriptors
@@ -71,6 +74,7 @@ final readonly class AnalysisContext
         $this->descriptors = $orderedDescriptors;
         $this->modulesByClass = $modulesByClass;
         $this->descriptorsByClass = $descriptorsByClass;
+        $this->tableOwnership = new TableOwnershipIndex($orderedDescriptors);
     }
 
     /**
@@ -92,6 +96,11 @@ final readonly class AnalysisContext
     public function sourceIndex(): SourceIndex
     {
         return $this->sourceIndex;
+    }
+
+    public function tableOwnership(): TableOwnershipIndex
+    {
+        return $this->tableOwnership;
     }
 
     /**

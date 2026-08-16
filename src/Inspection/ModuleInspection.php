@@ -18,6 +18,7 @@ final readonly class ModuleInspection
      * @param list<ModuleGraphNode> $dependencies
      * @param array<class-string<Capability>, ModuleGraphNode> $capabilityProviders
      * @param list<SourceSymbol> $publicApi
+     * @param list<string> $ownedTables
      */
     public function __construct(
         private DiscoveredModule $module,
@@ -26,6 +27,7 @@ final readonly class ModuleInspection
         private array $dependencies,
         private array $capabilityProviders,
         private array $publicApi,
+        private array $ownedTables,
     ) {
     }
 
@@ -72,5 +74,11 @@ final readonly class ModuleInspection
     public function publicApi(): array
     {
         return $this->publicApi;
+    }
+
+    /** @return list<string> */
+    public function ownedTables(): array
+    {
+        return $this->ownedTables;
     }
 }

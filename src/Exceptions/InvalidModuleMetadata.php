@@ -75,4 +75,23 @@ final class InvalidModuleMetadata extends RuntimeException
     {
         return new self("Module [{$moduleClass}] depends on missing module [{$dependency}].");
     }
+
+    public static function invalidTableName(string $moduleClass, mixed $value): self
+    {
+        $received = is_string($value) ? "[{$value}]" : get_debug_type($value);
+
+        return new self(
+            "{$moduleClass}::tables() must return unquoted dot-separated table names; received {$received}.",
+        );
+    }
+
+    /** @param list<class-string<\Cluion\Moduark\Module>> $owners */
+    public static function duplicateTableOwnership(string $table, array $owners): self
+    {
+        return new self(sprintf(
+            'Table [%s] is owned by multiple Modules: [%s].',
+            $table,
+            implode(', ', $owners),
+        ));
+    }
 }

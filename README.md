@@ -102,8 +102,8 @@ and internal API access.
 
 ## Module Metadata
 
-Dependencies and service providers are typed PHP metadata on the Module entry
-class. Dependencies are registered before their consumers.
+Dependencies, service providers, and owned tables are typed PHP metadata on the
+Module entry class. Dependencies are registered before their consumers.
 
 ```php
 <?php
@@ -127,12 +127,19 @@ final class OrderModule extends Module
     {
         return [OrderServiceProvider::class];
     }
+
+    public function tables(): array
+    {
+        return ['orders', 'order_items'];
+    }
 }
 ```
 
-The metadata must contain concrete class strings. Duplicate references, missing
-Modules, and circular dependencies fail before application Module providers are
-registered.
+Class metadata must contain concrete class strings. `tables()` accepts unique,
+unquoted dot-separated names such as `orders` or `audit.events`; one canonical
+table can have only one Module owner, compared case-insensitively. Duplicate
+references, missing Modules, circular dependencies, and conflicting ownership
+fail deterministically.
 
 ## Level 1 Public API
 
@@ -226,7 +233,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `module:list` | List discovered Modules in deterministic order |
 | `module:check [--level=0..3] [--format=text\|json\|github] [--show-suppressions]` | Run the effective architecture rules, audit suppressions, and optionally emit JSON or GitHub Actions annotations |
 | `module:graph [module] [--view=module\|capability\|combined] [--format=text\|mermaid]` | Render direct, Capability, or combined relationships and optionally select one neighborhood |
-| `module:inspect {module}` | Inspect one Module's identity, dependencies, providers, Capabilities, and Public API convention |
+| `module:inspect {module}` | Inspect one Module's identity, dependencies, providers, Capabilities, owned tables, and Public API convention |
 
 `module:check` exit codes are stable within the beta contract:
 
@@ -355,10 +362,10 @@ Per-Module check filtering remains later work.
 Use `module:inspect Order` when one Module needs more detail than the graph. It
 shows the effective architecture level, discovered or missing direct
 dependencies, Module ServiceProviders, each required Capability's resolved
-provider, consumer Port and Adapter, provided Capabilities, and symbols exposed
-by the current `Contracts/`, `Data/`, `Events/`, and Module-entry convention.
-This is an inspection of today's Public API convention, not the future Level 3
-explicit `exports()` contract. The command is included in `v0.2.0-beta.2`.
+provider, consumer Port and Adapter, provided Capabilities, explicit owned
+tables, and symbols exposed by the current `Contracts/`, `Data/`, `Events/`, and
+Module-entry convention. Public API inspection is still convention-based and is
+not the future Level 3 explicit `exports()` contract.
 
 Application bootstrap happens before Artisan invokes a command. A configuration,
 discovery, metadata, or runtime Capability-resolution exception raised during
@@ -384,7 +391,7 @@ routes, views, translations, migrations, and Module commands still use their
 normal Laravel resource loading.
 
 Rebuild the cache after adding, removing, or moving a Module, or after changing
-`dependencies()`, `providers()`, `requires()`, or `provides()`. Clear it to
+`dependencies()`, `providers()`, `requires()`, `provides()`, or `tables()`. Clear it to
 return to fresh discovery:
 
 ```bash
@@ -503,9 +510,12 @@ Modules, while content-hash caching reuses unchanged per-file source analysis
 without persisting cross-file ownership decisions.
 The first Level 3 rule, `cross_module_model_access`, rejects direct references
 to an Eloquent Model owned by another Module using resolved AST inheritance and
-source evidence. The complete Level 3 preset remains unavailable while database
-and migration ownership, query/FK/transaction analysis, and explicit exports
-are still pending. Suppression expiry and IDE integration also remain later
-work. See [ADR-0035](docs/adr/0035-cross-module-model-access.md).
+source evidence. Explicit `tables()` metadata now feeds a deterministic,
+single-owner Table Ownership Index and appears in `module:inspect`; it is
+infrastructure for the still-pending database, migration, query, FK, and
+transaction rules rather than a claim that those rules run today. Explicit
+exports, suppression expiry, and IDE integration also remain later work. See
+[ADR-0035](docs/adr/0035-cross-module-model-access.md) and
+[ADR-0036](docs/adr/0036-table-ownership-index.md).
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

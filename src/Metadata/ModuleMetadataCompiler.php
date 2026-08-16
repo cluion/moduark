@@ -8,6 +8,7 @@ use Cluion\Moduark\Capability;
 use Cluion\Moduark\CapabilityRequirement;
 use Cluion\Moduark\Exceptions\InvalidModuleMetadata;
 use Cluion\Moduark\Module;
+use Cluion\Moduark\Persistence\TableName;
 use Illuminate\Support\ServiceProvider;
 use ReflectionClass;
 
@@ -52,6 +53,7 @@ final class ModuleMetadataCompiler
             $this->providerClasses($moduleClass, $module->providers()),
             $this->requirements($moduleClass, $module->requires()),
             $this->capabilityClasses($moduleClass, 'provides', $module->provides()),
+            $this->tableNames($moduleClass, $module->tables()),
         );
     }
 
@@ -251,5 +253,30 @@ final class ModuleMetadataCompiler
         }
 
         return $value;
+    }
+
+    /**
+     * @param array<mixed> $values
+     * @return list<string>
+     */
+    private function tableNames(string $moduleClass, array $values): array
+    {
+        $tables = [];
+
+        foreach ($values as $value) {
+            if (! is_string($value) || ! TableName::valid($value)) {
+                throw InvalidModuleMetadata::invalidTableName($moduleClass, $value);
+            }
+
+            $key = TableName::key($value);
+
+            if (isset($tables[$key])) {
+                throw InvalidModuleMetadata::duplicateReference($moduleClass, 'tables', $value);
+            }
+
+            $tables[$key] = $value;
+        }
+
+        return array_values($tables);
     }
 }

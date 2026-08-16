@@ -43,6 +43,7 @@ final class ModuleInspectionBuilderTest extends TestCase
         self::assertSame(UserLookup::class, $requirement->capability());
         self::assertSame('User', $inspection->capabilityProvider(UserLookup::class)->name());
         self::assertSame([], $inspection->missingDependencies());
+        self::assertSame(['order_items', 'orders'], $inspection->ownedTables());
         self::assertSame(
             [OrderModule::class],
             array_map(static fn ($symbol): string => $symbol->name(), $inspection->publicApi()),

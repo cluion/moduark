@@ -17,6 +17,7 @@ final readonly class ModuleDescriptor
      * @param list<class-string<ServiceProvider>> $providers
      * @param list<CapabilityRequirement> $requirements
      * @param list<class-string<Capability>> $capabilities
+     * @param list<string> $tables
      */
     public function __construct(
         private string $moduleClass,
@@ -24,6 +25,7 @@ final readonly class ModuleDescriptor
         private array $providers,
         private array $requirements = [],
         private array $capabilities = [],
+        private array $tables = [],
     ) {
     }
 
@@ -37,7 +39,8 @@ final readonly class ModuleDescriptor
      *         port: class-string,
      *         adapter: class-string
      *     }>,
-     *     provides?: list<class-string<Capability>>
+     *     provides?: list<class-string<Capability>>,
+     *     tables?: list<string>
      * } $values
      */
     public static function fromArray(array $values): self
@@ -51,6 +54,7 @@ final readonly class ModuleDescriptor
                 $values['requires'] ?? [],
             ),
             $values['provides'] ?? [],
+            $values['tables'] ?? [],
         );
     }
 
@@ -95,6 +99,14 @@ final readonly class ModuleDescriptor
     }
 
     /**
+     * @return list<string>
+     */
+    public function tables(): array
+    {
+        return $this->tables;
+    }
+
+    /**
      * @return array{
      *     module: class-string<Module>,
      *     dependencies: list<class-string<Module>>,
@@ -104,7 +116,8 @@ final readonly class ModuleDescriptor
      *         port: class-string,
      *         adapter: class-string
      *     }>,
-     *     provides: list<class-string<Capability>>
+     *     provides: list<class-string<Capability>>,
+     *     tables: list<string>
      * }
      */
     public function toArray(): array
@@ -118,6 +131,7 @@ final readonly class ModuleDescriptor
                 $this->requirements,
             ),
             'provides' => $this->capabilities,
+            'tables' => $this->tables,
         ];
     }
 }

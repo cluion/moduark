@@ -23,8 +23,9 @@ and the
 - Add `module:cache` and `module:clear`. Register them with Laravel's
   `optimize` and `optimize:clear` lifecycle.
 - Write `bootstrap/cache/moduark.php` as deterministic scalar PHP with schema
-  version `1`, the configured Module root, sorted discovery records, and
-  dependency-ordered Module descriptors.
+  version `1` for this slice, the configured Module root, sorted discovery
+  records, and dependency-ordered Module descriptors. Later metadata additions
+  advance this schema through their own ADRs.
 - Build the manifest from fresh discovery and a fresh metadata compiler. Before
   writing, validate dependency ordering and the complete Capability graph so a
   cache cannot preserve an architecture that runtime bootstrap would reject.
@@ -57,7 +58,8 @@ and the
 - Deployments that run `php artisan optimize` gain cached Module discovery and
   metadata automatically.
 - Adding, removing, or moving a Module, or changing `dependencies()`,
-  `providers()`, `requires()`, or `provides()`, requires `module:cache` to be
+  `providers()`, `requires()`, `provides()`, or later metadata such as
+  `tables()`, requires `module:cache` to be
   rerun or `module:clear` to restore fresh discovery.
 - Resource discovery is intentionally still performed at boot. Broader runtime
   caching and analyzer incremental caches remain separate future work.

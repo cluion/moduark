@@ -298,13 +298,14 @@ consumers visible. It does not flatten these edges into direct Module
 dependencies. The combined view retains all three labeled edge kinds and uses
 the union of direct and Capability neighborhoods. `module:inspect` adds the
 selected Module's resolved Capability provider, Port, Adapter, ServiceProviders,
-dependency status, and current convention-based Public API. It does not define
-the future Level 3 explicit export metadata.
+dependency status, explicit owned tables, and current convention-based Public
+API. It does not define the future Level 3 explicit export metadata.
 
 Level 3 remains incomplete. Its first rule can already audit direct cross-Module
-Eloquent Model references, but database and migration ownership, query/FK/
-transaction analysis, and explicit exports must be implemented before Level 3
-can produce a complete pass.
+Eloquent Model references. Teams may also declare authoritative `tables()`
+metadata and audit it with `module:inspect`, but database and migration
+ownership, query/FK/transaction analysis, and explicit exports must be
+implemented before Level 3 can produce a complete pass.
 
 ## Adoption Checklist
 

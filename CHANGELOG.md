@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   direct and indexed indirect Eloquent Model inheritance, source-level evidence
   for cross-Module type and expression references, and a versioned source-cache
   schema for retained parent metadata.
+- Added explicit `Module::tables()` metadata and a deterministic table ownership
+  index with canonical-name validation, case-insensitive single-owner conflict
+  detection, cache-safe descriptors, and `module:inspect` visibility.
 
 ## [0.3.0-beta.5] - 2026-08-16
 

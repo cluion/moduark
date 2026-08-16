@@ -201,8 +201,8 @@ meaning. JSON graph output remains separate work. See
 
 `module:inspect {module}` reuses those validated graphs to display one Module's
 direct dependency status and resolved Capability details, together with its
-ServiceProviders and convention-based Public API. It deliberately does not
-claim the Level 3 explicit exports contract. See
+ServiceProviders, explicit owned tables, and convention-based Public API. It
+deliberately does not claim the Level 3 explicit exports contract. See
 [ADR-0025](adr/0025-module-inspection.md).
 
 The repository also carries a connected Level 2 acceptance fixture rather than
@@ -246,8 +246,26 @@ Model access can correctly violate both visibility and persistence-isolation
 contracts. Use an identifier plus a Port or exported boundary instead of sharing
 the Eloquent object. See [ADR-0035](adr/0035-cross-module-model-access.md).
 
-The remaining five Level 3 rules still need Laravel-aware ownership indexes.
-Selecting Level 3 therefore continues to exit 2 with an incomplete report.
+Modules may now declare explicit owned tables as Level 3 metadata:
+
+```php
+public function tables(): array
+{
+    return ['orders', 'order_items', 'audit.events'];
+}
+```
+
+Names are unquoted dot-separated identifiers. Ownership lookup and conflict
+detection are case-insensitive while the declared spelling is preserved for
+output. A canonical table has exactly one owner; multiple claims are invalid
+metadata. `module:inspect` displays the selected Module's indexed tables.
+Migration inference, shared/legacy table overrides, connection scoping, and
+query enforcement are deliberately not inferred by this foundation. See
+[ADR-0036](adr/0036-table-ownership-index.md).
+
+The remaining five Level 3 rules are still unavailable even though their common
+table index now exists. Selecting Level 3 therefore continues to exit 2 with an
+incomplete report.
 
 ## Rule Overrides
 

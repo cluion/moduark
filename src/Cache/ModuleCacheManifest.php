@@ -7,12 +7,13 @@ namespace Cluion\Moduark\Cache;
 use Cluion\Moduark\Discovery\DiscoveredModule;
 use Cluion\Moduark\Metadata\ModuleDescriptor;
 use Cluion\Moduark\Module;
+use Cluion\Moduark\Persistence\TableOwnershipIndex;
 use Cluion\Moduark\Registry\ModuleRegistry;
 use InvalidArgumentException;
 
 final readonly class ModuleCacheManifest
 {
-    public const SCHEMA_VERSION = 1;
+    public const SCHEMA_VERSION = 2;
 
     /**
      * @param list<ModuleDescriptor> $descriptors
@@ -42,6 +43,8 @@ final readonly class ModuleCacheManifest
         if ($registryClasses !== $descriptorClasses) {
             throw new InvalidArgumentException('The Module cache registry and descriptors do not match.');
         }
+
+        new TableOwnershipIndex($this->descriptors);
     }
 
     /**
@@ -107,7 +110,8 @@ final readonly class ModuleCacheManifest
              *         port: class-string,
              *         adapter: class-string
              *     }>,
-             *     provides: list<class-string<\Cluion\Moduark\Capability>>
+             *     provides: list<class-string<\Cluion\Moduark\Capability>>,
+             *     tables: list<string>
              * } $row */
             $descriptors[] = ModuleDescriptor::fromArray($row);
         }
@@ -178,6 +182,7 @@ final readonly class ModuleCacheManifest
             || ! self::isStringList($values['dependencies'] ?? null)
             || ! self::isStringList($values['providers'] ?? null)
             || ! self::isStringList($values['provides'] ?? null)
+            || ! self::isStringList($values['tables'] ?? null)
             || ! is_array($values['requires'] ?? null)) {
             return false;
         }

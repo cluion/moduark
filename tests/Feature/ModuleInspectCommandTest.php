@@ -58,6 +58,7 @@ final class ModuleInspectCommandTest extends TestCase
                         .' | Adapter: '.UserLookupAdapter::class,
                     ],
                     ['Provides', '—'],
+                    ['Owned tables', "order_items\norders"],
                     ['Public API (convention)', OrderModule::class],
                 ],
             )

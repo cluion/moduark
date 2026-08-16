@@ -35,4 +35,10 @@ final class OrderModule extends Module
             UserLookupAdapter::class,
         )];
     }
+
+    /** @return list<string> */
+    public function tables(): array
+    {
+        return ['orders', 'order_items'];
+    }
 }

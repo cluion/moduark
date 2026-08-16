@@ -109,6 +109,7 @@ final class ModuleInspectCommand extends Command
             ['Service providers', $this->list($descriptor->providers())],
             ['Requires', $this->list($requirements)],
             ['Provides', $this->list($capabilities)],
+            ['Owned tables', $this->list($inspection->ownedTables())],
             ['Public API (convention)', $this->list($publicApi)],
         ];
     }

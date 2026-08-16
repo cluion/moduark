@@ -25,12 +25,14 @@ final class CapabilityMetadataTest extends TestCase
 
         self::assertSame([], $descriptor->requires());
         self::assertSame([], $descriptor->provides());
+        self::assertSame([], $descriptor->tables());
         self::assertSame([
             'module' => EmptyCapabilityModule::class,
             'dependencies' => [],
             'providers' => [],
             'requires' => [],
             'provides' => [],
+            'tables' => [],
         ], $descriptor->toArray());
 
         $legacy = ModuleDescriptor::fromArray([
@@ -41,6 +43,7 @@ final class CapabilityMetadataTest extends TestCase
 
         self::assertSame([], $legacy->requires());
         self::assertSame([], $legacy->provides());
+        self::assertSame([], $legacy->tables());
     }
 
     public function test_compiler_produces_typed_requirements_and_scalar_cache_payloads(): void

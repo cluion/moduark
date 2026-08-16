@@ -43,4 +43,12 @@ abstract class Module
     {
         return [];
     }
+
+    /**
+     * @return list<string>
+     */
+    public function tables(): array
+    {
+        return [];
+    }
 }

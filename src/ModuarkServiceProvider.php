@@ -61,6 +61,7 @@ use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
 use Cluion\Moduark\Lifecycle\ModuleOrderer;
 use Cluion\Moduark\Lifecycle\OrderedModules;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
+use Cluion\Moduark\Persistence\TableOwnershipIndex;
 use Cluion\Moduark\Registry\ModuleRegistry;
 use Cluion\Moduark\Resources\ModuleResourceDiscoverer;
 use Cluion\Moduark\Resources\ModuleResourceServiceProvider;
@@ -151,6 +152,14 @@ final class ModuarkServiceProvider extends ServiceProvider
         $this->app->singleton(ModuleMakerTargetResolver::class);
         $this->app->singleton(ModuleOrderer::class);
         $this->app->singleton(CapabilityResolver::class);
+        $this->app->singleton(
+            TableOwnershipIndex::class,
+            fn (): TableOwnershipIndex => new TableOwnershipIndex(
+                $this->app->make(ModuleMetadataCompiler::class)->compileAll(
+                    $this->app->make(ModuleRegistry::class)->moduleClasses(),
+                ),
+            ),
+        );
         $this->app->singleton(ModuleCacheBuilder::class);
         $this->app->singleton(ModuleLifecycleRegistrar::class);
         $this->app->singleton(ModuleResourceDiscoverer::class);

@@ -15,6 +15,7 @@ use Cluion\Moduark\Graph\CapabilityGraphEdgeType;
 use Cluion\Moduark\Graph\CombinedGraphBuilder;
 use Cluion\Moduark\Graph\ModuleGraphNode;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
+use Cluion\Moduark\Persistence\TableOwnershipIndex;
 use Cluion\Moduark\Registry\ModuleRegistry;
 use LogicException;
 
@@ -34,6 +35,9 @@ final readonly class ModuleInspectionBuilder
     {
         $discovered = $this->findModule($module);
         $descriptor = $this->compiler->compile($discovered->moduleClass());
+        $tableOwnership = new TableOwnershipIndex(
+            $this->compiler->compileAll($this->registry->moduleClasses()),
+        );
         $combined = $this->combinedGraphBuilder->build();
         $moduleGraph = $combined->moduleGraph();
         $capabilityGraph = $combined->capabilityGraph();
@@ -79,6 +83,7 @@ final readonly class ModuleInspectionBuilder
             $dependencies,
             $capabilityProviders,
             $publicSymbols,
+            $tableOwnership->tablesFor($discovered->moduleClass()),
         );
     }
 
