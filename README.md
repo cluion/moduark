@@ -4,11 +4,11 @@ Moduark is a Laravel-native modular architecture toolkit. It keeps Modules in a
 normal Laravel application while making their dependencies, lifecycle order,
 resources, and architecture boundaries executable and inspectable.
 
-> **Pre-release status:** `0.3.0-beta.4` guarantees Level 0, Level 1, and Level
+> **Pre-release status:** `0.3.0-beta.5` guarantees Level 0, Level 1, and Level
 > 2. It adds versioned JSON check reports, native GitHub Actions annotations,
 > deterministic Module metadata caching, and a reviewable architecture baseline
-> workflow, Module-aware Makers, and incremental source analysis. Level 3
-> remains incomplete.
+> workflow, Module-aware Makers, incremental source analysis, and auditable
+> architecture suppressions. Level 3 remains incomplete.
 
 ## Requirements
 
@@ -467,7 +467,7 @@ acceptance against the Packagist dist instead of the local path repository. This
 mode also verifies the installed archive layout:
 
 ```bash
-composer test:installation -- --package=0.3.0-beta.4
+composer test:installation -- --package=0.3.0-beta.5
 ```
 
 The GitHub Actions compatibility workflow runs PHPUnit on all four
@@ -486,10 +486,9 @@ contract.
 
 ## Current Scope
 
-The current branch builds on `v0.3.0-beta.4` and guarantees foundation plus
-complete Level 1 and Level 2 presets. Level 2 includes typed Capability
-metadata, descriptor-only provider resolution, lifecycle preflight,
-consumer-owned Port wiring,
+The `v0.3.0-beta.5` release guarantees foundation plus complete Level 1 and
+Level 2 presets. Level 2 includes typed Capability metadata, descriptor-only
+provider resolution, lifecycle preflight, consumer-owned Port wiring,
 Capability contract validation, source-enforced Adapter boundaries,
 deterministic Capability and combined graphs, `module:inspect`, and the large
 Level 2 acceptance fixture. Developer Experience output includes versioned JSON
