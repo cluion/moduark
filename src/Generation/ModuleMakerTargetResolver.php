@@ -57,6 +57,7 @@ final readonly class ModuleMakerTargetResolver
         return new ModuleMakerTarget(
             $makerType,
             $discovered->namespace().'\\'.$makerType->namespace().'\\'.$className,
+            $modulePath.'/'.str_replace('\\', '/', $makerType->namespace().'\\'.$className).'.php',
         );
     }
 

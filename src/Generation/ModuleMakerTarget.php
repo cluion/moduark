@@ -9,6 +9,7 @@ final readonly class ModuleMakerTarget
     public function __construct(
         private ModuleMakerType $type,
         private string $className,
+        private string $filePath,
     ) {
     }
 
@@ -25,5 +26,10 @@ final readonly class ModuleMakerTarget
     public function className(): string
     {
         return $this->className;
+    }
+
+    public function filePath(): string
+    {
+        return $this->filePath;
     }
 }

@@ -52,6 +52,12 @@ final class ModuleMakeCommand extends Command
             return ExitPolicy::TOOL_ERROR;
         }
 
+        if ($this->option('force') !== true && is_file($target->filePath())) {
+            $this->components->error(ucfirst($target->type()->value).' already exists.');
+
+            return self::FAILURE;
+        }
+
         $parameters['--no-interaction'] = true;
 
         return $this->call($target->command(), $parameters);

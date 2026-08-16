@@ -45,6 +45,9 @@ Moduark's compatibility surface.
 - Invoke the delegated Maker non-interactively. `module:make` owns the complete
   option contract, and Laravel prompts must not create related artifacts outside
   the selected Module.
+- Reject an existing resolved target before delegation unless `--force` is set.
+  This preserves deterministic non-overwrite behavior without entering Laravel's
+  model prompt for additional components.
 - Reject a configured Module path outside the application source root in the
   initial production slice with an actionable error. Writing to an inferred or
   incorrect path is not an acceptable fallback.

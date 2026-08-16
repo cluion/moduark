@@ -107,7 +107,9 @@ final class ModuleMakeCommandTest extends TestCase
         $this->command('module:make User model Profile')->assertSuccessful();
         self::assertIsInt(file_put_contents($path, 'existing source'));
 
-        $this->command('module:make User model Profile')->assertFailed();
+        $this->command('module:make User model Profile')
+            ->expectsOutputToContain('Model already exists.')
+            ->assertFailed();
         self::assertSame('existing source', file_get_contents($path));
 
         $this->command('module:make User model Profile --force')->assertSuccessful();
