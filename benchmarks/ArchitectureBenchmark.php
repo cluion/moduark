@@ -13,6 +13,7 @@ use Cluion\Moduark\Analysis\Rules\MissingDependenciesRule;
 use Cluion\Moduark\Analysis\Rules\UndeclaredDependenciesRule;
 use Cluion\Moduark\Analysis\Rules\UniqueModuleIdentityRule;
 use Cluion\Moduark\Analysis\Rules\ValidModuleStructureRule;
+use Cluion\Moduark\Analysis\Source\SourceAnalysisCacheStore;
 use Cluion\Moduark\Analysis\Source\SourceIndexBuilder;
 use Cluion\Moduark\Architecture\Level;
 use Cluion\Moduark\Architecture\RulePresets;
@@ -37,6 +38,7 @@ final class ArchitectureBenchmark
      *     warmups: int,
      *     iterations: int,
      *     rules: int,
+     *     analysis_cache: 'content-hash',
      *     samples: list<array{discovery_ms: float, check_ms: float, total_ms: float}>,
      *     summary: array{
      *         discovery_ms: array{min: float, median: float, max: float},
@@ -62,15 +64,18 @@ final class ArchitectureBenchmark
 
         try {
             $this->generateFixture($root, $namespace, $modules, $filesPerModule);
+            $cache = new SourceAnalysisCacheStore(
+                dirname($root).'/bootstrap/cache/moduark-analysis.php',
+            );
 
             for ($iteration = 0; $iteration < $warmups; $iteration++) {
-                $this->sample($root);
+                $this->sample($root, $cache);
             }
 
             $samples = [];
 
             for ($iteration = 0; $iteration < $iterations; $iteration++) {
-                $samples[] = $this->sample($root);
+                $samples[] = $this->sample($root, $cache);
             }
 
             return [
@@ -80,6 +85,7 @@ final class ArchitectureBenchmark
                 'warmups' => $warmups,
                 'iterations' => $iterations,
                 'rules' => 6,
+                'analysis_cache' => 'content-hash',
                 'samples' => $samples,
                 'summary' => [
                     'discovery_ms' => $this->summary($samples, 'discovery_ms'),
@@ -184,12 +190,12 @@ final class ArchitectureBenchmark
     /**
      * @return array{discovery_ms: float, check_ms: float, total_ms: float}
      */
-    private function sample(string $root): array
+    private function sample(string $root, SourceAnalysisCacheStore $cache): array
     {
         $started = hrtime(true);
         $registry = (new ModuleDiscoverer)->discover($root);
         $discovered = hrtime(true);
-        $report = $this->checker($root, $registry)->check(Level::Modular);
+        $report = $this->checker($root, $registry, $cache)->check(Level::Modular);
         $checked = hrtime(true);
 
         if (! $report->complete() || $report->violations() !== []) {
@@ -203,7 +209,11 @@ final class ArchitectureBenchmark
         ];
     }
 
-    private function checker(string $root, ModuleRegistry $registry): ArchitectureChecker
+    private function checker(
+        string $root,
+        ModuleRegistry $registry,
+        SourceAnalysisCacheStore $cache,
+    ): ArchitectureChecker
     {
         $configuration = ModulesConfig::from([
             'path' => $root,
@@ -217,7 +227,7 @@ final class ArchitectureBenchmark
         return new ArchitectureChecker(
             $registry,
             new ModuleMetadataCompiler,
-            new SourceIndexBuilder($registry),
+            new SourceIndexBuilder($registry, $cache),
             $configuration,
             new RuleResolver(new RulePresets),
             new RuleRunner([

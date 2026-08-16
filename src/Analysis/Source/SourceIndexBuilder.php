@@ -14,21 +14,27 @@ use FilesystemIterator;
 use PhpParser\Error;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
+use PhpParser\Parser;
 use PhpParser\ParserFactory;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
+use Throwable;
 use UnexpectedValueException;
 
 final readonly class SourceIndexBuilder
 {
-    public function __construct(private ModuleRegistry $registry)
-    {
+    public function __construct(
+        private ModuleRegistry $registry,
+        private ?SourceAnalysisCacheStore $cache = null,
+    ) {
     }
 
     public function build(): SourceIndex
     {
         $parser = (new ParserFactory)->createForNewestSupportedVersion();
+        $cached = $this->cache?->load();
+        $analyses = [];
         $symbols = [];
         $candidates = [];
 
@@ -40,27 +46,14 @@ final readonly class SourceIndexBuilder
                     throw SourceAnalysisFailed::unreadableFile($file);
                 }
 
-                try {
-                    $statements = $parser->parse($source) ?? [];
-                    $symbolCollector = new SymbolCollector($module->moduleClass(), $file);
-                    $referenceCollector = new ClassReferenceCollector;
-                    $traverser = new NodeTraverser(
-                        new NameResolver,
-                        $symbolCollector,
-                        $referenceCollector,
-                    );
-                    $traverser->traverse($statements);
-                } catch (Error $error) {
-                    throw SourceAnalysisFailed::invalidSyntax(
-                        $file,
-                        $error->getStartLine(),
-                        $error->getRawMessage(),
-                    );
-                }
+                $hash = hash('sha256', $source);
+                $analysis = $cached?->match($file, $hash, $module->moduleClass())
+                    ?? $this->analyze($parser, $module, $file, $source, $hash);
+                $analyses[] = $analysis;
 
-                array_push($symbols, ...$symbolCollector->symbols());
+                array_push($symbols, ...$analysis->symbols());
 
-                foreach ($referenceCollector->references() as $reference) {
+                foreach ($analysis->references() as $reference) {
                     $candidates[] = [
                         'source' => $module->moduleClass(),
                         'symbol' => $reference['symbol'],
@@ -90,7 +83,51 @@ final readonly class SourceIndexBuilder
             );
         }
 
-        return new SourceIndex($symbols, $references);
+        $index = new SourceIndex($symbols, $references);
+
+        if ($this->cache !== null) {
+            try {
+                $this->cache->write(new SourceAnalysisCache($analyses));
+            } catch (Throwable) {
+                // The cache is an optimization; a fresh complete index remains authoritative.
+            }
+        }
+
+        return $index;
+    }
+
+    private function analyze(
+        Parser $parser,
+        DiscoveredModule $module,
+        string $file,
+        string $source,
+        string $hash,
+    ): SourceFileAnalysis {
+        try {
+            $statements = $parser->parse($source) ?? [];
+            $symbolCollector = new SymbolCollector($module->moduleClass(), $file);
+            $referenceCollector = new ClassReferenceCollector;
+            $traverser = new NodeTraverser(
+                new NameResolver,
+                $symbolCollector,
+                $referenceCollector,
+            );
+            $traverser->traverse($statements);
+        } catch (Error $error) {
+            throw SourceAnalysisFailed::invalidSyntax(
+                $file,
+                $error->getStartLine(),
+                $error->getRawMessage(),
+            );
+        }
+
+        return new SourceFileAnalysis(
+            $hash,
+            $module->moduleClass(),
+            $file,
+            $symbolCollector->symbols(),
+            $referenceCollector->references(),
+        );
     }
 
     /**

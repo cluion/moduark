@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use Cluion\Moduark\Analysis\Source\SourceAnalysisCacheStore;
 use Cluion\Moduark\Cache\ModuleCacheManifest;
 use Cluion\Moduark\Cache\ModuleCacheStore;
 use Cluion\Moduark\Registry\ModuleRegistry;
@@ -23,6 +24,7 @@ final class ModuleCacheCommandTest extends TestCase
         $this->probePath = $this->probeDirectory.'/CacheProbeModule.php';
         $this->removeProbe();
         $this->store()->clear();
+        $this->sourceStore()->clear();
     }
 
     protected function tearDown(): void
@@ -31,6 +33,7 @@ final class ModuleCacheCommandTest extends TestCase
 
         if (isset($this->app)) {
             $this->store()->clear();
+            $this->sourceStore()->clear();
         }
 
         parent::tearDown();
@@ -53,11 +56,15 @@ final class ModuleCacheCommandTest extends TestCase
         self::assertIsArray($payload['descriptors']);
         self::assertCount(3, $payload['descriptors']);
 
+        $this->command('module:check')->assertSuccessful();
+        self::assertFileExists($this->sourceStore()->path());
+
         $this->command('module:clear')
             ->expectsOutputToContain('Module cache cleared successfully.')
             ->assertSuccessful();
 
         self::assertFileDoesNotExist($this->store()->path());
+        self::assertFileDoesNotExist($this->sourceStore()->path());
     }
 
     public function test_runtime_uses_the_manifest_until_it_is_cleared(): void
@@ -92,14 +99,22 @@ final class ModuleCacheCommandTest extends TestCase
     {
         $this->command('optimize')->assertSuccessful();
         self::assertFileExists($this->store()->path());
+        $this->command('module:check')->assertSuccessful();
+        self::assertFileExists($this->sourceStore()->path());
 
         $this->command('optimize:clear')->assertSuccessful();
         self::assertFileDoesNotExist($this->store()->path());
+        self::assertFileDoesNotExist($this->sourceStore()->path());
     }
 
     private function store(): ModuleCacheStore
     {
         return $this->application()->make(ModuleCacheStore::class);
+    }
+
+    private function sourceStore(): SourceAnalysisCacheStore
+    {
+        return $this->application()->make(SourceAnalysisCacheStore::class);
     }
 
     /**

@@ -22,6 +22,7 @@ use Cluion\Moduark\Analysis\Rules\MissingDependenciesRule;
 use Cluion\Moduark\Analysis\Rules\UndeclaredDependenciesRule;
 use Cluion\Moduark\Analysis\Rules\UniqueModuleIdentityRule;
 use Cluion\Moduark\Analysis\Rules\ValidModuleStructureRule;
+use Cluion\Moduark\Analysis\Source\SourceAnalysisCacheStore;
 use Cluion\Moduark\Analysis\Source\SourceIndexBuilder;
 use Cluion\Moduark\Architecture\EffectiveArchitecture;
 use Cluion\Moduark\Architecture\ExitPolicy;
@@ -116,7 +117,19 @@ final class ModuarkServiceProvider extends ServiceProvider
                 new ModuleMetadataCompiler($manifest->descriptors()),
             );
         }
-        $this->app->singleton(SourceIndexBuilder::class);
+        $this->app->singleton(
+            SourceAnalysisCacheStore::class,
+            fn (): SourceAnalysisCacheStore => new SourceAnalysisCacheStore(
+                $this->app->bootstrapPath('cache/moduark-analysis.php'),
+            ),
+        );
+        $this->app->singleton(
+            SourceIndexBuilder::class,
+            fn (): SourceIndexBuilder => new SourceIndexBuilder(
+                $this->app->make(ModuleRegistry::class),
+                $this->app->make(SourceAnalysisCacheStore::class),
+            ),
+        );
         $this->app->singleton(GithubCheckReportExporter::class);
         $this->app->singleton(JsonCheckReportExporter::class);
         $this->app->singleton(ArchitectureBaselineStore::class);

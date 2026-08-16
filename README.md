@@ -7,7 +7,8 @@ resources, and architecture boundaries executable and inspectable.
 > **Pre-release status:** `0.3.0-beta.3` guarantees Level 0, Level 1, and Level
 > 2. It adds versioned JSON check reports, native GitHub Actions annotations,
 > deterministic Module metadata caching, and a reviewable architecture baseline
-> workflow. Level 3 remains incomplete.
+> workflow. Current `main` additionally includes Module-aware Makers and
+> incremental source analysis. Level 3 remains incomplete.
 
 ## Requirements
 
@@ -219,7 +220,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `module:make {module} {type} {name}` | Generate a model or controller inside an existing application Module |
 | `module:baseline [--level=0..3] [--force] [--prune]` | Adopt current violations explicitly or safely remove stale baseline debt |
 | `module:cache` | Cache deterministic Module discovery and typed metadata |
-| `module:clear` | Remove the cached Module discovery and metadata manifest |
+| `module:clear` | Remove cached Module metadata and incremental source analysis |
 | `module:list` | List discovered Modules in deterministic order |
 | `module:check [--level=0..3] [--format=text\|json\|github]` | Run the effective architecture rules and optionally emit JSON or GitHub Actions annotations |
 | `module:graph [module] [--view=module\|capability\|combined] [--format=text\|mermaid]` | Render direct, Capability, or combined relationships and optionally select one neighborhood |
@@ -355,6 +356,25 @@ path instead of silently booting from ambiguous metadata. See
 [ADR-0030](docs/adr/0030-module-metadata-cache.md). This integration is included
 in `v0.3.0-beta.2`.
 
+## Incremental Source Analysis
+
+When an enabled rule needs the PHP source index, `module:check` stores an
+internal per-file analysis manifest at `bootstrap/cache/moduark-analysis.php`.
+Every run still reads each current Module PHP file and computes its SHA-256
+content hash. Only entries with the same content hash, Module owner, and cache
+schema reuse their symbol and unresolved-reference summaries; global symbol
+ownership and references are resolved again on every check.
+
+Changed files are parsed again, removed files are pruned, and a moved file is a
+new cache entry. An unknown, malformed, or semantically invalid cache falls back
+to a complete cold analysis. A failed analysis never replaces the previous
+manifest, and an unwritable cache cannot turn a complete fresh result into a
+tool error. `module:clear` and `optimize:clear` remove both the Module metadata
+cache and this source-analysis cache. `module:cache` intentionally does not
+pre-parse application source; the first source-enabled check creates the
+incremental manifest. See
+[ADR-0033](docs/adr/0033-incremental-source-analysis.md).
+
 ## Development
 
 ```bash
@@ -366,10 +386,13 @@ composer benchmark
 ```
 
 `composer verify` runs PHPUnit and PHPStan level max. The generated performance
-baseline exercises 50 Modules / 5,000 PHP files and 100 Modules / 10,000 PHP
-files without checking generated fixtures into Git. See
+baseline exercises cold and content-hash-cached checks over 50 Modules / 5,000
+PHP files and 100 Modules / 10,000 PHP files without checking generated fixtures
+into Git. See
 [ADR-0012](docs/adr/0012-beta-performance-and-analysis-errors.md) for the method
-and initial evidence.
+and initial evidence, and
+[ADR-0033](docs/adr/0033-incremental-source-analysis.md) for the incremental
+comparison.
 
 The Level 2 acceptance fixture models eight business Modules, five shared
 Capabilities, and twelve consumer-owned Port/Adapter bindings. It proves all
@@ -431,7 +454,7 @@ reports, GitHub Actions annotations, and deterministic Module metadata caching
 with Laravel optimize integration. Brownfield adoption includes a reviewable
 architecture baseline with conservative count matching and safe pruning.
 Database or migration ownership, raw SQL analysis, explicit exports, inline
-suppressions, incremental analysis, and IDE integration remain later work.
+suppressions, and IDE integration remain later work.
 Level 3 rule names in configuration are not claims of enforcement.
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

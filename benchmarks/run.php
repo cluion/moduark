@@ -60,6 +60,7 @@ function moduleCounts(mixed $value): array
  *     warmups: int,
  *     iterations: int,
  *     rules: int,
+ *     analysis_cache: 'content-hash',
  *     samples: list<array{discovery_ms: float, check_ms: float, total_ms: float}>,
  *     summary: array{
  *         discovery_ms: array{min: float, median: float, max: float},
@@ -71,6 +72,7 @@ function moduleCounts(mixed $value): array
 function renderCase(array $case): void
 {
     printf("\n%d Modules / %d PHP files / %d Level 1 rules\n", $case['modules'], $case['php_files'], $case['rules']);
+    printf("  Analysis cache: %s\n", $case['analysis_cache']);
 
     foreach (['discovery_ms' => 'Discovery', 'check_ms' => 'Level 1 check', 'total_ms' => 'Total'] as $metric => $label) {
         $summary = $case['summary'][$metric];

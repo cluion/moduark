@@ -21,6 +21,7 @@ final class ArchitectureBenchmarkTest extends TestCase
         self::assertSame(0, $result['warmups']);
         self::assertSame(2, $result['iterations']);
         self::assertSame(6, $result['rules']);
+        self::assertSame('content-hash', $result['analysis_cache']);
         self::assertCount(2, $result['samples']);
 
         foreach ($result['summary'] as $summary) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cluion\Moduark\Console;
 
+use Cluion\Moduark\Analysis\Source\SourceAnalysisCacheStore;
 use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Cache\ModuleCacheStore;
 use Illuminate\Console\Command;
@@ -15,10 +16,12 @@ final class ModuleClearCommand extends Command
     protected $signature = 'module:clear';
 
     /** @var string */
-    protected $description = 'Remove the cached Module discovery and architecture metadata';
+    protected $description = 'Remove cached Module metadata and source analysis';
 
-    public function __construct(private readonly ModuleCacheStore $store)
-    {
+    public function __construct(
+        private readonly ModuleCacheStore $store,
+        private readonly SourceAnalysisCacheStore $sourceCache,
+    ) {
         parent::__construct();
     }
 
@@ -26,6 +29,7 @@ final class ModuleClearCommand extends Command
     {
         try {
             $this->store->clear();
+            $this->sourceCache->clear();
         } catch (RuntimeException $exception) {
             $this->components->error('Module cache could not be cleared: '.$exception->getMessage());
 

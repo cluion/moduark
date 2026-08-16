@@ -10,6 +10,7 @@ use Cluion\Moduark\Analysis\Baseline\ArchitectureBaselineStore;
 use Cluion\Moduark\Analysis\Boundary\PublicApi;
 use Cluion\Moduark\Analysis\RuleRunner;
 use Cluion\Moduark\Analysis\RawArchitectureCheck;
+use Cluion\Moduark\Analysis\Source\SourceAnalysisCacheStore;
 use Cluion\Moduark\Analysis\Source\SourceIndexBuilder;
 use Cluion\Moduark\Architecture\EffectiveArchitecture;
 use Cluion\Moduark\Architecture\Level;
@@ -58,6 +59,7 @@ final class PackageBaselineTest extends TestCase
         self::assertTrue($application->bound(RawArchitectureCheck::class));
         self::assertTrue($application->bound(ArchitectureBaselineStore::class));
         self::assertTrue($application->bound(PublicApi::class));
+        self::assertTrue($application->bound(SourceAnalysisCacheStore::class));
         self::assertTrue($application->bound(SourceIndexBuilder::class));
         self::assertTrue($application->bound(ModuleDiscoverer::class));
         self::assertTrue($application->bound(ModuleRegistry::class));
