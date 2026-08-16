@@ -24,6 +24,9 @@ use Cluion\Moduark\Analysis\Rules\UniqueModuleIdentityRule;
 use Cluion\Moduark\Analysis\Rules\ValidModuleStructureRule;
 use Cluion\Moduark\Analysis\Source\SourceAnalysisCacheStore;
 use Cluion\Moduark\Analysis\Source\SourceIndexBuilder;
+use Cluion\Moduark\Analysis\Suppression\SuppressionArchitectureCheck;
+use Cluion\Moduark\Analysis\Suppression\SuppressionManifestStore;
+use Cluion\Moduark\Analysis\UnbaselinedArchitectureCheck;
 use Cluion\Moduark\Architecture\EffectiveArchitecture;
 use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Architecture\RulePresets;
@@ -133,6 +136,7 @@ final class ModuarkServiceProvider extends ServiceProvider
         $this->app->singleton(GithubCheckReportExporter::class);
         $this->app->singleton(JsonCheckReportExporter::class);
         $this->app->singleton(ArchitectureBaselineStore::class);
+        $this->app->singleton(SuppressionManifestStore::class);
         $this->app->singleton(CapabilityGraphBuilder::class);
         $this->app->singleton(CombinedGraphBuilder::class);
         $this->app->singleton(ModuleGraphBuilder::class);
@@ -169,9 +173,18 @@ final class ModuarkServiceProvider extends ServiceProvider
             fn (): RawArchitectureCheck => $this->app->make(ArchitectureChecker::class),
         );
         $this->app->singleton(
+            UnbaselinedArchitectureCheck::class,
+            fn (): UnbaselinedArchitectureCheck => new SuppressionArchitectureCheck(
+                $this->app->make(RawArchitectureCheck::class),
+                $this->app->make(SuppressionManifestStore::class),
+                $this->app->make(ModulesConfig::class),
+                $this->app->basePath(),
+            ),
+        );
+        $this->app->singleton(
             ArchitectureCheck::class,
             fn (): ArchitectureCheck => new BaselineArchitectureCheck(
-                $this->app->make(RawArchitectureCheck::class),
+                $this->app->make(UnbaselinedArchitectureCheck::class),
                 $this->app->make(ArchitectureBaselineStore::class),
                 $this->app->make(ModulesConfig::class),
                 $this->app->basePath(),

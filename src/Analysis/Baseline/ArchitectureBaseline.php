@@ -134,6 +134,7 @@ final readonly class ArchitectureBaseline
                 $stale,
                 $exceeded,
             ),
+            $report->suppressions(),
         );
     }
 

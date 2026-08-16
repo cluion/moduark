@@ -191,6 +191,7 @@ return [
     'architecture' => [
         'level' => 1,
         'baseline' => base_path('moduark-baseline.json'),
+        'suppressions' => base_path('moduark-suppressions.json'),
         'rules' => [
             // 'internal_api_access' => false,
         ],
@@ -222,7 +223,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `module:cache` | Cache deterministic Module discovery and typed metadata |
 | `module:clear` | Remove cached Module metadata and incremental source analysis |
 | `module:list` | List discovered Modules in deterministic order |
-| `module:check [--level=0..3] [--format=text\|json\|github]` | Run the effective architecture rules and optionally emit JSON or GitHub Actions annotations |
+| `module:check [--level=0..3] [--format=text\|json\|github] [--show-suppressions]` | Run the effective architecture rules, audit suppressions, and optionally emit JSON or GitHub Actions annotations |
 | `module:graph [module] [--view=module\|capability\|combined] [--format=text\|mermaid]` | Render direct, Capability, or combined relationships and optionally select one neighborhood |
 | `module:inspect {module}` | Inspect one Module's identity, dependencies, providers, Capabilities, and Public API convention |
 
@@ -244,10 +245,10 @@ php artisan module:check --level=2 --format=json
 
 Schema version `1` includes `status`, `complete`, `exit_code`, effective
 architecture and rule configuration, summary counts, unavailable rules,
-per-rule violations, additive baseline audit metadata, and an `error` object for
-failures that occur before a report is produced. Status is `passed`,
-`violations_found`, or `incomplete`; the exit codes remain exactly the same as
-text output. See
+per-rule violations, additive suppression and baseline audit metadata, and an
+`error` object for failures that occur before a report is produced. Status is
+`passed`, `violations_found`, or `incomplete`; the exit codes remain exactly the
+same as text output. See
 [ADR-0028](docs/adr/0028-module-check-json-output.md).
 
 Use GitHub output in an Actions workflow to attach each violation to its source
@@ -262,10 +263,50 @@ Errors and warnings become workflow annotations; a clean run emits one notice.
 Incomplete analysis and command failures remain errors with exit code `2`. See
 [ADR-0029](docs/adr/0029-github-actions-annotations.md).
 
+## Architecture Suppressions
+
+Use a suppression only for one reviewed exception that cannot be fixed yet. The
+default `moduark-suppressions.json` is repository-visible and requires a stable
+rule, diagnostic code, narrow scope, and non-empty reason:
+
+```json
+{
+    "schema_version": 1,
+    "suppressions": [
+        {
+            "rule": "internal_api_access",
+            "code": "MOD-BOUNDARY-001",
+            "file": "app/Modules/Order/Actions/CreateOrder.php",
+            "line": 17,
+            "reason": "Legacy integration tracked by ADR-012."
+        }
+    ]
+}
+```
+
+The scope may select a repository-relative `file` and optional `line`, a
+`symbol`, or a `consumer` plus `target` Module pair. Selectors can be combined
+for a narrower match. Global ignores, absolute paths, missing reasons, unknown
+fields, duplicate selectors, and overlapping matches are tool errors.
+
+Normal text output summarizes suppression debt. Audit every entry and its reason
+with:
+
+```bash
+php artisan module:check --show-suppressions
+```
+
+An entry is `matched`, `stale` when its evaluated rule no longer produces a
+match, or `inactive` when that rule was not evaluated at the selected Level.
+JSON always includes the structured audit, and GitHub output emits a summary
+notice. Suppressions are applied before the architecture baseline, so baseline
+creation and pruning never duplicate an explicitly suppressed violation. See
+[ADR-0034](docs/adr/0034-auditable-architecture-suppressions.md).
+
 ## Architecture Baseline
 
-For a brownfield application, first review the raw violations, then create one
-repository-visible baseline:
+For a brownfield application, first review the unsuppressed violations, then
+create one repository-visible baseline:
 
 ```bash
 php artisan module:check --level=1
@@ -307,7 +348,8 @@ combined view overlays labeled `depends`, `requires`, and `provides` edges and
 uses the union of direct and Capability neighborhoods. JSON graph output remains
 later work. These views are included in `v0.2.0-beta.2`. `module:check` JSON and
 GitHub Actions annotations are included in `v0.3.0-beta.1`; inline suppressions
-and per-Module filtering remain later work.
+are intentionally replaced by the reviewable external suppression manifest.
+Per-Module check filtering remains later work.
 
 Use `module:inspect Order` when one Module needs more detail than the graph. It
 shows the effective architecture level, discovered or missing direct
@@ -444,20 +486,23 @@ contract.
 
 ## Current Scope
 
-The `v0.3.0-beta.4` release guarantees foundation plus complete Level 1 and
-Level 2 presets. Level 2 includes typed Capability metadata, descriptor-only
-provider resolution, lifecycle preflight, consumer-owned Port wiring,
+The current branch builds on `v0.3.0-beta.4` and guarantees foundation plus
+complete Level 1 and Level 2 presets. Level 2 includes typed Capability
+metadata, descriptor-only provider resolution, lifecycle preflight,
+consumer-owned Port wiring,
 Capability contract validation, source-enforced Adapter boundaries,
 deterministic Capability and combined graphs, `module:inspect`, and the large
 Level 2 acceptance fixture. Developer Experience output includes versioned JSON
 reports, GitHub Actions annotations, and deterministic Module metadata caching
 with Laravel optimize integration. Brownfield adoption includes a reviewable
 architecture baseline with conservative count matching and safe pruning.
+Reviewed architecture exceptions use an auditable external suppression manifest
+with narrow selectors, mandatory reasons, and stale/inactive reporting.
 Module-aware Makers generate models and controllers inside existing application
 Modules, while content-hash caching reuses unchanged per-file source analysis
 without persisting cross-file ownership decisions.
-Database or migration ownership, raw SQL analysis, explicit exports, inline
-suppressions, and IDE integration remain later work.
+Database or migration ownership, raw SQL analysis, explicit exports, suppression
+expiry, and IDE integration remain later work.
 Level 3 rule names in configuration are not claims of enforcement.
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

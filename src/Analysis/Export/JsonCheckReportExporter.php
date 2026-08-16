@@ -37,6 +37,7 @@ final class JsonCheckReportExporter
                 'errors' => count($report->errors()),
                 'warnings' => count($report->warnings()),
             ],
+            'suppressions' => $report->suppressions()?->toArray(),
             'baseline' => $report->baseline()?->toArray(),
             'unavailable_rules' => array_map(
                 static fn (RuleId $rule): string => $rule->value,
@@ -75,6 +76,7 @@ final class JsonCheckReportExporter
                 'errors' => 0,
                 'warnings' => 0,
             ],
+            'suppressions' => null,
             'baseline' => null,
             'unavailable_rules' => [],
             'results' => [],

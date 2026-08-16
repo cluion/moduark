@@ -13,6 +13,7 @@ final class PackageArchiveContract
         'README.md',
         'composer.json',
         'config/modules.php',
+        'src/Analysis/Suppression/SuppressionArchitectureCheck.php',
         'src/Module.php',
         'stubs/module.stub',
     ];

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added auditable architecture suppressions through a strict external manifest
+  with mandatory reasons, narrow portable selectors, overlap rejection,
+  stale/inactive debt reporting, `--show-suppressions`, JSON/GitHub metadata,
+  and suppression-aware baseline generation.
+
 ## [0.3.0-beta.4] - 2026-08-16
 
 This beta adds Laravel-native Module-aware generation and content-verified

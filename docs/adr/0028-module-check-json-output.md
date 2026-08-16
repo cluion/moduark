@@ -65,6 +65,7 @@ source analysis fails before a `CheckReport` exists.
 - GitHub Actions annotations are added separately by
   [ADR-0029](0029-github-actions-annotations.md), and the later additive
   `baseline` field is defined by
-  [ADR-0031](0031-architecture-baseline-adoption.md). Inline suppressions,
-  incremental analysis, IDE integration, and JSON graph output remain future
-  slices.
+  [ADR-0031](0031-architecture-baseline-adoption.md). The later additive
+  `suppressions` field is defined by
+  [ADR-0034](0034-auditable-architecture-suppressions.md). IDE integration and
+  JSON graph output remain future slices.

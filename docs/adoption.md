@@ -185,14 +185,52 @@ its migration reason beside the configuration:
 ```
 
 This weakens the Level 1 guarantee for the entire application. The beta has no
-per-file suppression or expiry mechanism. Prefer the reviewable baseline below
-when the rule itself should remain enabled; a broad override should not be
-presented as a fully passing Level 1 architecture.
+global suppression escape hatch. When the rule itself should remain enabled,
+prefer the narrow reviewed suppression workflow below; a broad override should
+not be presented as a fully passing Level 1 architecture.
+
+## Suppress One Reviewed Exception
+
+For an individual exception with a clear owner and migration reason, create the
+configured `moduark-suppressions.json` at the application root:
+
+```json
+{
+    "schema_version": 1,
+    "suppressions": [
+        {
+            "rule": "internal_api_access",
+            "code": "MOD-BOUNDARY-001",
+            "file": "app/Modules/Order/Actions/CreateOrder.php",
+            "line": 17,
+            "reason": "Legacy integration tracked by ADR-012."
+        }
+    ]
+}
+```
+
+Every entry needs a stable rule and diagnostic code, a non-empty reason, and a
+narrow selector: repository-relative file with optional line, symbol, or both
+consumer and target Modules. Selectors may be combined. Moduark rejects global
+ignores, unknown fields, non-portable paths, duplicate selectors, and any
+violation that matches overlapping entries.
+
+Audit the debt in text output:
+
+```bash
+php artisan module:check --show-suppressions
+```
+
+`matched` entries suppress current violations. `stale` entries belong to rules
+that ran but no longer match and should be deleted after review. `inactive`
+entries could not be audited at the selected Level because their rules did not
+run. These states are also present in JSON and GitHub output. Expiry metadata is
+not implemented; removal remains an explicit code-review change.
 
 ## Adopt Existing Debt with a Baseline
 
-When the raw Level 1 result is too large to fix in one change, keep the rules
-enabled and capture the reviewed starting point:
+When the unsuppressed Level 1 result is too large to fix in one change, keep the
+rules enabled and capture the reviewed starting point:
 
 ```bash
 php artisan module:check --level=1
@@ -219,8 +257,12 @@ php artisan module:baseline --prune
 
 Prune never adds an identity or raises an allowance. A normal creation refuses
 to overwrite an existing file; `module:baseline --force` is deliberately
-separate because it replaces the file with all current raw violations and can
-adopt regressions.
+separate because it replaces the file with all current unsuppressed violations
+and can adopt regressions.
+
+Suppressions run before the baseline. Consequently `module:baseline` never
+captures a violation already covered by an explicit suppression, and prune sees
+the same suppression-aware, unbaselined report as normal baseline creation.
 
 ## Adopt Level 2 with the `0.2` Beta
 
@@ -276,4 +318,6 @@ persistence isolation, and explicit exports.
       `module:check --level=2` with all eight rules enabled.
 - [ ] Configuration and CI both run the same default Level.
 - [ ] Any architecture baseline is committed, reviewed, and routinely pruned.
+- [ ] Every suppression has a narrow selector and current reason; stale entries
+      are removed and inactive entries are reviewed at their applicable Level.
 - [ ] Any rule override has an owner, reason, and removal condition.

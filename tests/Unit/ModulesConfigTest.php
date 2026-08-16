@@ -19,6 +19,7 @@ final class ModulesConfigTest extends TestCase
                 'architecture' => [
                     'level' => 1,
                     'baseline' => '/app/moduark-baseline.json',
+                    'suppressions' => '/app/moduark-suppressions.json',
                     'rules' => [
                         'cycles' => true,
                         'internal_api_access' => true,
@@ -36,6 +37,7 @@ final class ModulesConfigTest extends TestCase
 
         self::assertSame(Level::Modular, $configuration->level());
         self::assertSame('/app/moduark-baseline.json', $configuration->baselinePath());
+        self::assertSame('/app/moduark-suppressions.json', $configuration->suppressionPath());
         self::assertSame([
             'cycles' => false,
             'internal_api_access' => true,
@@ -91,6 +93,26 @@ final class ModulesConfigTest extends TestCase
             ],
             [
                 'architecture' => ['baseline' => ''],
+            ],
+        );
+    }
+
+    public function test_invalid_suppression_path_is_rejected(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('suppressions configuration must be a non-empty string');
+
+        ModulesConfig::from(
+            [
+                'path' => '/app/Modules',
+                'architecture' => [
+                    'level' => 1,
+                    'suppressions' => '/app/moduark-suppressions.json',
+                    'rules' => [],
+                ],
+            ],
+            [
+                'architecture' => ['suppressions' => ''],
             ],
         );
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Cluion\Moduark\Analysis;
 
 use Cluion\Moduark\Analysis\Baseline\BaselineStatus;
+use Cluion\Moduark\Analysis\Suppression\SuppressionStatus;
 use Cluion\Moduark\Architecture\EffectiveArchitecture;
 use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Architecture\RuleId;
@@ -23,6 +24,7 @@ final readonly class CheckReport
         private array $results,
         private array $unavailableRules,
         private ?BaselineStatus $baseline = null,
+        private ?SuppressionStatus $suppressions = null,
     ) {
     }
 
@@ -55,6 +57,11 @@ final readonly class CheckReport
     public function baseline(): ?BaselineStatus
     {
         return $this->baseline;
+    }
+
+    public function suppressions(): ?SuppressionStatus
+    {
+        return $this->suppressions;
     }
 
     /**

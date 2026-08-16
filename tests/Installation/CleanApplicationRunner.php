@@ -262,6 +262,36 @@ final class CleanApplicationRunner
             'module:baseline did not write moduark-baseline.json.',
         );
 
+        $suppressionManifest = json_encode([
+            'schema_version' => 1,
+            'suppressions' => [[
+                'rule' => 'cycles',
+                'code' => 'MOD-CYCLE-001',
+                'file' => 'app/Modules/User/Legacy.php',
+                'reason' => 'Clean-install audit fixture.',
+            ]],
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR).PHP_EOL;
+
+        if (file_put_contents($application.'/moduark-suppressions.json', $suppressionManifest) === false) {
+            throw new RuntimeException('Unable to write the clean-install suppression manifest.');
+        }
+
+        $suppressionCheck = $this->artisan(
+            $application,
+            ['module:check', '--show-suppressions'],
+            $environment,
+        );
+        $this->assertContains(
+            '1 stale suppression entry no longer matches an evaluated violation.',
+            $suppressionCheck,
+            'module:check did not audit a stale architecture suppression.',
+        );
+        $this->assertContains(
+            'Reason: Clean-install audit fixture.',
+            $suppressionCheck,
+            'module:check did not render a suppression reason.',
+        );
+
         $jsonCheck = $this->artisan(
             $application,
             ['module:check', '--format=json'],
@@ -274,6 +304,8 @@ final class CleanApplicationRunner
             || ($jsonPayload['schema_version'] ?? null) !== 1
             || ($jsonPayload['status'] ?? null) !== 'passed'
             || ($jsonPayload['exit_code'] ?? null) !== 0
+            || ! is_array($jsonPayload['suppressions'] ?? null)
+            || ($jsonPayload['suppressions']['stale'] ?? null) !== 1
         ) {
             throw new RuntimeException('module:check JSON output did not report a passing result.');
         }

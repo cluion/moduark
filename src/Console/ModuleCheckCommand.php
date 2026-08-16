@@ -8,6 +8,7 @@ use Cluion\Moduark\Analysis\ArchitectureCheck;
 use Cluion\Moduark\Analysis\CheckReport;
 use Cluion\Moduark\Analysis\Export\GithubCheckReportExporter;
 use Cluion\Moduark\Analysis\Export\JsonCheckReportExporter;
+use Cluion\Moduark\Analysis\Suppression\SuppressionAudit;
 use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Architecture\Level;
 use Cluion\Moduark\Architecture\RuleId;
@@ -25,7 +26,8 @@ final class ModuleCheckCommand extends Command
      */
     protected $signature = 'module:check
         {--level= : Temporarily use an architecture Level from 0 to 3}
-        {--format=text : Output format (text, json, or github)}';
+        {--format=text : Output format (text, json, or github)}
+        {--show-suppressions : Show every configured suppression and its audit status}';
 
     /**
      * @var string
@@ -109,6 +111,7 @@ final class ModuleCheckCommand extends Command
         }
 
         $this->renderViolations($report->violations());
+        $this->renderSuppressions($report);
         $this->renderBaseline($report);
 
         if (! $report->complete()) {
@@ -206,6 +209,66 @@ final class ModuleCheckCommand extends Command
                 $baseline->exceeded() === 1 ? '' : 's',
             ));
         }
+    }
+
+    private function renderSuppressions(CheckReport $report): void
+    {
+        $suppressions = $report->suppressions();
+
+        if ($suppressions === null) {
+            return;
+        }
+
+        $this->line(sprintf(
+            'Suppressions: %d violation%s suppressed by %d entr%s from [%s].',
+            $suppressions->matched(),
+            $suppressions->matched() === 1 ? '' : 's',
+            $suppressions->entries(),
+            $suppressions->entries() === 1 ? 'y' : 'ies',
+            $suppressions->path(),
+        ));
+
+        if ($suppressions->stale() > 0) {
+            $this->components->warn(sprintf(
+                '%d stale suppression entr%s no longer match%s an evaluated violation.',
+                $suppressions->stale(),
+                $suppressions->stale() === 1 ? 'y' : 'ies',
+                $suppressions->stale() === 1 ? 'es' : '',
+            ));
+        }
+
+        if ($suppressions->inactive() > 0) {
+            $this->components->warn($suppressions->inactive() === 1
+                ? '1 suppression entry could not be audited because its rule was not evaluated.'
+                : sprintf(
+                    '%d suppression entries could not be audited because their rules were not evaluated.',
+                    $suppressions->inactive(),
+                ));
+        }
+
+        if (! (bool) $this->option('show-suppressions')) {
+            return;
+        }
+
+        foreach ($suppressions->details() as $audit) {
+            $this->renderSuppressionAudit($audit);
+        }
+    }
+
+    private function renderSuppressionAudit(SuppressionAudit $audit): void
+    {
+        $entry = $audit->entry();
+
+        $this->newLine();
+        $this->line(sprintf(
+            'Suppression [%s] %s %s',
+            $audit->status(),
+            $entry->rule()->value,
+            $entry->code(),
+        ));
+        $this->line('Scope: '.$entry->scope());
+        $this->line('Reason: '.$entry->reason());
+        $this->line('Matches: '.$audit->matches());
     }
 
     private function level(): Level|false|null

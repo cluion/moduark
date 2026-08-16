@@ -55,6 +55,14 @@ final readonly class ModulesConfig
         return $architecture['baseline'] ?? null;
     }
 
+    public function suppressionPath(): ?string
+    {
+        /** @var array{suppressions?: string, level: int, rules: array<string, mixed>} $architecture */
+        $architecture = $this->values['architecture'];
+
+        return $architecture['suppressions'] ?? null;
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -104,6 +112,15 @@ final readonly class ModulesConfig
         ) {
             throw new InvalidArgumentException(
                 'The modules.architecture.baseline configuration must be a non-empty string.',
+            );
+        }
+
+        if (
+            array_key_exists('suppressions', $architecture)
+            && (! is_string($architecture['suppressions']) || trim($architecture['suppressions']) === '')
+        ) {
+            throw new InvalidArgumentException(
+                'The modules.architecture.suppressions configuration must be a non-empty string.',
             );
         }
     }

@@ -12,6 +12,9 @@ return [
         // Existing violations can be adopted explicitly with module:baseline.
         'baseline' => base_path('moduark-baseline.json'),
 
+        // Reviewed, narrowly-scoped exceptions can be tracked with reasons here.
+        'suppressions' => base_path('moduark-suppressions.json'),
+
         // Only declare exceptions here. Unlisted rules inherit the level preset.
         'rules' => [],
     ],

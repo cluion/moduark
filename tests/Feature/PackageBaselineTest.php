@@ -12,6 +12,8 @@ use Cluion\Moduark\Analysis\RuleRunner;
 use Cluion\Moduark\Analysis\RawArchitectureCheck;
 use Cluion\Moduark\Analysis\Source\SourceAnalysisCacheStore;
 use Cluion\Moduark\Analysis\Source\SourceIndexBuilder;
+use Cluion\Moduark\Analysis\Suppression\SuppressionManifestStore;
+use Cluion\Moduark\Analysis\UnbaselinedArchitectureCheck;
 use Cluion\Moduark\Architecture\EffectiveArchitecture;
 use Cluion\Moduark\Architecture\Level;
 use Cluion\Moduark\Architecture\RulePresets;
@@ -57,7 +59,9 @@ final class PackageBaselineTest extends TestCase
         self::assertTrue($application->bound(ArchitectureCheck::class));
         self::assertTrue($application->bound(ArchitectureChecker::class));
         self::assertTrue($application->bound(RawArchitectureCheck::class));
+        self::assertTrue($application->bound(UnbaselinedArchitectureCheck::class));
         self::assertTrue($application->bound(ArchitectureBaselineStore::class));
+        self::assertTrue($application->bound(SuppressionManifestStore::class));
         self::assertTrue($application->bound(PublicApi::class));
         self::assertTrue($application->bound(SourceAnalysisCacheStore::class));
         self::assertTrue($application->bound(SourceIndexBuilder::class));
@@ -94,6 +98,10 @@ final class PackageBaselineTest extends TestCase
         self::assertSame(dirname(__DIR__, 2).'/workbench/app/Modules', $configuration->path());
         self::assertSame(Level::Modular, $configuration->level());
         self::assertSame($this->application()->basePath('moduark-baseline.json'), $configuration->baselinePath());
+        self::assertSame(
+            $this->application()->basePath('moduark-suppressions.json'),
+            $configuration->suppressionPath(),
+        );
         self::assertSame(1, config('modules.architecture.level'));
     }
 
@@ -112,6 +120,10 @@ final class PackageBaselineTest extends TestCase
             self::assertSame(
                 $this->application()->basePath('moduark-baseline.json'),
                 $configuration->baselinePath(),
+            );
+            self::assertSame(
+                $this->application()->basePath('moduark-suppressions.json'),
+                $configuration->suppressionPath(),
             );
             self::assertSame(
                 $expected,

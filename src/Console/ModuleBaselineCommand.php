@@ -6,7 +6,7 @@ namespace Cluion\Moduark\Console;
 
 use Cluion\Moduark\Analysis\Baseline\ArchitectureBaseline;
 use Cluion\Moduark\Analysis\Baseline\ArchitectureBaselineStore;
-use Cluion\Moduark\Analysis\RawArchitectureCheck;
+use Cluion\Moduark\Analysis\UnbaselinedArchitectureCheck;
 use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Architecture\Level;
 use Cluion\Moduark\Configuration\ModulesConfig;
@@ -32,7 +32,7 @@ final class ModuleBaselineCommand extends Command
     protected $description = 'Create or safely prune the application architecture baseline';
 
     public function __construct(
-        private readonly RawArchitectureCheck $checker,
+        private readonly UnbaselinedArchitectureCheck $checker,
         private readonly ArchitectureBaselineStore $store,
         private readonly ModulesConfig $configuration,
         private readonly Application $application,

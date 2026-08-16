@@ -4,6 +4,6 @@ declare(strict_types=1);
 
 namespace Cluion\Moduark\Analysis;
 
-interface RawArchitectureCheck extends UnbaselinedArchitectureCheck
+interface UnbaselinedArchitectureCheck extends ArchitectureCheck
 {
 }

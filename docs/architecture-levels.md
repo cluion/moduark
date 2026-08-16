@@ -254,17 +254,24 @@ Only boolean overrides are accepted:
 - an enabled rule without an implementation makes the report incomplete and
   returns exit 2.
 
-Overrides are global rule switches. The beta does not provide per-file
-suppressions. When the rule should remain active, prefer a reviewed architecture
-baseline over disabling it globally, and use `module:baseline --prune` as debt is
-removed. Record why a Level guarantee is intentionally weakened and remove a
-rule override as soon as the migration permits.
+Overrides are global rule switches. When the rule should remain active, prefer
+one reviewed entry in `moduark-suppressions.json` over disabling it globally.
+Each suppression requires a stable rule and code, a reason, and a narrow file,
+symbol, or Module-pair selector; global ignores are rejected. Use a baseline for
+larger reviewed brownfield debt and `module:baseline --prune` as that debt is
+removed. Suppressions are applied before baseline matching and generation. See
+[ADR-0034](adr/0034-auditable-architecture-suppressions.md).
 
 ## Diagnostics and Exit Policy
 
 Architecture violations include a stable code, rule and severity, message,
 location when available, Module relationship, symbol evidence, and a suggested
 repair. Blocking violations return exit 1. Warnings alone return exit 0.
+
+`module:check --show-suppressions` lists each suppression's scope, reason,
+match count, and `matched`, `stale`, or `inactive` audit state. Stale or inactive
+entries remain visible debt metadata but do not change the architecture exit
+policy. Invalid or overlapping suppression definitions return exit 2.
 
 Command input, parse, duplicate-symbol, filesystem, and unavailable-rule failures
 handled by `module:check` return exit 2. Typed source-analysis failures use

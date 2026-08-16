@@ -51,6 +51,25 @@ final class GithubCheckReportExporter
 
         $baseline = $report->baseline();
 
+        $suppressions = $report->suppressions();
+
+        if ($suppressions !== null) {
+            $commands[] = $this->command(
+                'notice',
+                ['title' => 'Moduark architecture suppressions'],
+                sprintf(
+                    'Suppressions matched %d violation%s from %d entr%s in %s; %d stale; %d inactive.',
+                    $suppressions->matched(),
+                    $suppressions->matched() === 1 ? '' : 's',
+                    $suppressions->entries(),
+                    $suppressions->entries() === 1 ? 'y' : 'ies',
+                    $suppressions->path(),
+                    $suppressions->stale(),
+                    $suppressions->inactive(),
+                ),
+            );
+        }
+
         if ($baseline !== null) {
             $commands[] = $this->command(
                 'notice',

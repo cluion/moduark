@@ -58,6 +58,6 @@ also requires reserved characters in messages and properties to be escaped.
 - GitHub output is presentation-specific and intentionally is not a replacement
   for the complete versioned JSON schema.
 - Architecture baseline notices are defined separately by
-  [ADR-0031](0031-architecture-baseline-adoption.md). Inline suppressions,
-  incremental analysis, IDE integration, and JSON graph output remain separate
-  future slices.
+  [ADR-0031](0031-architecture-baseline-adoption.md), and suppression notices by
+  [ADR-0034](0034-auditable-architecture-suppressions.md). IDE integration and
+  JSON graph output remain separate future slices.

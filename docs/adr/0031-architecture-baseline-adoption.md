@@ -20,14 +20,15 @@ underlying violation changing.
 - Store the baseline in a reviewable, deterministic JSON file. The default path
   is `moduark-baseline.json` at the Laravel application root and can be changed
   with `modules.architecture.baseline`.
-- `module:baseline [--level=0..3]` creates the first baseline from the raw,
-  complete architecture report. It refuses to replace an existing file unless
-  the operator explicitly passes `--force`.
+- `module:baseline [--level=0..3]` creates the first baseline from the complete,
+  suppression-aware but unbaselined architecture report. It refuses to replace
+  an existing file unless the operator explicitly passes `--force`.
 - `module:baseline --prune` can only reduce counts or remove stale entries. It
   never captures a new identity or increases an existing allowance.
 - Normal `module:check` automatically loads the configured file when it exists.
-  Baseline generation always uses the raw checker so a baseline can never copy
-  an already-filtered result.
+  Baseline generation always bypasses baseline filtering while preserving
+  explicit suppressions, so it can neither copy itself nor duplicate a reviewed
+  suppression.
 - A violation identity consists of rule, diagnostic code, severity, normalized
   repository-relative file, consumer Module, target Module, and symbol. It does
   not contain line, message, or suggestion.
@@ -46,8 +47,8 @@ underlying violation changing.
 - Unit tests prove line and wording drift still match, application paths become
   portable, count growth reports the full group, and prune cannot adopt new
   debt.
-- Invalid JSON, unknown schema versions, and incomplete raw reports are tool
-  errors rather than silent baseline skips.
+- Invalid JSON, unknown schema versions, and incomplete unbaselined reports are
+  tool errors rather than silent baseline skips.
 - Feature tests cover initial creation, overwrite refusal, filtering in
   `module:check`, additive JSON metadata, GitHub summaries, and safe pruning.
 - The complete PHPUnit, PHPStan, distribution, and clean Laravel 12/13 matrices
@@ -61,5 +62,6 @@ underlying violation changing.
   cleanup should use `--prune`.
 - Moving a file changes identity and resurfaces the violation for review. Moving
   only a line does not.
-- Inline suppressions, reasons, expiry, incremental analysis, and IDE integration
-  remain separate decisions.
+- Auditable external suppressions are defined separately by
+  [ADR-0034](0034-auditable-architecture-suppressions.md). Expiry and IDE
+  integration remain separate decisions.
