@@ -158,7 +158,7 @@ PHP);
 
         self::assertTrue($cold->isEloquentModel('Incremental\Internal\Tracked'));
         self::assertTrue($warm->isEloquentModel('Incremental\Internal\Tracked'));
-        self::assertSame(3, $this->cachePayload()['schema_version']);
+        self::assertSame(4, $this->cachePayload()['schema_version']);
     }
 
     public function test_table_access_evidence_survives_a_warm_source_analysis_cache(): void
@@ -191,7 +191,46 @@ PHP);
             $cold->tableAccesses(),
         ));
         self::assertSame($this->indexPayload($cold), $this->indexPayload($warm));
-        self::assertSame(3, $this->cachePayload()['schema_version']);
+        self::assertSame(4, $this->cachePayload()['schema_version']);
+    }
+
+    public function test_schema_mutation_evidence_survives_a_warm_source_analysis_cache(): void
+    {
+        $this->write($this->trackedPath, <<<'PHP'
+<?php
+
+namespace Incremental\Internal;
+
+use Illuminate\Support\Facades\Schema;
+
+final class Tracked
+{
+    public function migrate(string $table): void
+    {
+        Schema::rename('legacy_orders', 'orders');
+        Schema::connection('tenant')->dropIfExists($table);
+    }
+}
+PHP);
+        $builder = $this->builder(IncrementalSourceModule::class);
+
+        $cold = $builder->build();
+        $warm = $builder->build();
+
+        self::assertSame([
+            ['Schema::rename', 'from', 'legacy_orders'],
+            ['Schema::rename', 'to', 'orders'],
+            ['Schema::connection()->dropIfExists', 'table', 'Schema::connection()->dropIfExists(table:*)'],
+        ], array_map(
+            static fn ($mutation): array => [
+                $mutation->operation(),
+                $mutation->operand(),
+                $mutation->evidence(),
+            ],
+            $cold->schemaMutations(),
+        ));
+        self::assertSame($this->indexPayload($cold), $this->indexPayload($warm));
+        self::assertSame(4, $this->cachePayload()['schema_version']);
     }
 
     public function test_an_invalid_cache_falls_back_to_a_complete_cold_analysis(): void
@@ -235,6 +274,34 @@ PHP);
         $repaired = $this->cachePayload()['files'][$this->trackedPath] ?? null;
         self::assertIsArray($repaired);
         self::assertSame([], $repaired['table_accesses'] ?? []);
+    }
+
+    public function test_malformed_current_schema_mutation_evidence_falls_back_to_cold_analysis(): void
+    {
+        $builder = $this->builder(IncrementalSourceModule::class);
+        $expected = $this->indexPayload($builder->build());
+        $payload = $this->cachePayload();
+        $tracked = $payload['files'][$this->trackedPath] ?? null;
+        self::assertIsArray($tracked);
+        $tracked['schema_mutations'] = [[
+            'table' => 'orders as o',
+            'expression' => null,
+            'operation' => 'Schema::create',
+            'operand' => 'table',
+            'line' => 1,
+        ]];
+        $payload['files'][$this->trackedPath] = $tracked;
+        self::assertIsInt(file_put_contents(
+            $this->store->path(),
+            "<?php\n\ndeclare(strict_types=1);\n\nreturn ".var_export($payload, true).";\n",
+        ));
+
+        $actual = $builder->build();
+
+        self::assertSame($expected, $this->indexPayload($actual));
+        $repaired = $this->cachePayload()['files'][$this->trackedPath] ?? null;
+        self::assertIsArray($repaired);
+        self::assertSame([], $repaired['schema_mutations'] ?? []);
     }
 
     public function test_a_changed_file_with_invalid_syntax_never_reuses_or_replaces_the_cache(): void
@@ -357,6 +424,15 @@ PHP);
      *         operation: string,
      *         file: string,
      *         line: int
+     *     }>,
+     *     schema_mutations: list<array{
+     *         source: class-string<Module>,
+     *         table: ?string,
+     *         expression: ?string,
+     *         operation: string,
+     *         operand: string,
+     *         file: string,
+     *         line: int
      *     }>
      * }
      */
@@ -374,6 +450,10 @@ PHP);
             'table_accesses' => array_map(
                 static fn ($access): array => $access->toArray(),
                 $index->tableAccesses(),
+            ),
+            'schema_mutations' => array_map(
+                static fn ($mutation): array => $mutation->toArray(),
+                $index->schemaMutations(),
             ),
         ];
     }

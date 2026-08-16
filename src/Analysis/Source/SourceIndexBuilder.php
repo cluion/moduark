@@ -6,6 +6,7 @@ namespace Cluion\Moduark\Analysis\Source;
 
 use Cluion\Moduark\Analysis\Source\Visitors\ClassReferenceCollector;
 use Cluion\Moduark\Analysis\Source\Visitors\DatabaseTableAccessCollector;
+use Cluion\Moduark\Analysis\Source\Visitors\SchemaMutationCollector;
 use Cluion\Moduark\Analysis\Source\Visitors\SymbolCollector;
 use Cluion\Moduark\Discovery\DiscoveredModule;
 use Cluion\Moduark\Exceptions\SourceAnalysisFailed;
@@ -39,6 +40,7 @@ final readonly class SourceIndexBuilder
         $symbols = [];
         $candidates = [];
         $tableAccesses = [];
+        $schemaMutations = [];
 
         foreach ($this->registry->all() as $module) {
             foreach ($this->phpFiles($module) as $file) {
@@ -74,6 +76,18 @@ final readonly class SourceIndexBuilder
                         $access['line'],
                     );
                 }
+
+                foreach ($analysis->schemaMutations() as $mutation) {
+                    $schemaMutations[] = new SchemaMutation(
+                        $module->moduleClass(),
+                        $mutation['table'],
+                        $mutation['expression'],
+                        $mutation['operation'],
+                        $mutation['operand'],
+                        $file,
+                        $mutation['line'],
+                    );
+                }
             }
         }
 
@@ -96,7 +110,7 @@ final readonly class SourceIndexBuilder
             );
         }
 
-        $index = new SourceIndex($symbols, $references, $tableAccesses);
+        $index = new SourceIndex($symbols, $references, $tableAccesses, $schemaMutations);
 
         if ($this->cache !== null) {
             try {
@@ -121,11 +135,13 @@ final readonly class SourceIndexBuilder
             $symbolCollector = new SymbolCollector($module->moduleClass(), $file);
             $referenceCollector = new ClassReferenceCollector;
             $tableAccessCollector = new DatabaseTableAccessCollector;
+            $schemaMutationCollector = new SchemaMutationCollector;
             $traverser = new NodeTraverser(
                 new NameResolver,
                 $symbolCollector,
                 $referenceCollector,
                 $tableAccessCollector,
+                $schemaMutationCollector,
             );
             $traverser->traverse($statements);
         } catch (Error $error) {
@@ -143,6 +159,7 @@ final readonly class SourceIndexBuilder
             $symbolCollector->symbols(),
             $referenceCollector->references(),
             $tableAccessCollector->accesses(),
+            $schemaMutationCollector->mutations(),
         );
     }
 

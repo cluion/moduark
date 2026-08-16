@@ -162,6 +162,29 @@ table prefixes are not guessed. Dynamic or unsupported expressions remain
 visible warnings rather than false ownership conclusions. See
 [ADR-0037](docs/adr/0037-database-ownership-rule.md).
 
+## Level 3 Migration Ownership
+
+`migration_ownership` requires recognized Laravel schema mutations to live
+below the declaring Module's `Database/Migrations/` directory and to reference
+tables owned by that Module. It reports:
+
+- `MOD-MIGRATION-001` for another Module's table;
+- `MOD-MIGRATION-002` for an unowned literal table;
+- `MOD-MIGRATION-003` for schema mutation code outside the migration directory;
+- warning `MOD-MIGRATION-004` for a dynamic or unsupported table expression.
+
+The analyzer recognizes imported or fully qualified `Schema::create()`,
+`table()`, `rename()`, `drop()`, and `dropIfExists()`, including their
+`Schema::connection()` forms. Both `rename()` operands must have explicit
+ownership. Keep historical renamed or dropped table names in `tables()` while
+shipped migrations still reference them, or record a narrow reviewed
+suppression for a deliberate orchestration migration.
+
+Schema macros, custom wrappers, raw SQL schema statements, application-level
+migrations outside discovered Modules, connection/schema mapping, and table
+prefixes are not inferred. See
+[ADR-0038](docs/adr/0038-migration-ownership-rule.md).
+
 ## Level 1 Public API
 
 A declared dependency permits a relationship; it does not make every provider
@@ -412,8 +435,8 @@ routes, views, translations, migrations, and Module commands still use their
 normal Laravel resource loading.
 
 Rebuild the cache after adding, removing, or moving a Module, or after changing
-`dependencies()`, `providers()`, `requires()`, `provides()`, or `tables()`. Clear it to
-return to fresh discovery:
+`dependencies()`, `providers()`, `requires()`, `provides()`, or `tables()`.
+Clear it to return to fresh discovery:
 
 ```bash
 php artisan module:clear
@@ -433,9 +456,9 @@ When an enabled rule needs the PHP source index, `module:check` stores an
 internal per-file analysis manifest at `bootstrap/cache/moduark-analysis.php`.
 Every run still reads each current Module PHP file and computes its SHA-256
 content hash. Only entries with the same content hash, Module owner, and cache
-schema reuse their symbol, unresolved class-reference, and query table-access
-summaries; global symbol ownership and references are resolved again on every
-check.
+schema reuse their symbol, unresolved class-reference, query table-access, and
+schema mutation summaries; global symbol ownership and references are resolved
+again on every check.
 
 Changed files are parsed again, removed files are pruned, and a moved file is a
 new cache entry. An unknown, malformed, or semantically invalid cache falls back
@@ -530,14 +553,15 @@ with narrow selectors, mandatory reasons, and stale/inactive reporting.
 Module-aware Makers generate models and controllers inside existing application
 Modules, while content-hash caching reuses unchanged per-file source analysis
 without persisting cross-file ownership decisions.
-The first two Level 3 rules reject direct cross-Module Eloquent Model and table
-access. Explicit `tables()` metadata feeds a deterministic single-owner index;
-Laravel-aware AST evidence covers literal Facade and rooted fluent queries,
-while unowned literals block and unresolved expressions remain reviewable
-warnings. Migration ownership, FK and transaction rules, explicit exports,
+The first three Level 3 rules reject direct cross-Module Eloquent Model, table,
+and migration access. Explicit `tables()` metadata feeds a deterministic
+single-owner index; Laravel-aware AST evidence covers literal Facade queries and
+Schema mutations, while unowned literals block and unresolved expressions
+remain reviewable warnings. FK and transaction rules, explicit exports,
 suppression expiry, and IDE integration remain later work. See
-[ADR-0035](docs/adr/0035-cross-module-model-access.md) and
-[ADR-0036](docs/adr/0036-table-ownership-index.md), and
-[ADR-0037](docs/adr/0037-database-ownership-rule.md).
+[ADR-0035](docs/adr/0035-cross-module-model-access.md),
+[ADR-0036](docs/adr/0036-table-ownership-index.md),
+[ADR-0037](docs/adr/0037-database-ownership-rule.md), and
+[ADR-0038](docs/adr/0038-migration-ownership-rule.md).
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

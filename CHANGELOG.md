@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for Facade table access and rooted fluent queries, blocking cross-Module and
   unowned literals, reviewable unresolved-expression warnings, and source-cache
   schema `3` support.
+- Added the Level 3 `migration_ownership` rule for Laravel Schema mutations,
+  enforcing canonical Module migration locations and explicit ownership for
+  created, altered, renamed, and dropped tables with source-cache schema `4`.
 
 ## [0.3.0-beta.5] - 2026-08-16
 

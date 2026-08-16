@@ -17,6 +17,7 @@ final readonly class SourceFileAnalysis
      * @param list<SourceSymbol> $symbols
      * @param list<array{symbol: string, line: int}> $references
      * @param list<array{table: ?string, expression: ?string, operation: string, line: int}> $tableAccesses
+     * @param list<array{table: ?string, expression: ?string, operation: string, operand: string, line: int}> $schemaMutations
      */
     public function __construct(
         private string $hash,
@@ -25,6 +26,7 @@ final readonly class SourceFileAnalysis
         private array $symbols,
         private array $references,
         private array $tableAccesses,
+        private array $schemaMutations,
     ) {
         if (preg_match('/\A[a-f0-9]{64}\z/D', $this->hash) !== 1) {
             throw new InvalidArgumentException('A source analysis hash must be SHA-256.');
@@ -60,6 +62,17 @@ final readonly class SourceFileAnalysis
             }
         }
 
+        foreach ($this->schemaMutations as $mutation) {
+            if (($mutation['table'] !== null && ! TableName::valid($mutation['table']))
+                || ($mutation['table'] !== null && $mutation['expression'] !== null)
+                || ($mutation['expression'] !== null && trim($mutation['expression']) === '')
+                || trim($mutation['operation']) === ''
+                || trim($mutation['operand']) === ''
+                || $mutation['line'] < 1) {
+                throw new InvalidArgumentException('Cached schema mutations must have valid evidence.');
+            }
+        }
+
         $this->owner = $owner;
     }
 
@@ -73,11 +86,13 @@ final readonly class SourceFileAnalysis
         $symbolRows = $payload['symbols'] ?? null;
         $referenceRows = $payload['references'] ?? null;
         $tableAccessRows = $payload['table_accesses'] ?? [];
+        $schemaMutationRows = $payload['schema_mutations'] ?? [];
 
         if (! is_string($hash) || ! is_string($owner)
             || ! is_array($symbolRows) || ! array_is_list($symbolRows)
             || ! is_array($referenceRows) || ! array_is_list($referenceRows)
-            || ! is_array($tableAccessRows) || ! array_is_list($tableAccessRows)) {
+            || ! is_array($tableAccessRows) || ! array_is_list($tableAccessRows)
+            || ! is_array($schemaMutationRows) || ! array_is_list($schemaMutationRows)) {
             throw new InvalidArgumentException('The source analysis cache entry is invalid.');
         }
 
@@ -137,8 +152,39 @@ final readonly class SourceFileAnalysis
             ];
         }
 
+        $schemaMutations = [];
+
+        foreach ($schemaMutationRows as $row) {
+            if (! is_array($row)
+                || ! array_key_exists('table', $row)
+                || (! is_string($row['table']) && $row['table'] !== null)
+                || ! array_key_exists('expression', $row)
+                || (! is_string($row['expression']) && $row['expression'] !== null)
+                || ! is_string($row['operation'] ?? null)
+                || ! is_string($row['operand'] ?? null)
+                || ! is_int($row['line'] ?? null)) {
+                throw new InvalidArgumentException('The cached schema mutations are invalid.');
+            }
+
+            $schemaMutations[] = [
+                'table' => $row['table'],
+                'expression' => $row['expression'],
+                'operation' => $row['operation'],
+                'operand' => $row['operand'],
+                'line' => $row['line'],
+            ];
+        }
+
         /** @var class-string<Module> $owner */
-        return new self($hash, $owner, $file, $symbols, $references, $tableAccesses);
+        return new self(
+            $hash,
+            $owner,
+            $file,
+            $symbols,
+            $references,
+            $tableAccesses,
+            $schemaMutations,
+        );
     }
 
     public function matches(string $hash, string $owner): bool
@@ -176,12 +222,21 @@ final readonly class SourceFileAnalysis
     }
 
     /**
+     * @return list<array{table: ?string, expression: ?string, operation: string, operand: string, line: int}>
+     */
+    public function schemaMutations(): array
+    {
+        return $this->schemaMutations;
+    }
+
+    /**
      * @return array{
      *     hash: string,
      *     owner: class-string<Module>,
      *     symbols: list<array{name: string, line: int, parent: ?string}>,
      *     references: list<array{symbol: string, line: int}>,
-     *     table_accesses?: list<array{table: ?string, expression: ?string, operation: string, line: int}>
+     *     table_accesses?: list<array{table: ?string, expression: ?string, operation: string, line: int}>,
+     *     schema_mutations?: list<array{table: ?string, expression: ?string, operation: string, operand: string, line: int}>
      * }
      */
     public function toArray(): array
@@ -202,6 +257,10 @@ final readonly class SourceFileAnalysis
 
         if ($this->tableAccesses !== []) {
             $payload['table_accesses'] = $this->tableAccesses;
+        }
+
+        if ($this->schemaMutations !== []) {
+            $payload['schema_mutations'] = $this->schemaMutations;
         }
 
         return $payload;

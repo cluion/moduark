@@ -301,13 +301,15 @@ selected Module's resolved Capability provider, Port, Adapter, ServiceProviders,
 dependency status, explicit owned tables, and current convention-based Public
 API. It does not define the future Level 3 explicit export metadata.
 
-Level 3 remains incomplete. Its first two rules audit direct cross-Module
-Eloquent Model references and literal Laravel table access. Declare every
-queried table in one authoritative `tables()` owner before enabling
-`database_ownership`; unowned literals block, while dynamic or unsupported
-expressions remain explicit warnings for review or narrow suppression.
-Migration ownership, FK/transaction analysis, and explicit exports must still
-be implemented before Level 3 can produce a complete pass.
+Level 3 remains incomplete. Its first three rules audit direct cross-Module
+Eloquent Model references, literal Laravel table access, and Laravel Schema
+mutations. Declare every queried or migrated table in one authoritative
+`tables()` owner. Keep historical renamed or dropped names while shipped
+migrations reference them. Move schema mutations into the owning Module's
+`Database/Migrations/`; cross-Module orchestration requires a narrow reviewed
+suppression. Unresolved expressions remain explicit warnings rather than
+guessed owners. FK/transaction analysis and explicit exports must still be
+implemented before Level 3 can produce a complete pass.
 
 ## Adoption Checklist
 

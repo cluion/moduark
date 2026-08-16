@@ -26,4 +26,12 @@ final class OrderModule extends Module
     {
         return [OrderServiceProvider::class];
     }
+
+    /**
+     * @return list<string>
+     */
+    public function tables(): array
+    {
+        return ['moduark_orders'];
+    }
 }

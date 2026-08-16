@@ -16,8 +16,9 @@ preset plus explicit boolean overrides into an effective rule set, and
 
 The package default is Level 1. In the `0.2` beta, the normal Level 2 preset has
 eight implemented rules and can produce a complete pass. Level 3 now has its
-first two implemented rules but still returns exit code 2 because four enabled
-rules remain unavailable; that is an incomplete analysis, not an architecture pass.
+first three implemented rules but still returns exit code 2 because three
+enabled rules remain unavailable; that is an incomplete analysis, not an
+architecture pass.
 
 ## Preset Matrix
 
@@ -36,7 +37,7 @@ preset leaves the rule disabled.
 | `adapter_boundaries` | — | — | E | E | Yes |
 | `cross_module_model_access` | — | — | — | E | Yes |
 | `database_ownership` | — | — | — | E | Yes |
-| `migration_ownership` | — | — | — | E | No |
+| `migration_ownership` | — | — | — | E | Yes |
 | `cross_module_foreign_keys` | — | — | — | W | No |
 | `cross_module_transactions` | — | — | — | W | No |
 | `explicit_public_exports` | — | — | — | E | No |
@@ -274,7 +275,19 @@ inference, builder variables, callback query parameters, runtime Facade aliases,
 connection/schema mapping, and table prefixes are not inferred. See
 [ADR-0037](adr/0037-database-ownership-rule.md).
 
-The remaining four Level 3 rules are still unavailable. Selecting Level 3
+`migration_ownership` recognizes imported or fully qualified
+`Schema::create()`, `table()`, `rename()`, `drop()`, and `dropIfExists()` calls,
+including `Schema::connection()` variants. Schema mutations outside the source
+Module's `Database/Migrations/` directory emit `MOD-MIGRATION-003`. Inside that
+directory, another Module's table emits `MOD-MIGRATION-001`, an unowned table
+emits `MOD-MIGRATION-002`, and an unresolved expression emits non-blocking
+`MOD-MIGRATION-004`. Both rename operands are checked; historical names must
+remain explicit metadata or use a narrow reviewed suppression. Schema macros,
+custom wrappers, raw SQL, application-level migrations outside discovered
+Modules, connection/schema mapping, and prefixes are not inferred. See
+[ADR-0038](adr/0038-migration-ownership-rule.md).
+
+The remaining three Level 3 rules are still unavailable. Selecting Level 3
 therefore continues to exit 2 with an incomplete report.
 
 ## Rule Overrides

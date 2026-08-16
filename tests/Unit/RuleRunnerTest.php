@@ -15,6 +15,7 @@ use Cluion\Moduark\Analysis\Rules\CrossModuleModelAccessRule;
 use Cluion\Moduark\Analysis\Rules\DatabaseOwnershipRule;
 use Cluion\Moduark\Analysis\Rules\CyclesRule;
 use Cluion\Moduark\Analysis\Rules\InternalApiAccessRule;
+use Cluion\Moduark\Analysis\Rules\MigrationOwnershipRule;
 use Cluion\Moduark\Analysis\Rules\MissingDependenciesRule;
 use Cluion\Moduark\Analysis\Rules\UndeclaredDependenciesRule;
 use Cluion\Moduark\Analysis\Rules\UniqueModuleIdentityRule;
@@ -122,14 +123,13 @@ final class RuleRunnerTest extends TestCase
         self::assertSame(ExitPolicy::SUCCESS, $report->exitCode(new ExitPolicy));
     }
 
-    public function test_first_two_level_three_rules_are_implemented_while_the_preset_remains_incomplete(): void
+    public function test_first_three_level_three_rules_are_implemented_while_the_preset_remains_incomplete(): void
     {
         $report = $this->runner()->run($this->validGraph(), $this->architecture(3));
 
         self::assertFalse($report->complete());
-        self::assertCount(10, $report->results());
+        self::assertCount(11, $report->results());
         self::assertSame([
-            RuleId::MigrationOwnership,
             RuleId::CrossModuleForeignKeys,
             RuleId::CrossModuleTransactions,
             RuleId::ExplicitPublicExports,
@@ -230,6 +230,7 @@ final class RuleRunnerTest extends TestCase
             new AdapterBoundariesRule,
             new CrossModuleModelAccessRule,
             new DatabaseOwnershipRule,
+            new MigrationOwnershipRule,
         ]);
     }
 

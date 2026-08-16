@@ -92,3 +92,5 @@ write cost but are not portable release thresholds.
   [ADR-0035](0035-cross-module-model-access.md).
 - Schema `3` retains Laravel query table-access candidates for
   `database_ownership` in [ADR-0037](0037-database-ownership-rule.md).
+- Schema `4` retains Laravel Schema mutation candidates for
+  `migration_ownership` in [ADR-0038](0038-migration-ownership-rule.md).

@@ -9,7 +9,7 @@ use InvalidArgumentException;
 
 final readonly class SourceAnalysisCache
 {
-    public const SCHEMA_VERSION = 3;
+    public const SCHEMA_VERSION = 4;
 
     /** @var array<string, SourceFileAnalysis> */
     private array $files;
@@ -80,7 +80,8 @@ final readonly class SourceAnalysisCache
      *         owner: class-string<Module>,
      *         symbols: list<array{name: string, line: int, parent: ?string}>,
      *         references: list<array{symbol: string, line: int}>,
-     *         table_accesses?: list<array{table: ?string, expression: ?string, operation: string, line: int}>
+     *         table_accesses?: list<array{table: ?string, expression: ?string, operation: string, line: int}>,
+     *         schema_mutations?: list<array{table: ?string, expression: ?string, operation: string, operand: string, line: int}>
      *     }>
      * }
      */

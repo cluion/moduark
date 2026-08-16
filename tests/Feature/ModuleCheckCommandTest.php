@@ -144,7 +144,12 @@ final class ModuleCheckCommandTest extends TestCase
         self::assertSame(3, $architecture['level']);
         self::assertSame('Isolated', $architecture['level_label']);
         self::assertSame([
-            'migration_ownership',
+            'rules_evaluated' => 11,
+            'violations' => 0,
+            'errors' => 0,
+            'warnings' => 0,
+        ], $payload['summary']);
+        self::assertSame([
             'cross_module_foreign_keys',
             'cross_module_transactions',
             'explicit_public_exports',

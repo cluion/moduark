@@ -207,6 +207,82 @@ PHP));
         );
     }
 
+    public function test_it_collects_laravel_schema_mutations_without_guessing_dynamic_tables(): void
+    {
+        $this->temporaryPath = sys_get_temp_dir().'/moduark-migration-'.bin2hex(random_bytes(6));
+        $modulePath = $this->temporaryPath.'/Migration/MigrationModule.php';
+        $migrationPath = $this->temporaryPath
+            .'/Migration/Database/Migrations/2026_08_16_000000_orders.php';
+        self::assertTrue(mkdir(dirname($migrationPath), 0755, true));
+        self::assertNotFalse(file_put_contents($modulePath, "<?php\nnamespace MigrationFixture;\nfinal class MigrationModuleEntry {}\n"));
+        self::assertNotFalse(file_put_contents($migrationPath, <<<'PHP'
+<?php
+
+namespace MigrationFixture;
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\Schema as DatabaseSchema;
+
+return new class extends Migration
+{
+    public function up(string $table, object $custom): void
+    {
+        DatabaseSchema::create('orders', static function (): void {});
+        DatabaseSchema::table($table, static function (): void {});
+        DatabaseSchema::rename('legacy_orders', 'orders');
+        DatabaseSchema::drop('order_archive');
+        DatabaseSchema::dropIfExists('order_drafts');
+        DatabaseSchema::connection('tenant')->table('tenant.orders', static function (): void {});
+        DatabaseSchema::create('orders as o', static function (): void {});
+        \Illuminate\Support\Facades\Schema::dropIfExists('fully_qualified');
+        $custom->drop('ignored');
+    }
+};
+PHP));
+        $registry = new ModuleRegistry([
+            new DiscoveredModule(
+                'Migration',
+                MigrationSourceModule::class,
+                $modulePath,
+                'MigrationFixture',
+            ),
+        ]);
+
+        $first = (new SourceIndexBuilder($registry))->build();
+        $second = (new SourceIndexBuilder($registry))->build();
+        $evidence = array_map(
+            static fn ($mutation): array => [
+                $mutation->operation(),
+                $mutation->operand(),
+                $mutation->evidence(),
+            ],
+            $first->schemaMutationsFrom(MigrationSourceModule::class),
+        );
+
+        self::assertSame([
+            ['Schema::create', 'table', 'orders'],
+            ['Schema::table', 'table', 'Schema::table(table:*)'],
+            ['Schema::rename', 'from', 'legacy_orders'],
+            ['Schema::rename', 'to', 'orders'],
+            ['Schema::drop', 'table', 'order_archive'],
+            ['Schema::dropIfExists', 'table', 'order_drafts'],
+            ['Schema::connection()->table', 'table', 'tenant.orders'],
+            ['Schema::create', 'table', 'orders as o'],
+            ['Schema::dropIfExists', 'table', 'fully_qualified'],
+        ], $evidence);
+        self::assertSame(
+            array_map(static fn ($mutation): array => $mutation->toArray(), $first->schemaMutations()),
+            array_map(static fn ($mutation): array => $mutation->toArray(), $second->schemaMutations()),
+        );
+        self::assertNotContains(
+            'ignored',
+            array_map(
+                static fn ($mutation): string => $mutation->evidence(),
+                $first->schemaMutations(),
+            ),
+        );
+    }
+
     private function registry(): ModuleRegistry
     {
         $root = dirname(__DIR__).'/Fixtures/Analysis/Modules';
@@ -240,5 +316,9 @@ final class DuplicateSourceModule extends Module
 }
 
 final class QuerySourceModule extends Module
+{
+}
+
+final class MigrationSourceModule extends Module
 {
 }

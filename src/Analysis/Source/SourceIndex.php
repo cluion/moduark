@@ -23,13 +23,21 @@ final readonly class SourceIndex
     /** @var list<TableAccess> */
     private array $tableAccesses;
 
+    /** @var list<SchemaMutation> */
+    private array $schemaMutations;
+
     /**
      * @param list<SourceSymbol> $symbols
      * @param list<SourceReference> $references
      * @param list<TableAccess> $tableAccesses
+     * @param list<SchemaMutation> $schemaMutations
      */
-    public function __construct(array $symbols, array $references, array $tableAccesses = [])
-    {
+    public function __construct(
+        array $symbols,
+        array $references,
+        array $tableAccesses = [],
+        array $schemaMutations = [],
+    ) {
         $symbolsByName = [];
 
         foreach ($symbols as $symbol) {
@@ -105,10 +113,29 @@ final readonly class SourceIndex
             ];
         });
 
+        usort($schemaMutations, static function (SchemaMutation $left, SchemaMutation $right): int {
+            return [
+                $left->source(),
+                $left->file(),
+                $left->line(),
+                strtolower($left->operation()),
+                $left->operand(),
+                $left->evidence(),
+            ] <=> [
+                $right->source(),
+                $right->file(),
+                $right->line(),
+                strtolower($right->operation()),
+                $right->operand(),
+                $right->evidence(),
+            ];
+        });
+
         $this->symbols = $symbols;
         $this->symbolsByName = $symbolsByName;
         $this->references = $references;
         $this->tableAccesses = $tableAccesses;
+        $this->schemaMutations = $schemaMutations;
     }
 
     /**
@@ -192,6 +219,26 @@ final readonly class SourceIndex
         return array_values(array_filter(
             $this->tableAccesses,
             static fn (TableAccess $access): bool => $access->source() === $moduleClass,
+        ));
+    }
+
+    /**
+     * @return list<SchemaMutation>
+     */
+    public function schemaMutations(): array
+    {
+        return $this->schemaMutations;
+    }
+
+    /**
+     * @param class-string<Module> $moduleClass
+     * @return list<SchemaMutation>
+     */
+    public function schemaMutationsFrom(string $moduleClass): array
+    {
+        return array_values(array_filter(
+            $this->schemaMutations,
+            static fn (SchemaMutation $mutation): bool => $mutation->source() === $moduleClass,
         ));
     }
 }
