@@ -21,6 +21,7 @@ use Cluion\Moduark\Analysis\Rules\CrossModuleModelAccessRule;
 use Cluion\Moduark\Analysis\Rules\CrossModuleTransactionsRule;
 use Cluion\Moduark\Analysis\Rules\DatabaseOwnershipRule;
 use Cluion\Moduark\Analysis\Rules\CyclesRule;
+use Cluion\Moduark\Analysis\Rules\ExplicitPublicExportsRule;
 use Cluion\Moduark\Analysis\Rules\InternalApiAccessRule;
 use Cluion\Moduark\Analysis\Rules\MigrationOwnershipRule;
 use Cluion\Moduark\Analysis\Rules\MissingDependenciesRule;
@@ -184,6 +185,7 @@ final class ModuarkServiceProvider extends ServiceProvider
                 new MigrationOwnershipRule,
                 new CrossModuleForeignKeysRule,
                 new CrossModuleTransactionsRule,
+                new ExplicitPublicExportsRule,
             ]),
         );
         $this->app->singleton(ArchitectureChecker::class);

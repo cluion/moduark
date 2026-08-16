@@ -13,7 +13,7 @@ use InvalidArgumentException;
 
 final readonly class ModuleCacheManifest
 {
-    public const SCHEMA_VERSION = 2;
+    public const SCHEMA_VERSION = 3;
 
     /**
      * @param list<ModuleDescriptor> $descriptors
@@ -111,7 +111,8 @@ final readonly class ModuleCacheManifest
              *         adapter: class-string
              *     }>,
              *     provides: list<class-string<\Cluion\Moduark\Capability>>,
-             *     tables: list<string>
+             *     tables: list<string>,
+             *     exports: list<class-string>
              * } $row */
             $descriptors[] = ModuleDescriptor::fromArray($row);
         }
@@ -183,6 +184,7 @@ final readonly class ModuleCacheManifest
             || ! self::isStringList($values['providers'] ?? null)
             || ! self::isStringList($values['provides'] ?? null)
             || ! self::isStringList($values['tables'] ?? null)
+            || ! self::isStringList($values['exports'] ?? null)
             || ! is_array($values['requires'] ?? null)) {
             return false;
         }

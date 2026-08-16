@@ -59,6 +59,7 @@ final class ModuleInspectCommandTest extends TestCase
                     ],
                     ['Provides', '—'],
                     ['Owned tables', "order_items\norders"],
+                    ['Explicit exports', '—'],
                     ['Public API (convention)', OrderModule::class],
                 ],
             )

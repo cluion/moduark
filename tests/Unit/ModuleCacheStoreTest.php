@@ -59,6 +59,10 @@ final class ModuleCacheStoreTest extends TestCase
             ['cache_beta'],
             $loaded->descriptors()[1]->tables(),
         );
+        self::assertSame(
+            [CacheExport::class],
+            $loaded->descriptors()[1]->exports(),
+        );
 
         $payload = require $this->path;
         self::assertIsArray($payload);
@@ -83,10 +87,10 @@ final class ModuleCacheStoreTest extends TestCase
         self::assertNull((new ModuleCacheStore($this->path))->load('/workspace/app/Modules'));
     }
 
-    public function test_schema_one_manifest_is_bypassed_after_table_metadata_is_added(): void
+    public function test_older_manifests_are_bypassed_after_export_metadata_is_added(): void
     {
         mkdir($this->directory, 0777, true);
-        file_put_contents($this->path, "<?php\n\nreturn ['schema_version' => 1];\n");
+        file_put_contents($this->path, "<?php\n\nreturn ['schema_version' => 2];\n");
 
         self::assertNull((new ModuleCacheStore($this->path))->load('/workspace/app/Modules'));
     }
@@ -94,7 +98,7 @@ final class ModuleCacheStoreTest extends TestCase
     public function test_invalid_cache_payload_fails_with_the_cache_path(): void
     {
         mkdir($this->directory, 0777, true);
-        file_put_contents($this->path, "<?php\n\nreturn ['schema_version' => 2];\n");
+        file_put_contents($this->path, "<?php\n\nreturn ['schema_version' => 3];\n");
 
         $this->expectException(ModuleCacheFailed::class);
         $this->expectExceptionMessage("Module cache [{$this->path}] is invalid.");
@@ -106,6 +110,22 @@ final class ModuleCacheStoreTest extends TestCase
     {
         $payload = $this->manifest()->toArray();
         $payload['descriptors'][1]['tables'] = ['users as u'];
+        mkdir($this->directory, 0777, true);
+        file_put_contents(
+            $this->path,
+            "<?php\n\nreturn ".var_export($payload, true).";\n",
+        );
+
+        $this->expectException(ModuleCacheFailed::class);
+        $this->expectExceptionMessage("Module cache [{$this->path}] is invalid.");
+
+        (new ModuleCacheStore($this->path))->load('/workspace/app/Modules');
+    }
+
+    public function test_current_cache_schema_rejects_malformed_export_metadata(): void
+    {
+        $payload = $this->manifest()->toArray();
+        $payload['descriptors'][1]['exports'] = [123];
         mkdir($this->directory, 0777, true);
         file_put_contents(
             $this->path,
@@ -177,4 +197,13 @@ final class CacheBetaModule extends Module
     {
         return ['cache_beta'];
     }
+
+    public function exports(): array
+    {
+        return [CacheExport::class];
+    }
+}
+
+interface CacheExport
+{
 }

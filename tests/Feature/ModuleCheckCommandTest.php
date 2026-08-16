@@ -131,27 +131,25 @@ final class ModuleCheckCommandTest extends TestCase
         ], $payload['results']);
     }
 
-    public function test_json_check_output_reports_level_three_as_incomplete(): void
+    public function test_json_check_output_reports_a_complete_level_three_pass(): void
     {
         [$exitCode, $payload] = $this->jsonCheck(['--level' => '3']);
 
-        self::assertSame(ExitPolicy::TOOL_ERROR, $exitCode);
-        self::assertSame('incomplete', $payload['status']);
-        self::assertFalse($payload['complete']);
-        self::assertSame(ExitPolicy::TOOL_ERROR, $payload['exit_code']);
+        self::assertSame(ExitPolicy::SUCCESS, $exitCode);
+        self::assertSame('passed', $payload['status']);
+        self::assertTrue($payload['complete']);
+        self::assertSame(ExitPolicy::SUCCESS, $payload['exit_code']);
         $architecture = $payload['architecture'];
         self::assertIsArray($architecture);
         self::assertSame(3, $architecture['level']);
         self::assertSame('Isolated', $architecture['level_label']);
         self::assertSame([
-            'rules_evaluated' => 13,
+            'rules_evaluated' => 14,
             'violations' => 0,
             'errors' => 0,
             'warnings' => 0,
         ], $payload['summary']);
-        self::assertSame([
-            'explicit_public_exports',
-        ], $payload['unavailable_rules']);
+        self::assertSame([], $payload['unavailable_rules']);
     }
 
     public function test_invalid_check_output_format_is_a_tool_error(): void

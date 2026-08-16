@@ -51,4 +51,12 @@ abstract class Module
     {
         return [];
     }
+
+    /**
+     * @return list<class-string>
+     */
+    public function exports(): array
+    {
+        return [];
+    }
 }

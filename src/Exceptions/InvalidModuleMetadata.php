@@ -85,6 +85,15 @@ final class InvalidModuleMetadata extends RuntimeException
         );
     }
 
+    public static function invalidExportReference(string $moduleClass, mixed $value): self
+    {
+        $received = is_string($value) ? "[{$value}]" : get_debug_type($value);
+
+        return new self(
+            "{$moduleClass}::exports() must return existing class, interface, trait, or enum class-strings; received {$received}.",
+        );
+    }
+
     /** @param list<class-string<\Cluion\Moduark\Module>> $owners */
     public static function duplicateTableOwnership(string $table, array $owners): self
     {

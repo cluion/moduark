@@ -30,6 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Builder writes inside inline Laravel transaction callbacks, reporting
   cross-owner, unowned, and unresolved write evidence with source-cache schema
   `6`.
+- Added explicit `Module::exports()` metadata and the final Level 3
+  `explicit_public_exports` rule, enforcing owner-validated cross-Module API
+  narrowing with Module-cache schema `3` and inspection visibility. All fourteen
+  Level 3 rules are now implemented and can produce a complete pass.
 
 ## [0.3.0-beta.5] - 2026-08-16
 

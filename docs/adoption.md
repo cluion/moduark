@@ -298,14 +298,15 @@ consumers visible. It does not flatten these edges into direct Module
 dependencies. The combined view retains all three labeled edge kinds and uses
 the union of direct and Capability neighborhoods. `module:inspect` adds the
 selected Module's resolved Capability provider, Port, Adapter, ServiceProviders,
-dependency status, explicit owned tables, and current convention-based Public
-API. It does not define the future Level 3 explicit export metadata.
+dependency status, explicit owned tables, current convention-based Public API,
+and explicit exports as separate reviewable rows.
 
-Level 3 remains incomplete. Its first five rules audit direct cross-Module
-Eloquent Model references, literal Laravel table access, Laravel Schema
-mutations, Blueprint foreign keys, and direct Query Builder writes inside inline
-Laravel transactions. Declare every queried, migrated, referenced, or directly
-mutated table in one authoritative `tables()` owner. Keep historical renamed
+Level 3 is now complete with fourteen implemented rules. Its six isolation rules
+audit direct cross-Module Eloquent Model references, literal Laravel table
+access, Laravel Schema mutations, Blueprint foreign keys, direct Query Builder
+writes inside inline Laravel transactions, and explicit Public API exports.
+Declare every queried, migrated, referenced, or directly mutated table in one
+authoritative `tables()` owner. Keep historical renamed
 or dropped names while shipped migrations reference them. Move schema mutations
 into the owning Module's `Database/Migrations/`; cross-Module orchestration
 requires a narrow reviewed suppression. Foreign-key diagnostics default to
@@ -314,8 +315,11 @@ monolith trade-off. Disable that rule only for a project-wide FK policy; use a
 narrow suppression for individual reviewed constraints. Review each transaction
 that directly writes multiple owners; retain deliberate atomic orchestration with
 a narrow suppression or move it behind Module Ports. Unresolved expressions and
-raw DB writes remain explicit warnings rather than guessed owners. Explicit
-exports must still be implemented before Level 3 can produce a complete pass.
+raw DB writes remain explicit warnings rather than guessed owners. Add every
+cross-Module class-like boundary to the provider's `exports()` list; Module entry
+classes remain implicit identities. Explicit exports narrow the convention, so a
+symbol must also remain below `Contracts/`, `Data/`, or `Events/`. Enable Level 3
+only after `php artisan module:check --level=3` completes with exit 0.
 
 ## Adoption Checklist
 
@@ -340,4 +344,8 @@ exports must still be implemented before Level 3 can produce a complete pass.
 - [ ] Every inline Laravel transaction with direct Query Builder writes has
       resolved ownership, and each cross-owner warning is removed, narrowly
       suppressed, or explicitly kept.
+- [ ] Every cross-Module class-like reference targets both the convention Public
+      API and the provider's explicit `exports()` metadata.
+- [ ] `module:check --level=3` evaluates all fourteen rules and exits 0 before
+      Level 3 becomes the configured default.
 - [ ] Any rule override has an owner, reason, and removal condition.

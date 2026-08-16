@@ -8,8 +8,8 @@ resources, and architecture boundaries executable and inspectable.
 > 2. It adds versioned JSON check reports, native GitHub Actions annotations,
 > deterministic Module metadata caching, and a reviewable architecture baseline
 > workflow, Module-aware Makers, incremental source analysis, and auditable
-> architecture suppressions. Development toward `0.4` adds the first five
-> Level 3 persistence-isolation rules, but the Level 3 preset remains incomplete.
+> architecture suppressions. Development toward `0.4` completes all six Level 3
+> persistence-isolation rules, including explicit Public API exports.
 
 ## Requirements
 
@@ -102,8 +102,9 @@ and internal API access.
 
 ## Module Metadata
 
-Dependencies, service providers, and owned tables are typed PHP metadata on the
-Module entry class. Dependencies are registered before their consumers.
+Dependencies, service providers, owned tables, and explicit exports are typed PHP
+metadata on the Module entry class. Dependencies are registered before their
+consumers.
 
 ```php
 <?php
@@ -112,6 +113,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Order;
 
+use App\Modules\Order\Contracts\OrderQuery;
+use App\Modules\Order\Data\OrderData;
+use App\Modules\Order\Events\OrderPlaced;
 use App\Modules\Order\Providers\OrderServiceProvider;
 use App\Modules\User\UserModule;
 use Cluion\Moduark\Module;
@@ -132,14 +136,20 @@ final class OrderModule extends Module
     {
         return ['orders', 'order_items'];
     }
+
+    public function exports(): array
+    {
+        return [OrderQuery::class, OrderData::class, OrderPlaced::class];
+    }
 }
 ```
 
-Class metadata must contain concrete class strings. `tables()` accepts unique,
-unquoted dot-separated names such as `orders` or `audit.events`; one canonical
-table can have only one Module owner, compared case-insensitively. Duplicate
-references, missing Modules, circular dependencies, and conflicting ownership
-fail deterministically.
+Class metadata must contain concrete class strings. `exports()` accepts existing
+classes, interfaces, traits, and enums; ownership is verified by the Level 3
+rule. `tables()` accepts unique, unquoted dot-separated names such as `orders` or
+`audit.events`; one canonical table can have only one Module owner, compared
+case-insensitively. Duplicate references, missing Modules, circular dependencies,
+and conflicting ownership fail deterministically.
 
 ## Level 3 Database Ownership
 
@@ -235,6 +245,28 @@ callbacks, raw SQL target parsing, and manual `beginTransaction()` / `commit()` 
 `rollBack()` scopes are not inferred. Keep intentional atomic orchestration with
 a narrow reviewed suppression, or move cross-owner writes behind Module Ports.
 See [ADR-0040](docs/adr/0040-cross-module-transactions-rule.md).
+
+## Level 3 Explicit Public Exports
+
+`explicit_public_exports` requires every cross-Module class-like reference other
+than the Module entry identity to appear in the provider's `exports()` metadata.
+It reports:
+
+- `MOD-EXPORT-001` when a consumer references a symbol the provider does not
+  explicitly export;
+- `MOD-EXPORT-002` when an export is not found in indexed Module source;
+- `MOD-EXPORT-003` when a Module attempts to export another Module's symbol.
+
+Level 3 composes this rule with Level 1's `Contracts/`, `Data/`, `Events/`, and
+Module-entry convention. Explicit metadata narrows that convention: listing a
+`Services/` class in `exports()` does not make it public while
+`internal_api_access` remains enabled. The Module entry class is always an
+implicit public identity and does not need to list itself.
+
+The rule uses the existing AST symbol/reference index, so PHPDoc and dynamic
+class strings are not inferred. It validates visibility and ownership, not API
+backward compatibility. See
+[ADR-0041](docs/adr/0041-explicit-public-exports-rule.md).
 
 ## Level 1 Public API
 
@@ -458,9 +490,9 @@ Use `module:inspect Order` when one Module needs more detail than the graph. It
 shows the effective architecture level, discovered or missing direct
 dependencies, Module ServiceProviders, each required Capability's resolved
 provider, consumer Port and Adapter, provided Capabilities, explicit owned
-tables, and symbols exposed by the current `Contracts/`, `Data/`, `Events/`, and
-Module-entry convention. Public API inspection is still convention-based and is
-not the future Level 3 explicit `exports()` contract.
+tables, explicit exports, and symbols exposed by the current `Contracts/`,
+`Data/`, `Events/`, and Module-entry convention. The two Public API views remain
+separate so Level 3 narrowing is directly reviewable.
 
 Application bootstrap happens before Artisan invokes a command. A configuration,
 discovery, metadata, or runtime Capability-resolution exception raised during
@@ -486,7 +518,8 @@ routes, views, translations, migrations, and Module commands still use their
 normal Laravel resource loading.
 
 Rebuild the cache after adding, removing, or moving a Module, or after changing
-`dependencies()`, `providers()`, `requires()`, `provides()`, or `tables()`.
+`dependencies()`, `providers()`, `requires()`, `provides()`, `tables()`, or
+`exports()`.
 Clear it to return to fresh discovery:
 
 ```bash
@@ -604,18 +637,21 @@ with narrow selectors, mandatory reasons, and stale/inactive reporting.
 Module-aware Makers generate models and controllers inside existing application
 Modules, while content-hash caching reuses unchanged per-file source analysis
 without persisting cross-file ownership decisions.
-The first five Level 3 rules audit direct cross-Module Eloquent Model, table,
-migration, foreign-key, and inline transaction access. Explicit `tables()`
+All six Level 3 rules audit direct cross-Module Eloquent Model, table, migration,
+foreign-key, inline transaction, and explicit export access. Explicit `tables()`
 metadata feeds a deterministic single-owner index; Laravel-aware AST evidence
 covers literal Facade queries, Schema mutations, Blueprint constraints, and
 direct Query Builder writes inside transaction callbacks, while unresolved
-expressions remain reviewable warnings. Explicit exports, suppression expiry,
-and IDE integration remain later work. See
+expressions remain reviewable warnings. Explicit `exports()` metadata narrows the
+convention-based Public API. The complete fourteen-rule Level 3 preset can now
+produce a complete pass; suppression expiry and IDE integration remain later
+work. See
 [ADR-0035](docs/adr/0035-cross-module-model-access.md),
 [ADR-0036](docs/adr/0036-table-ownership-index.md),
 [ADR-0037](docs/adr/0037-database-ownership-rule.md),
 [ADR-0038](docs/adr/0038-migration-ownership-rule.md),
-[ADR-0039](docs/adr/0039-cross-module-foreign-keys-rule.md), and
-[ADR-0040](docs/adr/0040-cross-module-transactions-rule.md).
+[ADR-0039](docs/adr/0039-cross-module-foreign-keys-rule.md),
+[ADR-0040](docs/adr/0040-cross-module-transactions-rule.md), and
+[ADR-0041](docs/adr/0041-explicit-public-exports-rule.md).
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

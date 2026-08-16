@@ -58,8 +58,16 @@ and the
 - Deployments that run `php artisan optimize` gain cached Module discovery and
   metadata automatically.
 - Adding, removing, or moving a Module, or changing `dependencies()`,
-  `providers()`, `requires()`, `provides()`, or later metadata such as
-  `tables()`, requires `module:cache` to be
+  `providers()`, `requires()`, `provides()`, `tables()`, or `exports()`, requires
+  `module:cache` to be
   rerun or `module:clear` to restore fresh discovery.
 - Resource discovery is intentionally still performed at boot. Broader runtime
   caching and analyzer incremental caches remain separate future work.
+
+## Current schema evolution
+
+- Schema `2` retained explicit `tables()` metadata for the Table Ownership Index
+  in [ADR-0036](0036-table-ownership-index.md).
+- Schema `3` retains explicit class-like `exports()` metadata for
+  `explicit_public_exports` in
+  [ADR-0041](0041-explicit-public-exports-rule.md).

@@ -12,13 +12,12 @@ preset plus explicit boolean overrides into an effective rule set, and
 | 0 | Organization | Implemented | Valid, uniquely identified Module structure |
 | 1 | Modular | Implemented | Explicit dependencies, acyclic graph, provider-owned Public API |
 | 2 | Decoupled | Implemented in `0.2` beta | Consumer-owned Ports, adapters, capability contracts |
-| 3 | Isolated | Partially implemented, incomplete | Model, database, migration, transaction, and export boundaries |
+| 3 | Isolated | Implemented in development toward `0.4` | Model, database, migration, transaction, and export boundaries |
 
 The package default is Level 1. In the `0.2` beta, the normal Level 2 preset has
-eight implemented rules and can produce a complete pass. Level 3 now has its
-first five implemented rules but still returns exit code 2 because one enabled
-rule remains unavailable; that is an incomplete analysis, not an
-architecture pass.
+eight implemented rules and can produce a complete pass. Level 3 now has all
+fourteen implemented rules and can also produce a complete pass. Its stricter
+isolation policy remains an opt-in trade-off rather than a universal upgrade.
 
 ## Preset Matrix
 
@@ -40,11 +39,11 @@ preset leaves the rule disabled.
 | `migration_ownership` | — | — | — | E | Yes |
 | `cross_module_foreign_keys` | — | — | — | W | Yes |
 | `cross_module_transactions` | — | — | — | W | Yes |
-| `explicit_public_exports` | — | — | — | E | No |
+| `explicit_public_exports` | — | — | — | E | Yes |
 
-Disabling an enabled rule weakens that preset's guarantee. The `0.2` beta
-supports Level 0, Level 1, and the complete Level 2 preset. Disabling unavailable
-Level 3 rules does not create a Level 3 guarantee.
+Disabling an enabled rule weakens that preset's guarantee. The published `0.3`
+beta supports complete Level 0, Level 1, and Level 2 presets; development toward
+`0.4` adds the complete Level 3 preset.
 
 ## Level 0 — Organization
 
@@ -312,9 +311,22 @@ remain unresolved evidence. Eloquent and Repository writes, builder variables,
 nested arbitrary callbacks, SQL parsing, and manual transaction scopes are not
 inferred. See [ADR-0040](adr/0040-cross-module-transactions-rule.md).
 
-The remaining explicit-public-exports rule is still unavailable. Selecting
-Level 3 therefore continues to exit 2 with an incomplete report after evaluating
-thirteen implemented rules.
+`explicit_public_exports` adds `Module::exports()` metadata for existing named
+classes, interfaces, traits, and enums. Every cross-Module AST reference except
+the Module entry identity must target a symbol explicitly exported by its owner.
+`MOD-EXPORT-001` reports an unexported reference, `MOD-EXPORT-002` reports an
+export absent from indexed Module source, and `MOD-EXPORT-003` reports a Module
+claiming another owner's symbol.
+
+This rule narrows rather than replaces the Level 1 convention. A symbol must
+still satisfy `internal_api_access`, so adding a `Services/` class to `exports()`
+does not broaden the Public API. PHPDoc, dynamic class strings, and API backward
+compatibility are outside the current AST contract. `module:inspect` shows the
+convention Public API and explicit exports separately. See
+[ADR-0041](adr/0041-explicit-public-exports-rule.md).
+
+Selecting Level 3 now evaluates all fourteen rules. A valid isolated architecture
+produces a complete report and exits 0.
 
 ## Rule Overrides
 

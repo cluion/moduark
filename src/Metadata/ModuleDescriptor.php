@@ -18,6 +18,7 @@ final readonly class ModuleDescriptor
      * @param list<CapabilityRequirement> $requirements
      * @param list<class-string<Capability>> $capabilities
      * @param list<string> $tables
+     * @param list<class-string> $exports
      */
     public function __construct(
         private string $moduleClass,
@@ -26,6 +27,7 @@ final readonly class ModuleDescriptor
         private array $requirements = [],
         private array $capabilities = [],
         private array $tables = [],
+        private array $exports = [],
     ) {
     }
 
@@ -40,7 +42,8 @@ final readonly class ModuleDescriptor
      *         adapter: class-string
      *     }>,
      *     provides?: list<class-string<Capability>>,
-     *     tables?: list<string>
+     *     tables?: list<string>,
+     *     exports?: list<class-string>
      * } $values
      */
     public static function fromArray(array $values): self
@@ -55,6 +58,7 @@ final readonly class ModuleDescriptor
             ),
             $values['provides'] ?? [],
             $values['tables'] ?? [],
+            $values['exports'] ?? [],
         );
     }
 
@@ -107,6 +111,14 @@ final readonly class ModuleDescriptor
     }
 
     /**
+     * @return list<class-string>
+     */
+    public function exports(): array
+    {
+        return $this->exports;
+    }
+
+    /**
      * @return array{
      *     module: class-string<Module>,
      *     dependencies: list<class-string<Module>>,
@@ -117,7 +129,8 @@ final readonly class ModuleDescriptor
      *         adapter: class-string
      *     }>,
      *     provides: list<class-string<Capability>>,
-     *     tables: list<string>
+     *     tables: list<string>,
+     *     exports: list<class-string>
      * }
      */
     public function toArray(): array
@@ -132,6 +145,7 @@ final readonly class ModuleDescriptor
             ),
             'provides' => $this->capabilities,
             'tables' => $this->tables,
+            'exports' => $this->exports,
         ];
     }
 }

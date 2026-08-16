@@ -54,6 +54,7 @@ final class ModuleMetadataCompiler
             $this->requirements($moduleClass, $module->requires()),
             $this->capabilityClasses($moduleClass, 'provides', $module->provides()),
             $this->tableNames($moduleClass, $module->tables()),
+            $this->exportClasses($moduleClass, $module->exports()),
         );
     }
 
@@ -278,5 +279,39 @@ final class ModuleMetadataCompiler
         }
 
         return array_values($tables);
+    }
+
+    /**
+     * @param array<mixed> $values
+     * @return list<class-string>
+     */
+    private function exportClasses(string $moduleClass, array $values): array
+    {
+        $exports = [];
+
+        foreach ($values as $value) {
+            if (! is_string($value) || ! $this->classLikeExists($value)) {
+                throw InvalidModuleMetadata::invalidExportReference($moduleClass, $value);
+            }
+
+            $key = strtolower(ltrim($value, '\\'));
+
+            if (isset($exports[$key])) {
+                throw InvalidModuleMetadata::duplicateReference($moduleClass, 'exports', $value);
+            }
+
+            /** @var class-string $value */
+            $exports[$key] = $value;
+        }
+
+        return array_values($exports);
+    }
+
+    private function classLikeExists(string $class): bool
+    {
+        return class_exists($class)
+            || interface_exists($class)
+            || trait_exists($class)
+            || enum_exists($class);
     }
 }

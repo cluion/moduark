@@ -16,6 +16,7 @@ use Cluion\Moduark\Analysis\Rules\CrossModuleModelAccessRule;
 use Cluion\Moduark\Analysis\Rules\CrossModuleTransactionsRule;
 use Cluion\Moduark\Analysis\Rules\DatabaseOwnershipRule;
 use Cluion\Moduark\Analysis\Rules\CyclesRule;
+use Cluion\Moduark\Analysis\Rules\ExplicitPublicExportsRule;
 use Cluion\Moduark\Analysis\Rules\InternalApiAccessRule;
 use Cluion\Moduark\Analysis\Rules\MigrationOwnershipRule;
 use Cluion\Moduark\Analysis\Rules\MissingDependenciesRule;
@@ -125,16 +126,14 @@ final class RuleRunnerTest extends TestCase
         self::assertSame(ExitPolicy::SUCCESS, $report->exitCode(new ExitPolicy));
     }
 
-    public function test_first_five_level_three_rules_are_implemented_while_the_preset_remains_incomplete(): void
+    public function test_all_level_three_rules_have_implementations(): void
     {
         $report = $this->runner()->run($this->validGraph(), $this->architecture(3));
 
-        self::assertFalse($report->complete());
-        self::assertCount(13, $report->results());
-        self::assertSame([
-            RuleId::ExplicitPublicExports,
-        ], $report->unavailableRules());
-        self::assertSame(ExitPolicy::TOOL_ERROR, $report->exitCode(new ExitPolicy));
+        self::assertTrue($report->complete());
+        self::assertCount(14, $report->results());
+        self::assertSame([], $report->unavailableRules());
+        self::assertSame(ExitPolicy::SUCCESS, $report->exitCode(new ExitPolicy));
     }
 
     public function test_level_zero_is_complete_with_discovery_validation_rules(): void
@@ -233,6 +232,7 @@ final class RuleRunnerTest extends TestCase
             new MigrationOwnershipRule,
             new CrossModuleForeignKeysRule,
             new CrossModuleTransactionsRule,
+            new ExplicitPublicExportsRule,
         ]);
     }
 
