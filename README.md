@@ -627,6 +627,7 @@ contract.
 
 - [Architecture Levels](docs/architecture-levels.md)
 - [Adopting Moduark](docs/adoption.md)
+- [Migration Recipes](docs/recipes/README.md)
 - [PHPStan and Larastan Integration](docs/phpstan-integration.md)
 - [Architecture Decision Records](docs/adr/0001-package-baseline.md)
 - [Changelog](CHANGELOG.md)

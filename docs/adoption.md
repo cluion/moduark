@@ -4,6 +4,10 @@ Adopt Moduark by making one boundary observable at a time. The safe sequence is
 Level 0 discovery first, then an advisory Level 1 run, then repairs, and only
 then changing the configured default.
 
+For a concrete `User` / `Order` migration with review checkpoints, container
+bindings, debt decisions, and a CI gate, follow the
+[Brownfield Level 0 to Level 1 recipe](recipes/level-0-to-level-1.md).
+
 ## 1. Inventory the Existing Application
 
 Before moving source, record:

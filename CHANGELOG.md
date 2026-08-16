@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `cluion/moduark-phpstan` companion package, including beta installation,
   automatic and manual extension loading, effective configuration alignment,
   baseline and suppression reuse, CI recipes, diagnostics, and current scope.
+- Added a brownfield Level 0 to Level 1 migration recipe with concrete Module
+  metadata and provider-owned Public API changes, staged acceptance checkpoints,
+  baseline and suppression decisions, rollback boundaries, and a CI gate.
 
 ## [0.4.0-beta.1] - 2026-08-16
 
