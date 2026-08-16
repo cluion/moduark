@@ -318,6 +318,11 @@ and explicit exports as separate reviewable rows.
 composer require cluion/moduark:^0.4@beta
 ```
 
+For a staged `User` / `Order` migration with explicit rollback boundaries and
+separate decisions for Models, tables, migrations, foreign keys, transactions,
+and exports, follow the
+[Brownfield Level 2 to Level 3 recipe](recipes/level-2-to-level-3.md).
+
 Its six isolation rules
 audit direct cross-Module Eloquent Model references, literal Laravel table
 access, Laravel Schema mutations, Blueprint foreign keys, direct Query Builder
