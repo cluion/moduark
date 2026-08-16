@@ -4,11 +4,11 @@ Moduark is a Laravel-native modular architecture toolkit. It keeps Modules in a
 normal Laravel application while making their dependencies, lifecycle order,
 resources, and architecture boundaries executable and inspectable.
 
-> **Pre-release status:** `0.3.0-beta.3` guarantees Level 0, Level 1, and Level
+> **Pre-release status:** `0.3.0-beta.4` guarantees Level 0, Level 1, and Level
 > 2. It adds versioned JSON check reports, native GitHub Actions annotations,
 > deterministic Module metadata caching, and a reviewable architecture baseline
-> workflow. Current `main` additionally includes Module-aware Makers and
-> incremental source analysis. Level 3 remains incomplete.
+> workflow, Module-aware Makers, and incremental source analysis. Level 3
+> remains incomplete.
 
 ## Requirements
 
@@ -425,7 +425,7 @@ acceptance against the Packagist dist instead of the local path repository. This
 mode also verifies the installed archive layout:
 
 ```bash
-composer test:installation -- --package=0.3.0-beta.3
+composer test:installation -- --package=0.3.0-beta.4
 ```
 
 The GitHub Actions compatibility workflow runs PHPUnit on all four
@@ -444,7 +444,7 @@ contract.
 
 ## Current Scope
 
-The `v0.3.0-beta.3` release guarantees foundation plus complete Level 1 and
+The `v0.3.0-beta.4` release guarantees foundation plus complete Level 1 and
 Level 2 presets. Level 2 includes typed Capability metadata, descriptor-only
 provider resolution, lifecycle preflight, consumer-owned Port wiring,
 Capability contract validation, source-enforced Adapter boundaries,
@@ -453,6 +453,9 @@ Level 2 acceptance fixture. Developer Experience output includes versioned JSON
 reports, GitHub Actions annotations, and deterministic Module metadata caching
 with Laravel optimize integration. Brownfield adoption includes a reviewable
 architecture baseline with conservative count matching and safe pruning.
+Module-aware Makers generate models and controllers inside existing application
+Modules, while content-hash caching reuses unchanged per-file source analysis
+without persisting cross-file ownership decisions.
 Database or migration ownership, raw SQL analysis, explicit exports, inline
 suppressions, and IDE integration remain later work.
 Level 3 rule names in configuration are not claims of enforcement.
