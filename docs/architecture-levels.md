@@ -12,7 +12,7 @@ preset plus explicit boolean overrides into an effective rule set, and
 | 0 | Organization | Implemented | Valid, uniquely identified Module structure |
 | 1 | Modular | Implemented | Explicit dependencies, acyclic graph, provider-owned Public API |
 | 2 | Decoupled | Implemented in `0.2` beta | Consumer-owned Ports, adapters, capability contracts |
-| 3 | Isolated | Implemented in development toward `0.4` | Model, database, migration, transaction, and export boundaries |
+| 3 | Isolated | Implemented in `0.4` beta | Model, database, migration, transaction, and export boundaries |
 
 The package default is Level 1. In the `0.2` beta, the normal Level 2 preset has
 eight implemented rules and can produce a complete pass. Level 3 now has all
@@ -41,9 +41,9 @@ preset leaves the rule disabled.
 | `cross_module_transactions` | — | — | — | W | Yes |
 | `explicit_public_exports` | — | — | — | E | Yes |
 
-Disabling an enabled rule weakens that preset's guarantee. The published `0.3`
-beta supports complete Level 0, Level 1, and Level 2 presets; development toward
-`0.4` adds the complete Level 3 preset.
+Disabling an enabled rule weakens that preset's guarantee. The published `0.4`
+beta supports complete Level 0 through Level 3 presets. Level 3 remains opt-in;
+the package default is Level 1.
 
 ## Level 0 — Organization
 

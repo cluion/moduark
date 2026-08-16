@@ -4,12 +4,10 @@ Moduark is a Laravel-native modular architecture toolkit. It keeps Modules in a
 normal Laravel application while making their dependencies, lifecycle order,
 resources, and architecture boundaries executable and inspectable.
 
-> **Pre-release status:** `0.3.0-beta.5` guarantees Level 0, Level 1, and Level
-> 2. It adds versioned JSON check reports, native GitHub Actions annotations,
-> deterministic Module metadata caching, and a reviewable architecture baseline
-> workflow, Module-aware Makers, incremental source analysis, and auditable
-> architecture suppressions. Development toward `0.4` completes all six Level 3
-> persistence-isolation rules, including explicit Public API exports.
+> **Pre-release status:** `0.4.0-beta.1` guarantees complete Level 0 through
+> Level 3 presets. Level 3 adds all six persistence-isolation rules, including
+> explicit table ownership, migration, foreign-key, transaction, and Public API
+> export boundaries. The zero-configuration default remains Level 1.
 
 ## Requirements
 
@@ -22,7 +20,7 @@ resources, and architecture boundaries executable and inspectable.
 Install the current beta from Packagist:
 
 ```bash
-composer require cluion/moduark:^0.3@beta
+composer require cluion/moduark:^0.4@beta
 ```
 
 The package is pre-release software. Pin an exact beta version when an
@@ -604,7 +602,7 @@ acceptance against the Packagist dist instead of the local path repository. This
 mode also verifies the installed archive layout:
 
 ```bash
-composer test:installation -- --package=0.3.0-beta.5
+composer test:installation -- --package=0.4.0-beta.1
 ```
 
 The GitHub Actions compatibility workflow runs PHPUnit on all four
@@ -623,8 +621,8 @@ contract.
 
 ## Current Scope
 
-The `v0.3.0-beta.5` release guarantees foundation plus complete Level 1 and
-Level 2 presets. Level 2 includes typed Capability metadata, descriptor-only
+The `v0.4.0-beta.1` release guarantees foundation plus complete Level 0 through
+Level 3 presets. Level 2 includes typed Capability metadata, descriptor-only
 provider resolution, lifecycle preflight, consumer-owned Port wiring,
 Capability contract validation, source-enforced Adapter boundaries,
 deterministic Capability and combined graphs, `module:inspect`, and the large

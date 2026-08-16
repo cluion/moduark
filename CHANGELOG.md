@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0-beta.1] - 2026-08-16
+
+This beta completes the Level 3 Isolated preset with explicit persistence and
+Public API boundaries across all fourteen architecture rules.
+
 ### Added
 
 - Added the first Level 3 rule, `cross_module_model_access`, with AST-resolved
@@ -193,7 +198,8 @@ incomplete and are not part of this release contract.
 - Clean installation acceptance from release-tag checkouts by explicitly
   mapping the local path repository to `dev-main`.
 
-[Unreleased]: https://github.com/cluion/moduark/compare/v0.3.0-beta.5...HEAD
+[Unreleased]: https://github.com/cluion/moduark/compare/v0.4.0-beta.1...HEAD
+[0.4.0-beta.1]: https://github.com/cluion/moduark/compare/v0.3.0-beta.5...v0.4.0-beta.1
 [0.3.0-beta.5]: https://github.com/cluion/moduark/compare/v0.3.0-beta.4...v0.3.0-beta.5
 [0.3.0-beta.4]: https://github.com/cluion/moduark/compare/v0.3.0-beta.3...v0.3.0-beta.4
 [0.3.0-beta.3]: https://github.com/cluion/moduark/compare/v0.3.0-beta.2...v0.3.0-beta.3

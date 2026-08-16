@@ -301,7 +301,16 @@ selected Module's resolved Capability provider, Port, Adapter, ServiceProviders,
 dependency status, explicit owned tables, current convention-based Public API,
 and explicit exports as separate reviewable rows.
 
-Level 3 is now complete with fourteen implemented rules. Its six isolation rules
+## Adopt Level 3 with the `0.4` Beta
+
+`v0.4.0-beta.1` completes Level 3 with fourteen implemented rules. Install the
+`0.4` beta from Packagist before adopting this contract:
+
+```bash
+composer require cluion/moduark:^0.4@beta
+```
+
+Its six isolation rules
 audit direct cross-Module Eloquent Model references, literal Laravel table
 access, Laravel Schema mutations, Blueprint foreign keys, direct Query Builder
 writes inside inline Laravel transactions, and explicit Public API exports.
