@@ -8,8 +8,8 @@ resources, and architecture boundaries executable and inspectable.
 > 2. It adds versioned JSON check reports, native GitHub Actions annotations,
 > deterministic Module metadata caching, and a reviewable architecture baseline
 > workflow, Module-aware Makers, incremental source analysis, and auditable
-> architecture suppressions. Development toward `0.4` adds the first Level 3
-> Model-isolation rule, but the Level 3 preset remains incomplete.
+> architecture suppressions. Development toward `0.4` adds Level 3 Model and
+> database-ownership rules, but the Level 3 preset remains incomplete.
 
 ## Requirements
 
@@ -140,6 +140,27 @@ unquoted dot-separated names such as `orders` or `audit.events`; one canonical
 table can have only one Module owner, compared case-insensitively. Duplicate
 references, missing Modules, circular dependencies, and conflicting ownership
 fail deterministically.
+
+## Level 3 Database Ownership
+
+At Level 3, `database_ownership` compares Laravel query evidence with the
+explicit Table Ownership Index. It reports:
+
+- `MOD-TABLE-001` when a Module directly queries another Module's table;
+- `MOD-TABLE-002` when a literal table has no declared owner;
+- warning `MOD-TABLE-003` when the table expression cannot be resolved safely.
+
+The AST collector recognizes imported or fully qualified `DB::table()`,
+`Schema::table()`, their `connection()->table()` forms, and table-bearing
+`from()` / `join*()` methods on fluent builders rooted in `DB::table()` or
+`DB::query()`. Common literal aliases such as `users as u` are matched to
+`users`; an explicit `DB::table()` inside a subquery is collected independently.
+
+Raw SQL, Eloquent table inference, builders stored in variables, callback query
+parameters, unimported runtime Facade aliases, connection/schema mapping, and
+table prefixes are not guessed. Dynamic or unsupported expressions remain
+visible warnings rather than false ownership conclusions. See
+[ADR-0037](docs/adr/0037-database-ownership-rule.md).
 
 ## Level 1 Public API
 
@@ -412,8 +433,9 @@ When an enabled rule needs the PHP source index, `module:check` stores an
 internal per-file analysis manifest at `bootstrap/cache/moduark-analysis.php`.
 Every run still reads each current Module PHP file and computes its SHA-256
 content hash. Only entries with the same content hash, Module owner, and cache
-schema reuse their symbol and unresolved-reference summaries; global symbol
-ownership and references are resolved again on every check.
+schema reuse their symbol, unresolved class-reference, and query table-access
+summaries; global symbol ownership and references are resolved again on every
+check.
 
 Changed files are parsed again, removed files are pruned, and a moved file is a
 new cache entry. An unknown, malformed, or semantically invalid cache falls back
@@ -508,14 +530,14 @@ with narrow selectors, mandatory reasons, and stale/inactive reporting.
 Module-aware Makers generate models and controllers inside existing application
 Modules, while content-hash caching reuses unchanged per-file source analysis
 without persisting cross-file ownership decisions.
-The first Level 3 rule, `cross_module_model_access`, rejects direct references
-to an Eloquent Model owned by another Module using resolved AST inheritance and
-source evidence. Explicit `tables()` metadata now feeds a deterministic,
-single-owner Table Ownership Index and appears in `module:inspect`; it is
-infrastructure for the still-pending database, migration, query, FK, and
-transaction rules rather than a claim that those rules run today. Explicit
-exports, suppression expiry, and IDE integration also remain later work. See
+The first two Level 3 rules reject direct cross-Module Eloquent Model and table
+access. Explicit `tables()` metadata feeds a deterministic single-owner index;
+Laravel-aware AST evidence covers literal Facade and rooted fluent queries,
+while unowned literals block and unresolved expressions remain reviewable
+warnings. Migration ownership, FK and transaction rules, explicit exports,
+suppression expiry, and IDE integration remain later work. See
 [ADR-0035](docs/adr/0035-cross-module-model-access.md) and
-[ADR-0036](docs/adr/0036-table-ownership-index.md).
+[ADR-0036](docs/adr/0036-table-ownership-index.md), and
+[ADR-0037](docs/adr/0037-database-ownership-rule.md).
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

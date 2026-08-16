@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added explicit `Module::tables()` metadata and a deterministic table ownership
   index with canonical-name validation, case-insensitive single-owner conflict
   detection, cache-safe descriptors, and `module:inspect` visibility.
+- Added the Level 3 `database_ownership` rule with Laravel-aware AST evidence
+  for Facade table access and rooted fluent queries, blocking cross-Module and
+  unowned literals, reviewable unresolved-expression warnings, and source-cache
+  schema `3` support.
 
 ## [0.3.0-beta.5] - 2026-08-16
 

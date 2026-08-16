@@ -158,7 +158,40 @@ PHP);
 
         self::assertTrue($cold->isEloquentModel('Incremental\Internal\Tracked'));
         self::assertTrue($warm->isEloquentModel('Incremental\Internal\Tracked'));
-        self::assertSame(2, $this->cachePayload()['schema_version']);
+        self::assertSame(3, $this->cachePayload()['schema_version']);
+    }
+
+    public function test_table_access_evidence_survives_a_warm_source_analysis_cache(): void
+    {
+        $this->write($this->trackedPath, <<<'PHP'
+<?php
+
+namespace Incremental\Internal;
+
+use Illuminate\Support\Facades\DB;
+
+final class Tracked
+{
+    public function query(): mixed
+    {
+        return DB::table('orders as o')->leftJoin('users', 'users.id', '=', 'o.user_id');
+    }
+}
+PHP);
+        $builder = $this->builder(IncrementalSourceModule::class);
+
+        $cold = $builder->build();
+        $warm = $builder->build();
+
+        self::assertSame([
+            ['DB::table', 'orders'],
+            ['leftjoin', 'users'],
+        ], array_map(
+            static fn ($access): array => [$access->operation(), $access->evidence()],
+            $cold->tableAccesses(),
+        ));
+        self::assertSame($this->indexPayload($cold), $this->indexPayload($warm));
+        self::assertSame(3, $this->cachePayload()['schema_version']);
     }
 
     public function test_an_invalid_cache_falls_back_to_a_complete_cold_analysis(): void
@@ -175,6 +208,33 @@ PHP);
 
         self::assertSame($expected, $this->indexPayload($actual));
         self::assertSame(SourceAnalysisCache::SCHEMA_VERSION, $this->cachePayload()['schema_version']);
+    }
+
+    public function test_malformed_current_schema_table_evidence_falls_back_to_cold_analysis(): void
+    {
+        $builder = $this->builder(IncrementalSourceModule::class);
+        $expected = $this->indexPayload($builder->build());
+        $payload = $this->cachePayload();
+        $tracked = $payload['files'][$this->trackedPath] ?? null;
+        self::assertIsArray($tracked);
+        $tracked['table_accesses'] = [[
+            'table' => 'users as u',
+            'expression' => null,
+            'operation' => 'DB::table',
+            'line' => 1,
+        ]];
+        $payload['files'][$this->trackedPath] = $tracked;
+        self::assertIsInt(file_put_contents(
+            $this->store->path(),
+            "<?php\n\ndeclare(strict_types=1);\n\nreturn ".var_export($payload, true).";\n",
+        ));
+
+        $actual = $builder->build();
+
+        self::assertSame($expected, $this->indexPayload($actual));
+        $repaired = $this->cachePayload()['files'][$this->trackedPath] ?? null;
+        self::assertIsArray($repaired);
+        self::assertSame([], $repaired['table_accesses'] ?? []);
     }
 
     public function test_a_changed_file_with_invalid_syntax_never_reuses_or_replaces_the_cache(): void
@@ -289,6 +349,14 @@ PHP);
      *         symbol: string,
      *         file: string,
      *         line: int
+     *     }>,
+     *     table_accesses: list<array{
+     *         source: class-string<Module>,
+     *         table: ?string,
+     *         expression: ?string,
+     *         operation: string,
+     *         file: string,
+     *         line: int
      *     }>
      * }
      */
@@ -302,6 +370,10 @@ PHP);
             'references' => array_map(
                 static fn ($reference): array => $reference->toArray(),
                 $index->references(),
+            ),
+            'table_accesses' => array_map(
+                static fn ($access): array => $access->toArray(),
+                $index->tableAccesses(),
             ),
         ];
     }

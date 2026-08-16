@@ -301,11 +301,13 @@ selected Module's resolved Capability provider, Port, Adapter, ServiceProviders,
 dependency status, explicit owned tables, and current convention-based Public
 API. It does not define the future Level 3 explicit export metadata.
 
-Level 3 remains incomplete. Its first rule can already audit direct cross-Module
-Eloquent Model references. Teams may also declare authoritative `tables()`
-metadata and audit it with `module:inspect`, but database and migration
-ownership, query/FK/transaction analysis, and explicit exports must be
-implemented before Level 3 can produce a complete pass.
+Level 3 remains incomplete. Its first two rules audit direct cross-Module
+Eloquent Model references and literal Laravel table access. Declare every
+queried table in one authoritative `tables()` owner before enabling
+`database_ownership`; unowned literals block, while dynamic or unsupported
+expressions remain explicit warnings for review or narrow suppression.
+Migration ownership, FK/transaction analysis, and explicit exports must still
+be implemented before Level 3 can produce a complete pass.
 
 ## Adoption Checklist
 
@@ -323,4 +325,6 @@ implemented before Level 3 can produce a complete pass.
 - [ ] Any architecture baseline is committed, reviewed, and routinely pruned.
 - [ ] Every suppression has a narrow selector and current reason; stale entries
       are removed and inactive entries are reviewed at their applicable Level.
+- [ ] Every literal Laravel query table has one authoritative `tables()` owner;
+      unresolved table warnings are reviewed rather than assumed safe.
 - [ ] Any rule override has an owner, reason, and removal condition.

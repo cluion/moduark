@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Cluion\Moduark\Analysis\Source;
 
 use Cluion\Moduark\Analysis\Source\Visitors\ClassReferenceCollector;
+use Cluion\Moduark\Analysis\Source\Visitors\DatabaseTableAccessCollector;
 use Cluion\Moduark\Analysis\Source\Visitors\SymbolCollector;
 use Cluion\Moduark\Discovery\DiscoveredModule;
 use Cluion\Moduark\Exceptions\SourceAnalysisFailed;
@@ -37,6 +38,7 @@ final readonly class SourceIndexBuilder
         $analyses = [];
         $symbols = [];
         $candidates = [];
+        $tableAccesses = [];
 
         foreach ($this->registry->all() as $module) {
             foreach ($this->phpFiles($module) as $file) {
@@ -61,6 +63,17 @@ final readonly class SourceIndexBuilder
                         'line' => $reference['line'],
                     ];
                 }
+
+                foreach ($analysis->tableAccesses() as $access) {
+                    $tableAccesses[] = new TableAccess(
+                        $module->moduleClass(),
+                        $access['table'],
+                        $access['expression'],
+                        $access['operation'],
+                        $file,
+                        $access['line'],
+                    );
+                }
             }
         }
 
@@ -83,7 +96,7 @@ final readonly class SourceIndexBuilder
             );
         }
 
-        $index = new SourceIndex($symbols, $references);
+        $index = new SourceIndex($symbols, $references, $tableAccesses);
 
         if ($this->cache !== null) {
             try {
@@ -107,10 +120,12 @@ final readonly class SourceIndexBuilder
             $statements = $parser->parse($source) ?? [];
             $symbolCollector = new SymbolCollector($module->moduleClass(), $file);
             $referenceCollector = new ClassReferenceCollector;
+            $tableAccessCollector = new DatabaseTableAccessCollector;
             $traverser = new NodeTraverser(
                 new NameResolver,
                 $symbolCollector,
                 $referenceCollector,
+                $tableAccessCollector,
             );
             $traverser->traverse($statements);
         } catch (Error $error) {
@@ -127,6 +142,7 @@ final readonly class SourceIndexBuilder
             $file,
             $symbolCollector->symbols(),
             $referenceCollector->references(),
+            $tableAccessCollector->accesses(),
         );
     }
 

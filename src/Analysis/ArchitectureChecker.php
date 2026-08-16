@@ -33,7 +33,8 @@ final readonly class ArchitectureChecker implements RawArchitectureCheck
         $needsSourceIndex = $rules->get(RuleId::UndeclaredDependencies)->enabled()
             || $rules->get(RuleId::InternalApiAccess)->enabled()
             || $rules->get(RuleId::AdapterBoundaries)->enabled()
-            || $rules->get(RuleId::CrossModuleModelAccess)->enabled();
+            || $rules->get(RuleId::CrossModuleModelAccess)->enabled()
+            || $rules->get(RuleId::DatabaseOwnership)->enabled();
         $sourceIndex = $needsSourceIndex
             ? $this->sourceIndexBuilder->build()
             : new SourceIndex([], []);

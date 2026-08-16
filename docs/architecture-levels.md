@@ -16,8 +16,8 @@ preset plus explicit boolean overrides into an effective rule set, and
 
 The package default is Level 1. In the `0.2` beta, the normal Level 2 preset has
 eight implemented rules and can produce a complete pass. Level 3 now has its
-first implemented rule but still returns exit code 2 because five enabled rules
-remain unavailable; that is an incomplete analysis, not an architecture pass.
+first two implemented rules but still returns exit code 2 because four enabled
+rules remain unavailable; that is an incomplete analysis, not an architecture pass.
 
 ## Preset Matrix
 
@@ -35,7 +35,7 @@ preset leaves the rule disabled.
 | `capability_contracts` | — | — | E | E | Yes |
 | `adapter_boundaries` | — | — | E | E | Yes |
 | `cross_module_model_access` | — | — | — | E | Yes |
-| `database_ownership` | — | — | — | E | No |
+| `database_ownership` | — | — | — | E | Yes |
 | `migration_ownership` | — | — | — | E | No |
 | `cross_module_foreign_keys` | — | — | — | W | No |
 | `cross_module_transactions` | — | — | — | W | No |
@@ -259,13 +259,23 @@ Names are unquoted dot-separated identifiers. Ownership lookup and conflict
 detection are case-insensitive while the declared spelling is preserved for
 output. A canonical table has exactly one owner; multiple claims are invalid
 metadata. `module:inspect` displays the selected Module's indexed tables.
-Migration inference, shared/legacy table overrides, connection scoping, and
-query enforcement are deliberately not inferred by this foundation. See
+Migration inference, shared/legacy table overrides, and connection scoping are
+deliberately not inferred by this foundation. See
 [ADR-0036](adr/0036-table-ownership-index.md).
 
-The remaining five Level 3 rules are still unavailable even though their common
-table index now exists. Selecting Level 3 therefore continues to exit 2 with an
-incomplete report.
+`database_ownership` now compares that index with Laravel-aware AST evidence for
+imported or fully qualified `DB::table()`, `Schema::table()`, their connection
+variants, and table-bearing `from()` / `join*()` calls on recognized fluent
+query roots. It emits blocking `MOD-TABLE-001` for another Module's table and
+`MOD-TABLE-002` for an unowned literal. Dynamic or unsupported table expressions
+emit non-blocking `MOD-TABLE-003` warnings because Moduark does not guess an
+owner. Common literal table aliases are normalized; raw SQL, Eloquent table
+inference, builder variables, callback query parameters, runtime Facade aliases,
+connection/schema mapping, and table prefixes are not inferred. See
+[ADR-0037](adr/0037-database-ownership-rule.md).
+
+The remaining four Level 3 rules are still unavailable. Selecting Level 3
+therefore continues to exit 2 with an incomplete report.
 
 ## Rule Overrides
 

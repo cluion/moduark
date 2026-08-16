@@ -10,6 +10,7 @@ use Cluion\Moduark\Analysis\RuleRunner;
 use Cluion\Moduark\Analysis\Rules\AdapterBoundariesRule;
 use Cluion\Moduark\Analysis\Rules\CapabilityContractsRule;
 use Cluion\Moduark\Analysis\Rules\CrossModuleModelAccessRule;
+use Cluion\Moduark\Analysis\Rules\DatabaseOwnershipRule;
 use Cluion\Moduark\Analysis\Rules\CyclesRule;
 use Cluion\Moduark\Analysis\Rules\InternalApiAccessRule;
 use Cluion\Moduark\Analysis\Rules\MissingDependenciesRule;
@@ -194,6 +195,41 @@ final class ArchitectureCheckerTest extends TestCase
         $checker->check(Level::Organization);
     }
 
+    public function test_database_ownership_rule_alone_still_builds_the_source_index(): void
+    {
+        $path = $this->temporaryPath.'/OrganizationModule.php';
+        self::assertNotFalse(file_put_contents($path, "<?php\nfinal class InvalidSource {"));
+        $registry = new ModuleRegistry([
+            new DiscoveredModule(
+                'Organization',
+                OrganizationModule::class,
+                $path,
+                __NAMESPACE__,
+            ),
+        ]);
+        $configuration = ModulesConfig::from([
+            'path' => $this->temporaryPath,
+            'architecture' => [
+                'level' => 0,
+                'rules' => [
+                    'database_ownership' => true,
+                ],
+            ],
+        ], []);
+        $checker = new ArchitectureChecker(
+            $registry,
+            new ModuleMetadataCompiler,
+            new SourceIndexBuilder($registry),
+            $configuration,
+            new RuleResolver(new RulePresets),
+            $this->runner(),
+        );
+
+        $this->expectException(SourceAnalysisFailed::class);
+
+        $checker->check(Level::Organization);
+    }
+
     private function runner(): RuleRunner
     {
         return new RuleRunner([
@@ -206,6 +242,7 @@ final class ArchitectureCheckerTest extends TestCase
             new CapabilityContractsRule,
             new AdapterBoundariesRule,
             new CrossModuleModelAccessRule,
+            new DatabaseOwnershipRule,
         ]);
     }
 

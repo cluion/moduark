@@ -20,11 +20,15 @@ final readonly class SourceIndex
     /** @var list<SourceReference> */
     private array $references;
 
+    /** @var list<TableAccess> */
+    private array $tableAccesses;
+
     /**
      * @param list<SourceSymbol> $symbols
      * @param list<SourceReference> $references
+     * @param list<TableAccess> $tableAccesses
      */
-    public function __construct(array $symbols, array $references)
+    public function __construct(array $symbols, array $references, array $tableAccesses = [])
     {
         $symbolsByName = [];
 
@@ -85,9 +89,26 @@ final readonly class SourceIndex
             ];
         });
 
+        usort($tableAccesses, static function (TableAccess $left, TableAccess $right): int {
+            return [
+                $left->source(),
+                $left->file(),
+                $left->line(),
+                strtolower($left->operation()),
+                $left->evidence(),
+            ] <=> [
+                $right->source(),
+                $right->file(),
+                $right->line(),
+                strtolower($right->operation()),
+                $right->evidence(),
+            ];
+        });
+
         $this->symbols = $symbols;
         $this->symbolsByName = $symbolsByName;
         $this->references = $references;
+        $this->tableAccesses = $tableAccesses;
     }
 
     /**
@@ -151,6 +172,26 @@ final readonly class SourceIndex
         return array_values(array_filter(
             $this->references,
             static fn (SourceReference $reference): bool => $reference->source() === $moduleClass,
+        ));
+    }
+
+    /**
+     * @return list<TableAccess>
+     */
+    public function tableAccesses(): array
+    {
+        return $this->tableAccesses;
+    }
+
+    /**
+     * @param class-string<Module> $moduleClass
+     * @return list<TableAccess>
+     */
+    public function tableAccessesFrom(string $moduleClass): array
+    {
+        return array_values(array_filter(
+            $this->tableAccesses,
+            static fn (TableAccess $access): bool => $access->source() === $moduleClass,
         ));
     }
 }

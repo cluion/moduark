@@ -24,13 +24,15 @@ passes or tool errors.
 - Continue scanning, reading, and hashing every current Module PHP file. Reuse a
   file analysis only when its SHA-256 content hash, owning Module class, and
   cache schema all match.
-- Cache only per-file symbols and unresolved class-reference candidates. Rebuild
-  the global symbol index and resolve reference ownership on every check so a
-  change in one declaration correctly affects unchanged consumers.
+- Cache only per-file symbols, unresolved class-reference candidates, and
+  Laravel query table-access candidates. Rebuild the global symbol index and
+  resolve class/table ownership on every check so a change in one declaration
+  or descriptor correctly affects unchanged consumers.
 - Reparse changed or ownership-moved files and omit removed files from the next
   manifest. Absolute paths make a moved project cold naturally.
 - Treat an unknown schema, malformed payload, invalid owner, or invalid cached
-  symbol/reference as a cache miss. Complete cold analysis is authoritative.
+  symbol/reference/table access as a cache miss. Complete cold analysis is
+  authoritative.
 - Write the manifest atomically only after parsing and global index validation
   succeed. Syntax, duplicate-symbol, or invalid-reference failures never replace
   the previous cache.
@@ -83,3 +85,10 @@ write cost but are not portable release thresholds.
   manifest is safe because future runs validate every file hash and owner.
 - A later cache-hit diagnostic or CI trend format requires a separate additive
   contract; this slice does not change `module:check` text or JSON schemas.
+
+## Current schema evolution
+
+- Schema `2` retained resolved parent classes for Eloquent Model ancestry in
+  [ADR-0035](0035-cross-module-model-access.md).
+- Schema `3` retains Laravel query table-access candidates for
+  `database_ownership` in [ADR-0037](0037-database-ownership-rule.md).

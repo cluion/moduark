@@ -139,6 +139,74 @@ final class SourceIndexBuilderTest extends TestCase
         (new SourceIndexBuilder($registry))->build();
     }
 
+    public function test_it_collects_laravel_facade_and_fluent_query_table_accesses(): void
+    {
+        $this->temporaryPath = sys_get_temp_dir().'/moduark-query-'.bin2hex(random_bytes(6));
+        $modulePath = $this->temporaryPath.'/Query/QueryModule.php';
+        self::assertTrue(mkdir(dirname($modulePath), 0755, true));
+        self::assertNotFalse(file_put_contents($modulePath, <<<'PHP'
+<?php
+
+namespace QueryFixture;
+
+use Illuminate\Support\Facades\DB as Database;
+use Illuminate\Support\Facades\Schema;
+
+final class QueryModuleEntry
+{
+    public function run(string $table, object $custom): void
+    {
+        Database::table('orders as o')->leftJoin('users AS u', 'u.id', '=', 'o.user_id');
+        Database::query()->from('audit.events', 'events');
+        Schema::table('profiles', static function (): void {});
+        Database::table($table);
+        Database::table('(select 1) as derived');
+        Database::connection('tenant')->table('tenant_users');
+        Schema::connection('tenant')->table('tenant_profiles', static function (): void {});
+        $custom->join('ignored', 'ignored.id', '=', 'ignored.id');
+        Database::table('orders')->joinSub(Database::table('users'), 'users', 'users.id', '=', 'orders.user_id');
+    }
+}
+PHP));
+        $registry = new ModuleRegistry([
+            new DiscoveredModule(
+                'Query',
+                QuerySourceModule::class,
+                $modulePath,
+                'QueryFixture',
+            ),
+        ]);
+
+        $first = (new SourceIndexBuilder($registry))->build();
+        $second = (new SourceIndexBuilder($registry))->build();
+        $evidence = array_map(
+            static fn ($access): array => [$access->operation(), $access->evidence()],
+            $first->tableAccessesFrom(QuerySourceModule::class),
+        );
+        sort($evidence);
+
+        self::assertSame([
+            ['DB::connection()->table', 'tenant_users'],
+            ['DB::table', '(select 1) as derived'],
+            ['DB::table', 'DB::table(*)'],
+            ['DB::table', 'orders'],
+            ['DB::table', 'orders'],
+            ['DB::table', 'users'],
+            ['Schema::connection()->table', 'tenant_profiles'],
+            ['Schema::table', 'profiles'],
+            ['from', 'audit.events'],
+            ['leftjoin', 'users'],
+        ], $evidence);
+        self::assertSame(
+            array_map(static fn ($access): array => $access->toArray(), $first->tableAccesses()),
+            array_map(static fn ($access): array => $access->toArray(), $second->tableAccesses()),
+        );
+        self::assertNotContains(
+            'ignored',
+            array_map(static fn ($access): string => $access->evidence(), $first->tableAccesses()),
+        );
+    }
+
     private function registry(): ModuleRegistry
     {
         $root = dirname(__DIR__).'/Fixtures/Analysis/Modules';
@@ -168,5 +236,9 @@ final class BrokenSourceModule extends Module
 }
 
 final class DuplicateSourceModule extends Module
+{
+}
+
+final class QuerySourceModule extends Module
 {
 }
