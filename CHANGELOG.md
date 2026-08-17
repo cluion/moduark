@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a brownfield Level 2 to Level 3 migration recipe covering explicit table
   ownership, migration placement, Model and query isolation, reviewed foreign
   keys and transactions, explicit exports, analyzer limits, and CI gates.
+- Added a dependency-free interactive graph explorer and static Mermaid examples
+  for Module, Capability, and Combined views, backed by the executable Large
+  Level 2 fixture and a drift-prevention test.
 
 ## [0.4.0-beta.1] - 2026-08-16
 

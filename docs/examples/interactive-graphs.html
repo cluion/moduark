@@ -1,0 +1,1205 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>Moduark Interactive Graph Examples</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f4f1e8;
+            --surface: rgba(255, 255, 255, 0.82);
+            --surface-solid: #fffdf7;
+            --surface-strong: #eee9dc;
+            --ink: #172522;
+            --muted: #64716c;
+            --line: #d9d4c7;
+            --brand: #0b766e;
+            --brand-strong: #075c56;
+            --brand-soft: #d9f1ec;
+            --requires: #b75b1c;
+            --requires-soft: #f8e4d2;
+            --depends: #6e7483;
+            --depends-soft: #e8e9ed;
+            --focus: #075c56;
+            --shadow: 0 22px 70px rgba(42, 53, 49, 0.12);
+            --grid: rgba(23, 37, 34, 0.055);
+        }
+
+        html[data-theme="dark"] {
+            color-scheme: dark;
+            --bg: #101816;
+            --surface: rgba(24, 36, 33, 0.88);
+            --surface-solid: #17231f;
+            --surface-strong: #21312c;
+            --ink: #edf5f1;
+            --muted: #a7b6b0;
+            --line: #344942;
+            --brand: #65d4c6;
+            --brand-strong: #95e5dc;
+            --brand-soft: #173f3a;
+            --requires: #f0a56d;
+            --requires-soft: #4a2d1c;
+            --depends: #a7adbb;
+            --depends-soft: #30343d;
+            --focus: #95e5dc;
+            --shadow: 0 28px 90px rgba(0, 0, 0, 0.32);
+            --grid: rgba(237, 245, 241, 0.05);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            html:not([data-theme="light"]) {
+                color-scheme: dark;
+                --bg: #101816;
+                --surface: rgba(24, 36, 33, 0.88);
+                --surface-solid: #17231f;
+                --surface-strong: #21312c;
+                --ink: #edf5f1;
+                --muted: #a7b6b0;
+                --line: #344942;
+                --brand: #65d4c6;
+                --brand-strong: #95e5dc;
+                --brand-soft: #173f3a;
+                --requires: #f0a56d;
+                --requires-soft: #4a2d1c;
+                --depends: #a7adbb;
+                --depends-soft: #30343d;
+                --focus: #95e5dc;
+                --shadow: 0 28px 90px rgba(0, 0, 0, 0.32);
+                --grid: rgba(237, 245, 241, 0.05);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-width: 320px;
+            background:
+                radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--brand) 13%, transparent), transparent 31rem),
+                linear-gradient(var(--grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+                var(--bg);
+            background-size: auto, 32px 32px, 32px 32px, auto;
+            color: var(--ink);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            line-height: 1.55;
+        }
+
+        button,
+        select {
+            font: inherit;
+        }
+
+        button,
+        select,
+        a {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        a {
+            color: var(--brand-strong);
+        }
+
+        :focus-visible {
+            outline: 3px solid color-mix(in srgb, var(--focus) 60%, transparent);
+            outline-offset: 3px;
+        }
+
+        .skip-link {
+            position: fixed;
+            top: 0.75rem;
+            left: 0.75rem;
+            z-index: 50;
+            padding: 0.65rem 0.9rem;
+            border-radius: 0.5rem;
+            background: var(--surface-solid);
+            color: var(--ink);
+            transform: translateY(-180%);
+        }
+
+        .skip-link:focus {
+            transform: translateY(0);
+        }
+
+        .shell {
+            width: min(1180px, calc(100% - 2rem));
+            margin-inline: auto;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding-block: 1.15rem;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            color: var(--ink);
+            font-weight: 760;
+            letter-spacing: -0.02em;
+            text-decoration: none;
+        }
+
+        .brand-mark {
+            display: grid;
+            width: 2rem;
+            height: 2rem;
+            place-items: center;
+            border-radius: 0.62rem;
+            background: var(--brand);
+            color: var(--surface-solid);
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .quiet-link,
+        .theme-toggle {
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--surface);
+            color: var(--ink);
+            text-decoration: none;
+        }
+
+        .quiet-link {
+            padding: 0.48rem 0.78rem;
+            font-size: 0.86rem;
+        }
+
+        .theme-toggle {
+            min-width: 2.4rem;
+            min-height: 2.4rem;
+            cursor: pointer;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.45fr) minmax(16rem, 0.55fr);
+            gap: clamp(2rem, 7vw, 6rem);
+            align-items: end;
+            padding: clamp(4rem, 9vw, 7.5rem) 0 clamp(2.5rem, 6vw, 4.5rem);
+        }
+
+        .eyebrow {
+            margin: 0 0 0.8rem;
+            color: var(--brand-strong);
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        h1,
+        h2,
+        h3,
+        p {
+            margin-top: 0;
+        }
+
+        h1 {
+            max-width: 850px;
+            margin-bottom: 1.25rem;
+            font-size: clamp(2.65rem, 7.2vw, 6rem);
+            font-weight: 780;
+            letter-spacing: -0.065em;
+            line-height: 0.96;
+        }
+
+        .hero-copy {
+            max-width: 720px;
+            margin: 0;
+            color: var(--muted);
+            font-size: clamp(1.02rem, 1.8vw, 1.22rem);
+        }
+
+        .hero-note {
+            padding: 1.2rem;
+            border: 1px solid var(--line);
+            border-radius: 1rem;
+            background: var(--surface);
+            box-shadow: var(--shadow);
+        }
+
+        .hero-note strong {
+            display: block;
+            margin-bottom: 0.3rem;
+            font-size: 1.05rem;
+        }
+
+        .hero-note p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .explorer {
+            overflow: hidden;
+            margin-bottom: 2rem;
+            border: 1px solid var(--line);
+            border-radius: 1.35rem;
+            background: var(--surface);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(18px);
+        }
+
+        .explorer-head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 1.5rem;
+            padding: 1.4rem 1.4rem 1rem;
+        }
+
+        .explorer-head h2 {
+            margin-bottom: 0.25rem;
+            font-size: clamp(1.35rem, 3vw, 2rem);
+            letter-spacing: -0.035em;
+        }
+
+        .explorer-head p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: end;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem 1.4rem 1.25rem;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .field-label {
+            display: block;
+            margin-bottom: 0.42rem;
+            color: var(--muted);
+            font-size: 0.72rem;
+            font-weight: 780;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .segmented {
+            display: inline-flex;
+            padding: 0.22rem;
+            border: 1px solid var(--line);
+            border-radius: 0.78rem;
+            background: var(--surface-strong);
+        }
+
+        .segmented button {
+            border: 0;
+            border-radius: 0.58rem;
+            background: transparent;
+            color: var(--muted);
+            padding: 0.55rem 0.78rem;
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .segmented button[aria-pressed="true"] {
+            background: var(--surface-solid);
+            color: var(--ink);
+            box-shadow: 0 2px 12px rgba(23, 37, 34, 0.08);
+        }
+
+        select {
+            min-width: 12rem;
+            border: 1px solid var(--line);
+            border-radius: 0.68rem;
+            background: var(--surface-solid);
+            color: var(--ink);
+            padding: 0.58rem 2.2rem 0.58rem 0.72rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            border-bottom: 1px solid var(--line);
+        }
+
+        .stat {
+            padding: 1rem 1.4rem;
+        }
+
+        .stat + .stat {
+            border-left: 1px solid var(--line);
+        }
+
+        .stat-value {
+            display: block;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 1.22rem;
+            font-weight: 800;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 0.78rem;
+        }
+
+        .graph-stage {
+            position: relative;
+            min-height: 520px;
+            padding: 0.75rem;
+            background:
+                linear-gradient(var(--grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+            background-size: 28px 28px;
+        }
+
+        #architecture-graph {
+            display: block;
+            width: 100%;
+            min-height: 490px;
+        }
+
+        .edge {
+            fill: none;
+            stroke-linecap: round;
+            stroke-width: 2.2;
+        }
+
+        .edge.depends {
+            stroke: var(--depends);
+            stroke-dasharray: 8 7;
+        }
+
+        .edge.requires {
+            stroke: var(--requires);
+        }
+
+        .edge.provides {
+            stroke: var(--brand);
+        }
+
+        .combined .edge.depends {
+            opacity: 0.36;
+            stroke-width: 1.7;
+        }
+
+        .node-card {
+            fill: var(--surface-solid);
+            stroke: var(--line);
+            stroke-width: 1.5;
+        }
+
+        .node.selected .node-card {
+            stroke: var(--brand);
+            stroke-width: 3;
+        }
+
+        .node-title {
+            fill: var(--ink);
+            font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+            font-size: 15px;
+            font-weight: 760;
+            text-anchor: middle;
+        }
+
+        .node-role {
+            fill: var(--muted);
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 9px;
+            font-weight: 780;
+            letter-spacing: 0.08em;
+            text-anchor: middle;
+            text-transform: uppercase;
+        }
+
+        .capability .node-card {
+            fill: var(--brand-soft);
+            stroke: color-mix(in srgb, var(--brand) 55%, var(--line));
+        }
+
+        .edge-label {
+            fill: var(--muted);
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 9px;
+            font-weight: 760;
+            paint-order: stroke;
+            stroke: var(--surface-solid);
+            stroke-width: 4px;
+            text-anchor: middle;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.7rem 1.2rem;
+            align-items: center;
+            padding: 0.9rem 1.4rem;
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.42rem;
+        }
+
+        .legend-line {
+            width: 1.8rem;
+            border-top: 2px solid;
+        }
+
+        .legend-line.depends {
+            border-color: var(--depends);
+            border-top-style: dashed;
+        }
+
+        .legend-line.requires {
+            border-color: var(--requires);
+        }
+
+        .legend-line.provides {
+            border-color: var(--brand);
+        }
+
+        .graph-summary {
+            margin: 0;
+            padding: 0 1.4rem 1rem;
+            color: var(--muted);
+            font-size: 0.86rem;
+        }
+
+        .below-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .panel {
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 1rem;
+            background: var(--surface);
+            box-shadow: var(--shadow);
+        }
+
+        .panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem 1.1rem;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .panel-head h3 {
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        .copy-button {
+            border: 1px solid var(--line);
+            border-radius: 0.58rem;
+            background: var(--surface-solid);
+            color: var(--ink);
+            padding: 0.42rem 0.65rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        pre {
+            overflow: auto;
+            max-height: 27rem;
+            margin: 0;
+            padding: 1.15rem;
+            background: color-mix(in srgb, var(--surface-solid) 85%, var(--brand-soft));
+            color: var(--ink);
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.76rem;
+            line-height: 1.65;
+            tab-size: 4;
+        }
+
+        .command {
+            margin: 0;
+            padding: 0.85rem 1.1rem;
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.76rem;
+            overflow-wrap: anywhere;
+        }
+
+        .copy-status {
+            display: block;
+            min-height: 1.3rem;
+            padding: 0.55rem 1.1rem 0;
+            color: var(--brand-strong);
+            font-size: 0.78rem;
+        }
+
+        .relationships {
+            padding: 0.4rem 1.1rem 1rem;
+        }
+
+        .relationships summary {
+            cursor: pointer;
+            font-weight: 720;
+        }
+
+        .relationships ul {
+            margin: 0.8rem 0 0;
+            padding-left: 1.1rem;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .relationships li + li {
+            margin-top: 0.34rem;
+        }
+
+        .principles {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            padding: 2rem 0 4rem;
+        }
+
+        .principle {
+            padding: 1.15rem;
+            border-top: 3px solid var(--brand);
+            background: var(--surface);
+        }
+
+        .principle:nth-child(2) {
+            border-color: var(--requires);
+        }
+
+        .principle:nth-child(3) {
+            border-color: var(--depends);
+        }
+
+        .principle h3 {
+            margin-bottom: 0.42rem;
+            font-size: 1rem;
+        }
+
+        .principle p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.87rem;
+        }
+
+        footer {
+            padding: 1.3rem 0 2.4rem;
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        @media (max-width: 820px) {
+            .hero,
+            .below-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero {
+                align-items: start;
+            }
+
+            .hero-note {
+                max-width: 32rem;
+            }
+
+            .explorer-head {
+                align-items: start;
+                flex-direction: column;
+            }
+
+            .toolbar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .segmented {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            select {
+                width: 100%;
+            }
+
+            .principles {
+                grid-template-columns: 1fr;
+            }
+
+            .graph-stage {
+                overflow-x: auto;
+            }
+
+            #architecture-graph {
+                min-width: 760px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .shell {
+                width: min(100% - 1rem, 1180px);
+            }
+
+            .quiet-link {
+                display: none;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .stat + .stat {
+                border-top: 1px solid var(--line);
+                border-left: 0;
+            }
+
+            .segmented button {
+                padding-inline: 0.35rem;
+                font-size: 0.78rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a class="skip-link" href="#graph-explorer">Skip to graph explorer</a>
+
+    <nav class="topbar shell" aria-label="Example navigation">
+        <a class="brand" href="../../README.md">
+            <span class="brand-mark" aria-hidden="true">M</span>
+            <span>Moduark</span>
+        </a>
+        <div class="top-actions">
+            <a class="quiet-link" href="../graph-examples.md">Static documentation</a>
+            <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch color theme" aria-pressed="false">
+                <span aria-hidden="true">◐</span>
+            </button>
+        </div>
+    </nav>
+
+    <header class="hero shell">
+        <div>
+            <p class="eyebrow">Architecture graph explorer</p>
+            <h1>See boundaries before they become dependencies.</h1>
+            <p class="hero-copy">
+                Switch between direct Module dependencies, Capability intent, and the
+                combined architecture. Every view is generated from one deterministic
+                Level 2 fixture model.
+            </p>
+        </div>
+        <aside class="hero-note" aria-label="Example provenance">
+            <strong>Executable source</strong>
+            <p>8 Modules · 12 dependencies · 5 Capabilities · 17 Capability edges</p>
+        </aside>
+    </header>
+
+    <main class="shell">
+        <section class="explorer" id="graph-explorer" aria-labelledby="explorer-title">
+            <div class="explorer-head">
+                <div>
+                    <p class="eyebrow">Large Level 2 fixture</p>
+                    <h2 id="explorer-title">One model, three honest views</h2>
+                    <p>Choose a view and optionally limit it to one Module neighborhood.</p>
+                </div>
+            </div>
+
+            <div class="toolbar">
+                <div>
+                    <span class="field-label">Graph view</span>
+                    <div class="segmented" role="group" aria-label="Graph view">
+                        <button type="button" data-view="module" aria-pressed="false">Module</button>
+                        <button type="button" data-view="capability" aria-pressed="false">Capability</button>
+                        <button type="button" data-view="combined" aria-pressed="true">Combined</button>
+                    </div>
+                </div>
+                <label>
+                    <span class="field-label">Neighborhood</span>
+                    <select id="module-filter">
+                        <option value="all">All Modules</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="stats" aria-live="polite">
+                <div class="stat">
+                    <span class="stat-value" id="module-count">8</span>
+                    <span class="stat-label">Visible Modules</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="capability-count">5</span>
+                    <span class="stat-label">Visible Capabilities</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="relationship-count">29</span>
+                    <span class="stat-label">Visible Relationships</span>
+                </div>
+            </div>
+
+            <div class="graph-stage">
+                <svg id="architecture-graph" class="combined" viewBox="0 0 1040 610" role="img" aria-labelledby="graph-title graph-description">
+                    <title id="graph-title">Combined Moduark architecture graph</title>
+                    <desc id="graph-description">Eight Modules connected by direct dependencies and five provided or required Capabilities.</desc>
+                    <defs>
+                        <marker id="arrow-depends" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+                            <path d="M 0 0 L 8 4 L 0 8 z" fill="context-stroke"></path>
+                        </marker>
+                        <marker id="arrow-requires" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+                            <path d="M 0 0 L 8 4 L 0 8 z" fill="context-stroke"></path>
+                        </marker>
+                        <marker id="arrow-provides" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+                            <path d="M 0 0 L 8 4 L 0 8 z" fill="context-stroke"></path>
+                        </marker>
+                    </defs>
+                    <g id="edge-layer" aria-hidden="true"></g>
+                    <g id="node-layer" aria-hidden="true"></g>
+                </svg>
+            </div>
+
+            <div class="legend" aria-label="Graph legend">
+                <span class="legend-item"><span class="legend-line depends" aria-hidden="true"></span>direct dependency</span>
+                <span class="legend-item"><span class="legend-line requires" aria-hidden="true"></span>requires Capability</span>
+                <span class="legend-item"><span class="legend-line provides" aria-hidden="true"></span>provides Capability</span>
+            </div>
+            <p class="graph-summary" id="graph-summary"></p>
+            <noscript><p class="graph-summary">JavaScript is required for the interactive view. Use the linked static documentation for the complete Mermaid diagrams.</p></noscript>
+        </section>
+
+        <section class="below-grid" aria-label="Graph source and text alternative">
+            <article class="panel">
+                <div class="panel-head">
+                    <h3>Generated Mermaid source</h3>
+                    <button class="copy-button" id="copy-source" type="button">Copy source</button>
+                </div>
+                <output class="copy-status" id="copy-status" aria-live="polite"></output>
+                <pre><code id="mermaid-source"></code></pre>
+                <p class="command" id="graph-command"></p>
+            </article>
+
+            <article class="panel">
+                <div class="panel-head">
+                    <h3>Visible relationships</h3>
+                </div>
+                <details class="relationships" open>
+                    <summary id="relationship-summary">29 relationships</summary>
+                    <ul id="relationship-list"></ul>
+                </details>
+            </article>
+        </section>
+
+        <section class="principles" aria-label="Graph interpretation">
+            <article class="principle">
+                <h3>Direct is not effective</h3>
+                <p>The Module view answers who references whom. It does not explain the consumer-owned Port or Capability intent.</p>
+            </article>
+            <article class="principle">
+                <h3>Requires is not provides</h3>
+                <p>The Capability view keeps consumer demand and provider supply as different edge kinds.</p>
+            </article>
+            <article class="principle">
+                <h3>Combined does not flatten</h3>
+                <p>The combined view overlays relationships while preserving their labels, colors, source, and textual alternative.</p>
+            </article>
+        </section>
+    </main>
+
+    <footer>
+        <div class="shell">Moduark · Module is a boundary, not a folder.</div>
+    </footer>
+
+    <script id="graph-data" type="application/json">
+{
+    "modules": [
+        {"id": "catalog", "name": "Catalog", "role": "provider"},
+        {"id": "checkout", "name": "Checkout", "role": "consumer"},
+        {"id": "customer", "name": "Customer", "role": "provider"},
+        {"id": "fulfillment", "name": "Fulfillment", "role": "consumer"},
+        {"id": "inventory", "name": "Inventory", "role": "provider"},
+        {"id": "notification", "name": "Notification", "role": "provider"},
+        {"id": "payment", "name": "Payment", "role": "provider"},
+        {"id": "returns", "name": "Returns", "role": "consumer"}
+    ],
+    "dependencies": [
+        {"source": "checkout", "target": "catalog"},
+        {"source": "checkout", "target": "customer"},
+        {"source": "checkout", "target": "inventory"},
+        {"source": "checkout", "target": "payment"},
+        {"source": "fulfillment", "target": "customer"},
+        {"source": "fulfillment", "target": "inventory"},
+        {"source": "fulfillment", "target": "notification"},
+        {"source": "returns", "target": "catalog"},
+        {"source": "returns", "target": "customer"},
+        {"source": "returns", "target": "inventory"},
+        {"source": "returns", "target": "notification"},
+        {"source": "returns", "target": "payment"}
+    ],
+    "capabilities": [
+        {"id": "customer-lookup", "name": "CustomerLookup", "provider": "customer", "consumers": ["checkout", "fulfillment", "returns"]},
+        {"id": "notification-delivery", "name": "NotificationDelivery", "provider": "notification", "consumers": ["fulfillment", "returns"]},
+        {"id": "payment-authorization", "name": "PaymentAuthorization", "provider": "payment", "consumers": ["checkout", "returns"]},
+        {"id": "product-catalog", "name": "ProductCatalog", "provider": "catalog", "consumers": ["checkout", "returns"]},
+        {"id": "stock-availability", "name": "StockAvailability", "provider": "inventory", "consumers": ["checkout", "fulfillment", "returns"]}
+    ]
+}
+    </script>
+    <script>
+        (() => {
+            'use strict';
+
+            const SVG_NS = 'http://www.w3.org/2000/svg';
+            const data = JSON.parse(document.getElementById('graph-data').textContent);
+            const moduleById = new Map(data.modules.map((module) => [module.id, module]));
+            const capabilityById = new Map(data.capabilities.map((capability) => [capability.id, capability]));
+            const moduleOrder = new Map(data.modules.map((module, index) => [module.id, index]));
+            const capabilityOrder = new Map(data.capabilities.map((capability, index) => [capability.id, index]));
+            const capabilityEdges = data.capabilities.flatMap((capability) => [
+                {type: 'provides', module: capability.provider, capability: capability.id},
+                ...capability.consumers.map((module) => ({type: 'requires', module, capability: capability.id})),
+            ]);
+
+            const positions = {
+                checkout: {x: 125, y: 145},
+                fulfillment: {x: 125, y: 305},
+                returns: {x: 125, y: 465},
+                catalog: {x: 915, y: 75},
+                customer: {x: 915, y: 185},
+                inventory: {x: 915, y: 295},
+                notification: {x: 915, y: 405},
+                payment: {x: 915, y: 515},
+                'product-catalog': {x: 520, y: 75},
+                'customer-lookup': {x: 520, y: 185},
+                'stock-availability': {x: 520, y: 295},
+                'notification-delivery': {x: 520, y: 405},
+                'payment-authorization': {x: 520, y: 515},
+            };
+
+            const state = {view: 'combined', module: 'all'};
+            const graph = document.getElementById('architecture-graph');
+            const edgeLayer = document.getElementById('edge-layer');
+            const nodeLayer = document.getElementById('node-layer');
+            const moduleFilter = document.getElementById('module-filter');
+            const moduleCount = document.getElementById('module-count');
+            const capabilityCount = document.getElementById('capability-count');
+            const relationshipCount = document.getElementById('relationship-count');
+            const graphSummary = document.getElementById('graph-summary');
+            const graphTitle = document.getElementById('graph-title');
+            const graphDescription = document.getElementById('graph-description');
+            const mermaidSource = document.getElementById('mermaid-source');
+            const graphCommand = document.getElementById('graph-command');
+            const relationshipSummary = document.getElementById('relationship-summary');
+            const relationshipList = document.getElementById('relationship-list');
+            const copyStatus = document.getElementById('copy-status');
+
+            for (const module of data.modules) {
+                const option = document.createElement('option');
+                option.value = module.id;
+                option.textContent = module.name;
+                moduleFilter.append(option);
+            }
+
+            function sortDependencies(edges) {
+                return [...edges].sort((left, right) => {
+                    const bySource = moduleOrder.get(left.source) - moduleOrder.get(right.source);
+                    return bySource !== 0 ? bySource : moduleOrder.get(left.target) - moduleOrder.get(right.target);
+                });
+            }
+
+            function sortCapabilityEdges(edges) {
+                const typeOrder = {provides: 0, requires: 1};
+                return [...edges].sort((left, right) => {
+                    const byCapability = capabilityOrder.get(left.capability) - capabilityOrder.get(right.capability);
+                    if (byCapability !== 0) return byCapability;
+                    const byType = typeOrder[left.type] - typeOrder[right.type];
+                    if (byType !== 0) return byType;
+                    return moduleOrder.get(left.module) - moduleOrder.get(right.module);
+                });
+            }
+
+            function visibleModel() {
+                if (state.module === 'all') {
+                    return {
+                        modules: [...data.modules],
+                        dependencies: state.view === 'capability' ? [] : sortDependencies(data.dependencies),
+                        capabilities: state.view === 'module' ? [] : [...data.capabilities],
+                        capabilityEdges: state.view === 'module' ? [] : sortCapabilityEdges(capabilityEdges),
+                    };
+                }
+
+                const includedModules = new Set([state.module]);
+                let dependencies = [];
+                let capabilities = [];
+                let visibleCapabilityEdges = [];
+
+                if (state.view === 'module' || state.view === 'combined') {
+                    const incident = data.dependencies.filter((edge) => edge.source === state.module || edge.target === state.module);
+                    for (const edge of incident) {
+                        includedModules.add(edge.source);
+                        includedModules.add(edge.target);
+                    }
+                    dependencies = incident;
+                }
+
+                if (state.view === 'capability' || state.view === 'combined') {
+                    const includedCapabilities = new Set(
+                        capabilityEdges
+                            .filter((edge) => edge.module === state.module)
+                            .map((edge) => edge.capability),
+                    );
+                    visibleCapabilityEdges = capabilityEdges.filter((edge) => includedCapabilities.has(edge.capability));
+                    capabilities = data.capabilities.filter((capability) => includedCapabilities.has(capability.id));
+
+                    for (const edge of visibleCapabilityEdges) includedModules.add(edge.module);
+
+                    if (state.view === 'combined') {
+                        dependencies = data.dependencies.filter((edge) => includedModules.has(edge.source) && includedModules.has(edge.target));
+                    }
+                }
+
+                return {
+                    modules: data.modules.filter((module) => includedModules.has(module.id)),
+                    dependencies: sortDependencies(dependencies),
+                    capabilities,
+                    capabilityEdges: sortCapabilityEdges(visibleCapabilityEdges),
+                };
+            }
+
+            function svgElement(name, attributes = {}) {
+                const element = document.createElementNS(SVG_NS, name);
+                for (const [attribute, value] of Object.entries(attributes)) element.setAttribute(attribute, value);
+                return element;
+            }
+
+            function edgePath(sourceId, targetId, sequence) {
+                const source = positions[sourceId];
+                const target = positions[targetId];
+                const direction = Math.sign(target.x - source.x) || 1;
+                const sourceHalf = capabilityById.has(sourceId) ? 106 : 84;
+                const targetHalf = capabilityById.has(targetId) ? 106 : 84;
+                const startX = source.x + direction * sourceHalf;
+                const endX = target.x - direction * targetHalf;
+                const span = Math.abs(endX - startX);
+                const bend = state.view === 'combined' ? ((sequence % 5) - 2) * 9 : 0;
+                const firstControl = startX + direction * span * 0.43;
+                const secondControl = endX - direction * span * 0.43;
+                return `M ${startX} ${source.y} C ${firstControl} ${source.y + bend}, ${secondControl} ${target.y - bend}, ${endX} ${target.y}`;
+            }
+
+            function drawEdge(source, target, type, index, showLabel) {
+                const path = svgElement('path', {
+                    d: edgePath(source, target, index),
+                    class: `edge ${type}`,
+                    'marker-end': `url(#arrow-${type})`,
+                });
+                const title = svgElement('title');
+                title.textContent = `${moduleById.get(source)?.name ?? capabilityById.get(source)?.name} ${type} ${moduleById.get(target)?.name ?? capabilityById.get(target)?.name}`;
+                path.append(title);
+                edgeLayer.append(path);
+
+                if (!showLabel) return;
+                const sourcePosition = positions[source];
+                const targetPosition = positions[target];
+                const label = svgElement('text', {
+                    x: (sourcePosition.x + targetPosition.x) / 2,
+                    y: (sourcePosition.y + targetPosition.y) / 2 - 7,
+                    class: 'edge-label',
+                });
+                label.textContent = type;
+                edgeLayer.append(label);
+            }
+
+            function drawModule(module) {
+                const position = positions[module.id];
+                const selected = state.module === module.id ? ' selected' : '';
+                const group = svgElement('g', {
+                    class: `node module${selected}`,
+                    transform: `translate(${position.x} ${position.y})`,
+                });
+                const card = svgElement('rect', {
+                    class: 'node-card',
+                    x: -84,
+                    y: -31,
+                    width: 168,
+                    height: 62,
+                    rx: 14,
+                });
+                const name = svgElement('text', {class: 'node-title', x: 0, y: -2});
+                name.textContent = module.name;
+                const role = svgElement('text', {class: 'node-role', x: 0, y: 17});
+                role.textContent = module.role;
+                const title = svgElement('title');
+                title.textContent = `${module.name} Module (${module.role})`;
+                group.append(title, card, name, role);
+                nodeLayer.append(group);
+            }
+
+            function drawCapability(capability) {
+                const position = positions[capability.id];
+                const group = svgElement('g', {
+                    class: 'node capability',
+                    transform: `translate(${position.x} ${position.y})`,
+                });
+                const card = svgElement('rect', {
+                    class: 'node-card',
+                    x: -106,
+                    y: -27,
+                    width: 212,
+                    height: 54,
+                    rx: 27,
+                });
+                const name = svgElement('text', {class: 'node-title', x: 0, y: 5});
+                name.textContent = capability.name;
+                const title = svgElement('title');
+                title.textContent = `${capability.name} Capability`;
+                group.append(title, card, name);
+                nodeLayer.append(group);
+            }
+
+            function generateMermaid(model) {
+                const lines = ['flowchart LR'];
+                const moduleIds = new Map(model.modules.map((module, index) => [module.id, `M${index}`]));
+                const capabilityIds = new Map(model.capabilities.map((capability, index) => [capability.id, `C${index}`]));
+
+                for (const module of model.modules) lines.push(`    ${moduleIds.get(module.id)}["${module.name}"]`);
+                for (const capability of model.capabilities) lines.push(`    ${capabilityIds.get(capability.id)}(["${capability.name}"])`);
+                for (const edge of model.dependencies) {
+                    const label = state.view === 'combined' ? ' -->|"depends"| ' : ' --> ';
+                    lines.push(`    ${moduleIds.get(edge.source)}${label}${moduleIds.get(edge.target)}`);
+                }
+                for (const edge of model.capabilityEdges) {
+                    lines.push(`    ${moduleIds.get(edge.module)} -->|"${edge.type}"| ${capabilityIds.get(edge.capability)}`);
+                }
+
+                return lines.join('\n');
+            }
+
+            function relationshipText(model) {
+                return [
+                    ...model.dependencies.map((edge) => `${moduleById.get(edge.source).name} depends on ${moduleById.get(edge.target).name}`),
+                    ...model.capabilityEdges.map((edge) => `${moduleById.get(edge.module).name} ${edge.type} ${capabilityById.get(edge.capability).name}`),
+                ];
+            }
+
+            function render() {
+                const model = visibleModel();
+                edgeLayer.replaceChildren();
+                nodeLayer.replaceChildren();
+                graph.className.baseVal = state.view;
+
+                model.dependencies.forEach((edge, index) => {
+                    drawEdge(edge.source, edge.target, 'depends', index, state.view === 'module' && model.dependencies.length <= 7);
+                });
+                model.capabilityEdges.forEach((edge, index) => {
+                    drawEdge(edge.module, edge.capability, edge.type, index, state.view === 'capability' && model.capabilityEdges.length <= 10);
+                });
+                model.modules.forEach(drawModule);
+                model.capabilities.forEach(drawCapability);
+
+                const relationships = relationshipText(model);
+                const selectedName = state.module === 'all' ? 'all Modules' : `${moduleById.get(state.module).name}'s neighborhood`;
+                const viewName = state.view[0].toUpperCase() + state.view.slice(1);
+                const summary = `${viewName} view for ${selectedName}: ${model.modules.length} Modules, ${model.capabilities.length} Capabilities, and ${relationships.length} relationships.`;
+
+                moduleCount.textContent = String(model.modules.length);
+                capabilityCount.textContent = String(model.capabilities.length);
+                relationshipCount.textContent = String(relationships.length);
+                graphSummary.textContent = summary;
+                graphTitle.textContent = `${viewName} Moduark architecture graph`;
+                graphDescription.textContent = summary;
+                mermaidSource.textContent = generateMermaid(model);
+                relationshipSummary.textContent = `${relationships.length} relationships`;
+                relationshipList.replaceChildren(...relationships.map((relationship) => {
+                    const item = document.createElement('li');
+                    item.textContent = relationship;
+                    return item;
+                }));
+
+                const moduleArgument = state.module === 'all' ? '' : ` ${moduleById.get(state.module).name}`;
+                graphCommand.textContent = `php artisan module:graph${moduleArgument} --view=${state.view} --format=mermaid`;
+
+                document.querySelectorAll('[data-view]').forEach((button) => {
+                    button.setAttribute('aria-pressed', String(button.dataset.view === state.view));
+                });
+                copyStatus.textContent = '';
+            }
+
+            document.querySelectorAll('[data-view]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    state.view = button.dataset.view;
+                    render();
+                });
+            });
+
+            moduleFilter.addEventListener('change', () => {
+                state.module = moduleFilter.value;
+                render();
+            });
+
+            document.getElementById('copy-source').addEventListener('click', async () => {
+                const source = mermaidSource.textContent;
+                try {
+                    await navigator.clipboard.writeText(source);
+                    copyStatus.textContent = 'Mermaid source copied.';
+                } catch {
+                    const selection = window.getSelection();
+                    const range = document.createRange();
+                    range.selectNodeContents(mermaidSource);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    copyStatus.textContent = 'Source selected. Copy it with your keyboard.';
+                }
+            });
+
+            document.getElementById('theme-toggle').addEventListener('click', (event) => {
+                const root = document.documentElement;
+                const currentlyDark = root.dataset.theme === 'dark'
+                    || (!root.dataset.theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                root.dataset.theme = currentlyDark ? 'light' : 'dark';
+                event.currentTarget.setAttribute('aria-pressed', String(!currentlyDark));
+            });
+
+            render();
+        })();
+    </script>
+</body>
+</html>
