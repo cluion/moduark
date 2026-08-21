@@ -64,7 +64,10 @@ final class ModuleResourceDiscoverer
             $className = pathinfo($file, PATHINFO_FILENAME);
             $commandClass = $module->namespace().'\\Console\\Commands\\'.$className;
 
-            if (! class_exists($commandClass) || ! is_a($commandClass, Command::class, true)) {
+            if (! class_exists($commandClass)
+                && ! interface_exists($commandClass)
+                && ! trait_exists($commandClass)
+                && ! enum_exists($commandClass)) {
                 throw ModuleResourceDiscoveryFailed::invalidCommand(
                     $module->moduleClass(),
                     $commandClass,
@@ -73,15 +76,6 @@ final class ModuleResourceDiscoverer
             }
 
             $reflection = new ReflectionClass($commandClass);
-
-            if (! $reflection->isInstantiable()) {
-                throw ModuleResourceDiscoveryFailed::invalidCommand(
-                    $module->moduleClass(),
-                    $commandClass,
-                    $file,
-                );
-            }
-
             $autoloadedPath = $reflection->getFileName();
             $expectedRealPath = realpath($file);
             $autoloadedRealPath = is_string($autoloadedPath) ? realpath($autoloadedPath) : false;
@@ -92,6 +86,21 @@ final class ModuleResourceDiscoverer
                     $commandClass,
                     $file,
                     is_string($autoloadedPath) ? $autoloadedPath : '[internal]',
+                );
+            }
+
+            if ($reflection->isInterface()
+                || $reflection->isTrait()
+                || $reflection->isEnum()
+                || $reflection->isAbstract()) {
+                continue;
+            }
+
+            if (! is_a($commandClass, Command::class, true) || ! $reflection->isInstantiable()) {
+                throw ModuleResourceDiscoveryFailed::invalidCommand(
+                    $module->moduleClass(),
+                    $commandClass,
+                    $file,
                 );
             }
 

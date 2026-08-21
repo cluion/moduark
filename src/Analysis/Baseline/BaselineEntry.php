@@ -39,14 +39,19 @@ final readonly class BaselineEntry
 
     public static function fromViolation(Violation $violation, string $basePath): self
     {
+        $pairScoped = $violation->rule() === RuleId::UndeclaredDependencies
+            && $violation->code() === 'MOD-DEPENDENCY-002';
+
         return new self(
             $violation->rule(),
             $violation->code(),
             $violation->severity(),
-            $violation->file() === null ? null : PortablePath::relative($violation->file(), $basePath),
+            $pairScoped || $violation->file() === null
+                ? null
+                : PortablePath::relative($violation->file(), $basePath),
             $violation->consumer(),
             $violation->target(),
-            $violation->symbol(),
+            $pairScoped ? null : $violation->symbol(),
             1,
         );
     }

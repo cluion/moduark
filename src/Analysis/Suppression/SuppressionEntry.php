@@ -53,6 +53,14 @@ final readonly class SuppressionEntry
                 'A suppression must select a file, symbol, or consumer and target pair; global ignores are not allowed.',
             );
         }
+
+        if ($rule === RuleId::UndeclaredDependencies
+            && $code === 'MOD-DEPENDENCY-002'
+            && ($consumer === null || $target === null)) {
+            throw new InvalidArgumentException(
+                'An undeclared dependency suppression must select both consumer and target Modules.',
+            );
+        }
     }
 
     /**

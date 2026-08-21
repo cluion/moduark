@@ -9,7 +9,7 @@ use InvalidArgumentException;
 
 final readonly class SourceAnalysisCache
 {
-    public const SCHEMA_VERSION = 6;
+    public const SCHEMA_VERSION = 7;
 
     /** @var array<string, SourceFileAnalysis> */
     private array $files;

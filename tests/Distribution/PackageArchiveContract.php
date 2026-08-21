@@ -23,6 +23,7 @@ final class PackageArchiveContract
         '.github/',
         'benchmarks/',
         'tests/',
+        'tools/',
         'workbench/',
     ];
 

@@ -182,6 +182,14 @@ final class ArchitectureSuppressionTest extends TestCase
             'reson' => 'Misspelled.',
             'reason' => 'Known field still present.',
         ], 'unknown field: reson'];
+
+        yield 'undeclared dependency without pair' => [[
+            'rule' => 'undeclared_dependencies',
+            'code' => 'MOD-DEPENDENCY-002',
+            'file' => 'app/Modules/Order/Actions/PlaceOrder.php',
+            'symbol' => 'App\\Modules\\User\\Internal\\UserRepository',
+            'reason' => 'Pair-scoped diagnostics require a pair-scoped exception.',
+        ], 'must select both consumer and target Modules'];
     }
 
     private function violation(int $line): Violation

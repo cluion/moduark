@@ -26,7 +26,7 @@ final class UndeclaredDependenciesRuleTest extends TestCase
         );
 
         self::assertFalse($result->passed());
-        self::assertGreaterThan(8, count($result->violations()));
+        self::assertCount(1, $result->violations());
         self::assertSame([
             'rule' => 'undeclared_dependencies',
             'code' => 'MOD-DEPENDENCY-002',

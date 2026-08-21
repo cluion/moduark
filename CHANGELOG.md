@@ -25,6 +25,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a dependency-free interactive graph explorer and static Mermaid examples
   for Module, Capability, and Combined views, backed by the executable Large
   Level 2 fixture and a drift-prevention test.
+- Added a repository-only real-project corpus harness with pinned public and
+  privacy-safe local manifests, independent token-based precision, anchoring,
+  and recall oracles, cold/warm source-cache measurements, and an ADR recording
+  beta adoption across 1,511 PHP files.
+
+### Changed
+
+- Changed `MOD-DEPENDENCY-002` to report one deterministic representative per
+  ordered consumer / provider Module pair instead of repeating the same missing
+  dependency for every class reference. New baselines use stable pair identity,
+  and suppressions must select both Modules. Existing per-symbol beta baselines
+  and suppressions must be reviewed and migrated after upgrading.
+
+### Fixed
+
+- Fixed console Module discovery rejecting co-located interfaces, traits,
+  enums, and abstract classes as invalid commands while preserving autoloaded
+  source verification and concrete non-command rejection.
+- Fixed fluent Query Builder table evidence pointing to the first line of the
+  whole chain instead of the line containing the table argument, with source
+  analysis cache schema `7` invalidating older line evidence safely.
 
 ## [0.4.0-beta.1] - 2026-08-16
 

@@ -1,0 +1,21 @@
+{
+    "schema": 1,
+    "name": "Local Laravel application",
+    "source_roots": [
+        {
+            "path": "app",
+            "namespace": "App",
+            "group_by": "first-directory"
+        },
+        {
+            "path": "database/migrations",
+            "namespace": "Database\\Migrations",
+            "group_by": "single",
+            "group": "Migrations"
+        }
+    ],
+    "command_root": {
+        "path": "app",
+        "namespace": "App"
+    }
+}

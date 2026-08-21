@@ -9,6 +9,7 @@ use Cluion\Moduark\Exceptions\ModuleResourceDiscoveryFailed;
 use Cluion\Moduark\Resources\ModuleResourceDiscoverer;
 use PHPUnit\Framework\TestCase;
 use Tests\Fixtures\Resources\Invalid\InvalidModule;
+use Tests\Fixtures\Resources\Shared\SharedModule;
 use Workbench\App\Modules\Order\Console\Commands\OrderProbeCommand;
 use Workbench\App\Modules\Order\OrderModule;
 use Workbench\App\Modules\User\UserModule;
@@ -75,6 +76,22 @@ final class ModuleResourceDiscovererTest extends TestCase
         $this->expectExceptionMessage('must be an autoloadable, instantiable Laravel command');
 
         (new ModuleResourceDiscoverer)->discover($this->invalidModule(), true);
+    }
+
+    public function test_it_ignores_co_located_command_support_types(): void
+    {
+        $path = dirname(__DIR__).'/Fixtures/Resources/Shared/SharedModule.php';
+        $resources = (new ModuleResourceDiscoverer)->discover(
+            new DiscoveredModule(
+                'Shared',
+                SharedModule::class,
+                $path,
+                'Tests\\Fixtures\\Resources\\Shared',
+            ),
+            true,
+        );
+
+        self::assertSame([], $resources->commands());
     }
 
     private function invalidModule(): DiscoveredModule

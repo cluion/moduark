@@ -158,7 +158,7 @@ PHP);
 
         self::assertTrue($cold->isEloquentModel('Incremental\Internal\Tracked'));
         self::assertTrue($warm->isEloquentModel('Incremental\Internal\Tracked'));
-        self::assertSame(6, $this->cachePayload()['schema_version']);
+        self::assertSame(7, $this->cachePayload()['schema_version']);
     }
 
     public function test_table_access_evidence_survives_a_warm_source_analysis_cache(): void
@@ -174,7 +174,14 @@ final class Tracked
 {
     public function query(): mixed
     {
-        return DB::table('orders as o')->leftJoin('users', 'users.id', '=', 'o.user_id');
+        return DB::table(
+            'orders as o',
+        )->leftJoin(
+            'users',
+            'users.id',
+            '=',
+            'o.user_id',
+        );
     }
 }
 PHP);
@@ -191,7 +198,11 @@ PHP);
             $cold->tableAccesses(),
         ));
         self::assertSame($this->indexPayload($cold), $this->indexPayload($warm));
-        self::assertSame(6, $this->cachePayload()['schema_version']);
+        self::assertSame(7, $this->cachePayload()['schema_version']);
+        self::assertSame([12, 14], array_map(
+            static fn ($access): int => $access->line(),
+            $warm->tableAccesses(),
+        ));
     }
 
     public function test_schema_mutation_evidence_survives_a_warm_source_analysis_cache(): void
@@ -230,7 +241,7 @@ PHP);
             $cold->schemaMutations(),
         ));
         self::assertSame($this->indexPayload($cold), $this->indexPayload($warm));
-        self::assertSame(6, $this->cachePayload()['schema_version']);
+        self::assertSame(7, $this->cachePayload()['schema_version']);
     }
 
     public function test_foreign_key_evidence_survives_a_warm_source_analysis_cache(): void
@@ -262,7 +273,7 @@ PHP);
             $cold->foreignKeyReferences(),
         ));
         self::assertSame($this->indexPayload($cold), $this->indexPayload($warm));
-        self::assertSame(6, $this->cachePayload()['schema_version']);
+        self::assertSame(7, $this->cachePayload()['schema_version']);
     }
 
     public function test_transaction_scope_evidence_survives_a_warm_source_analysis_cache(): void
@@ -303,7 +314,7 @@ PHP);
             $cold->transactionScopes(),
         ));
         self::assertSame($this->indexPayload($cold), $this->indexPayload($warm));
-        self::assertSame(6, $this->cachePayload()['schema_version']);
+        self::assertSame(7, $this->cachePayload()['schema_version']);
     }
 
     public function test_an_invalid_cache_falls_back_to_a_complete_cold_analysis(): void

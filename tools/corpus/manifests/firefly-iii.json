@@ -1,0 +1,25 @@
+{
+    "schema": 1,
+    "name": "Firefly III",
+    "provenance": {
+        "repository": "https://github.com/firefly-iii/firefly-iii",
+        "revision": "46728cb71e55fbd137ee7edfdee2c217dfadcc34"
+    },
+    "source_roots": [
+        {
+            "path": "app",
+            "namespace": "FireflyIII",
+            "group_by": "first-directory"
+        },
+        {
+            "path": "database/migrations",
+            "namespace": "Database\\Migrations",
+            "group_by": "single",
+            "group": "Migrations"
+        }
+    ],
+    "command_root": {
+        "path": "app",
+        "namespace": "FireflyIII"
+    }
+}

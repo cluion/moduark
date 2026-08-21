@@ -22,6 +22,7 @@ final class UndeclaredDependenciesRule implements ArchitectureRule
     public function inspect(AnalysisContext $context, Severity $severity): RuleResult
     {
         $violations = [];
+        $reportedPairs = [];
 
         foreach ($context->sourceIndex()->references() as $reference) {
             if ($reference->source() === $reference->target()) {
@@ -39,6 +40,14 @@ final class UndeclaredDependenciesRule implements ArchitectureRule
             if (in_array($reference->target(), $descriptor->dependencies(), true)) {
                 continue;
             }
+
+            $pair = $reference->source()."\0".$reference->target();
+
+            if (isset($reportedPairs[$pair])) {
+                continue;
+            }
+
+            $reportedPairs[$pair] = true;
 
             $consumer = $context->module($reference->source());
             $target = $context->module($reference->target());

@@ -6,6 +6,7 @@ namespace Tests\Unit;
 
 use Cluion\Moduark\Analysis\Baseline\ArchitectureBaseline;
 use Cluion\Moduark\Analysis\Baseline\ArchitectureBaselineStore;
+use Cluion\Moduark\Analysis\Baseline\BaselineEntry;
 use Cluion\Moduark\Analysis\CheckReport;
 use Cluion\Moduark\Architecture\EffectiveArchitecture;
 use Cluion\Moduark\Architecture\EffectiveRule;
@@ -74,6 +75,32 @@ final class ArchitectureBaselineTest extends TestCase
         self::assertNotNull($status);
         self::assertSame(0, $status->matched());
         self::assertSame(2, $status->exceeded());
+    }
+
+    public function test_undeclared_dependency_baselines_use_stable_module_pair_identity(): void
+    {
+        $entry = BaselineEntry::fromViolation(new Violation(
+            RuleId::UndeclaredDependencies,
+            'MOD-DEPENDENCY-002',
+            Severity::Error,
+            'Module [Order] uses [User] without declaring the dependency.',
+            '/workspace/app/Modules/Order/Actions/PlaceOrder.php',
+            24,
+            'Order',
+            'User',
+            'App\\Modules\\User\\Internal\\UserRepository',
+        ), '/workspace');
+
+        self::assertSame([
+            'rule' => 'undeclared_dependencies',
+            'code' => 'MOD-DEPENDENCY-002',
+            'severity' => 'error',
+            'file' => null,
+            'consumer' => 'Order',
+            'target' => 'User',
+            'symbol' => null,
+            'count' => 1,
+        ], $entry->toArray());
     }
 
     public function test_prune_only_removes_stale_debt_and_never_adds_new_violations(): void

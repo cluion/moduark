@@ -475,6 +475,13 @@ The command refuses to overwrite an existing baseline by default. Use
 adopt regressions. Text, JSON, and GitHub output report matched, stale, and
 exceeded counts. See [ADR-0031](docs/adr/0031-architecture-baseline-adoption.md).
 
+Starting with the `0.5.x` hardening, undeclared dependencies are reported once
+per ordered consumer / provider Module pair. Review and prune stale per-symbol
+`MOD-DEPENDENCY-002` baseline entries after upgrading; new entries use stable
+pair identity. Migrate file- or symbol-only suppressions to explicit `consumer`
+and `target` selectors, and do not carry old amplified counts forward. See
+[ADR-0043](docs/adr/0043-real-project-beta-adoption.md).
+
 The graph command defaults to direct Module dependencies. The Capability view
 renders typed `requires` and `provides` edges:
 
@@ -667,6 +674,15 @@ and extension coverage for the remaining rules remain later work. See
 [ADR-0040](docs/adr/0040-cross-module-transactions-rule.md), and
 [ADR-0041](docs/adr/0041-explicit-public-exports-rule.md). The optional
 integration boundary is defined by
-[ADR-0042](docs/adr/0042-phpstan-extension-integration-boundary.md).
+[ADR-0042](docs/adr/0042-phpstan-extension-integration-boundary.md). The final
+`0.5.x` slice adopts two complete existing Laravel applications as static
+corpora: 1,511 PHP files produced 807 table accesses, 413 Schema mutations, and
+156 foreign-key references. Independent token-based oracles reached zero
+resolved-line misses, zero table-evidence anchoring collisions, and complete
+recall across 1,077 literal Facade and fluent table operations after hardening.
+Command discovery now permits co-located interfaces, traits, enums, and abstract
+classes, query evidence points at the literal table argument, and undeclared
+dependencies report once per ordered Module pair. See
+[ADR-0043](docs/adr/0043-real-project-beta-adoption.md).
 
 Moduark is open-source software licensed under the [MIT License](LICENSE).

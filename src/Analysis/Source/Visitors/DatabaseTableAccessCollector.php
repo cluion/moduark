@@ -125,6 +125,7 @@ final class DatabaseTableAccessCollector extends NodeVisitorAbstract
             ? $argument->value->value
             : null;
         $table = $literal === null ? null : $this->tableFromLiteral($literal);
+        $line = $argument instanceof Arg ? $argument->value->getStartLine() : $line;
 
         $this->accesses[] = [
             'table' => $table,

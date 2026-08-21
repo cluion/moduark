@@ -268,6 +268,15 @@ Suppressions run before the baseline. Consequently `module:baseline` never
 captures a violation already covered by an explicit suppression, and prune sees
 the same suppression-aware, unbaselined report as normal baseline creation.
 
+The `0.5.x` hardening reports `MOD-DEPENDENCY-002` once per ordered consumer /
+provider Module pair, using the first deterministic source reference as
+evidence. After upgrading a baseline created by an earlier beta, review stale
+per-symbol entries and regenerate or prune them; new entries use stable Module
+pair identity. Migrate file- or symbol-only suppressions to explicit `consumer`
+and `target` selectors. Do not preserve inflated counts only to keep the old
+files unchanged. See
+[ADR-0043](adr/0043-real-project-beta-adoption.md).
+
 ## Adopt Level 2
 
 Level 2 became complete in `v0.2.0-beta.2`, and the current `0.4` beta retains

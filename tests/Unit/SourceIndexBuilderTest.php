@@ -144,7 +144,7 @@ final class SourceIndexBuilderTest extends TestCase
         $this->temporaryPath = sys_get_temp_dir().'/moduark-query-'.bin2hex(random_bytes(6));
         $modulePath = $this->temporaryPath.'/Query/QueryModule.php';
         self::assertTrue(mkdir(dirname($modulePath), 0755, true));
-        self::assertNotFalse(file_put_contents($modulePath, <<<'PHP'
+        $source = <<<'PHP'
 <?php
 
 namespace QueryFixture;
@@ -156,7 +156,14 @@ final class QueryModuleEntry
 {
     public function run(string $table, object $custom): void
     {
-        Database::table('orders as o')->leftJoin('users AS u', 'u.id', '=', 'o.user_id');
+        Database::table(
+            'orders as o',
+        )->leftJoin(
+            'users AS u',
+            'u.id',
+            '=',
+            'o.user_id',
+        );
         Database::query()->from('audit.events', 'events');
         Schema::table('profiles', static function (): void {});
         Database::table($table);
@@ -167,7 +174,8 @@ final class QueryModuleEntry
         Database::table('orders')->joinSub(Database::table('users'), 'users', 'users.id', '=', 'orders.user_id');
     }
 }
-PHP));
+PHP;
+        self::assertNotFalse(file_put_contents($modulePath, $source));
         $registry = new ModuleRegistry([
             new DiscoveredModule(
                 'Query',
@@ -205,6 +213,22 @@ PHP));
             'ignored',
             array_map(static fn ($access): string => $access->evidence(), $first->tableAccesses()),
         );
+
+        $lines = explode("\n", $source);
+
+        foreach ($first->tableAccesses() as $access) {
+            $table = $access->table();
+
+            if ($table === null) {
+                continue;
+            }
+
+            self::assertStringContainsString(
+                $table,
+                $lines[$access->line() - 1],
+                "Resolved table evidence must be anchored to its literal argument line for [{$access->operation()}].",
+            );
+        }
     }
 
     public function test_it_collects_laravel_schema_mutations_without_guessing_dynamic_tables(): void
