@@ -66,7 +66,7 @@ final class BoostSkillContractTest extends TestCase
         foreach ([
             'git status --short',
             'composer show cluion/moduark --path',
-            'module:check --format=json',
+            'moduark:check --format=json',
             'Exit `0`',
             'Exit `1`',
             'Exit `2`',

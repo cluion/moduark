@@ -105,7 +105,7 @@ final class SourceIndexBuilderTest extends TestCase
             self::assertSame('MOD-ANALYSIS-001', $exception->diagnosticCode());
             self::assertSame("{$modulePath}/BrokenModule.php:3", $exception->location());
             self::assertSame(
-                'Fix the PHP syntax at the reported location, then rerun module:check.',
+                'Fix the PHP syntax at the reported location, then rerun moduark:check.',
                 $exception->suggestion(),
             );
         }

@@ -20,21 +20,29 @@ final class ModuleDiscoverer
 
         $rootPath = rtrim($rootPath, DIRECTORY_SEPARATOR);
         $rootPath = $rootPath === '' ? DIRECTORY_SEPARATOR : $rootPath;
-        $pattern = $rootPath.DIRECTORY_SEPARATOR.'*'.DIRECTORY_SEPARATOR.'*Module.php';
-        $matches = glob($pattern);
-
-        if ($matches === false) {
-            throw ModuleDiscoveryFailed::scanFailed($rootPath);
-        }
-
         $files = [];
 
-        foreach ($matches as $match) {
-            if (is_file($match)) {
-                $files[] = $match;
+        foreach (['', 'app'] as $entryDirectory) {
+            $pattern = $rootPath.DIRECTORY_SEPARATOR.'*'.DIRECTORY_SEPARATOR;
+
+            if ($entryDirectory !== '') {
+                $pattern .= $entryDirectory.DIRECTORY_SEPARATOR;
+            }
+
+            $matches = glob($pattern.'*Module.php');
+
+            if ($matches === false) {
+                throw ModuleDiscoveryFailed::scanFailed($rootPath);
+            }
+
+            foreach ($matches as $match) {
+                if (is_file($match)) {
+                    $files[$match] = $match;
+                }
             }
         }
 
+        $files = array_values($files);
         sort($files, SORT_STRING);
 
         return new ModuleRegistry(array_map(
@@ -45,7 +53,11 @@ final class ModuleDiscoverer
 
     private function inspect(string $path): DiscoveredModule
     {
-        $moduleName = basename(dirname($path));
+        $entryDirectory = dirname($path);
+        $moduleDirectory = basename($entryDirectory) === 'app'
+            ? dirname($entryDirectory)
+            : $entryDirectory;
+        $moduleName = basename($moduleDirectory);
         $expectedClassName = $moduleName.'Module';
         $expectedFileName = $expectedClassName.'.php';
 

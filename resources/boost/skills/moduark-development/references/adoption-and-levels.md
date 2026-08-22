@@ -27,11 +27,11 @@ and version confirm it.
    providers, known dependencies, and existing Module entry classes.
 2. Use Level 0 to establish valid Module structure and identity. A Level 0 pass
    says nothing about cross-Module dependencies or visibility.
-3. Probe the next Level with `module:check --level=N --format=json` before
+3. Probe the next Level with `moduark:check --level=N --format=json` before
    changing the shared default.
 4. Repair one diagnostic class at a time and rerun the relevant application
    tests.
-5. Change `modules.architecture.level` only after the temporary check is
+5. Change `moduark.architecture.level` only after the temporary check is
    complete and accepted.
 6. Put the same effective check in CI.
 
@@ -51,7 +51,7 @@ and export policy, not a universal Laravel requirement.
   Level 2 to 3 recipe before moving migrations or adding `tables()` and
   `exports()` metadata.
 
-Run `module:inspect {module}` and the relevant module, capability, or combined
+Run `moduark:inspect {module}` and the relevant module, capability, or combined
 graph after metadata changes. Keep runtime application tests authoritative for
 behavior that static architecture checks do not execute.
 

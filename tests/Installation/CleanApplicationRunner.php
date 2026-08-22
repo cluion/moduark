@@ -148,8 +148,8 @@ final class CleanApplicationRunner
             '--prefer-dist',
         ], $root, $environment);
         $this->assertFileMissing(
-            $application.'/config/modules.php',
-            'The clean Laravel application unexpectedly contains config/modules.php.',
+            $application.'/config/moduark.php',
+            'The clean Laravel application unexpectedly contains config/moduark.php.',
         );
 
         $packageConstraint = $this->packageVersion ?? 'dev-main';
@@ -183,8 +183,8 @@ final class CleanApplicationRunner
             '--prefer-dist',
         ], $application, $environment);
         $this->assertFileMissing(
-            $application.'/config/modules.php',
-            'Installing Moduark must not publish config/modules.php.',
+            $application.'/config/moduark.php',
+            'Installing Moduark must not publish config/moduark.php.',
         );
 
         if ($this->packageVersion !== null) {
@@ -195,15 +195,15 @@ final class CleanApplicationRunner
 
         foreach (
             [
-                'make:module',
-                'module:baseline',
-                'module:cache',
-                'module:check',
-                'module:clear',
-                'module:graph',
-                'module:inspect',
-                'module:list',
-                'module:make',
+                'moduark:make-module',
+                'moduark:baseline',
+                'moduark:cache',
+                'moduark:check',
+                'moduark:clear',
+                'moduark:graph',
+                'moduark:inspect',
+                'moduark:list',
+                'moduark:make',
             ] as $command
         ) {
             $this->assertMatches(
@@ -224,50 +224,50 @@ final class CleanApplicationRunner
 
         $version = $versionMatch[1];
 
-        $this->artisan($application, ['make:module', 'User'], $environment);
+        $this->artisan($application, ['moduark:make-module', 'User'], $environment);
         $modulePath = $application.'/app/Modules/User/UserModule.php';
-        $this->assertFileExists($modulePath, 'make:module did not create UserModule.php.');
+        $this->assertFileExists($modulePath, 'moduark:make-module did not create UserModule.php.');
         $this->assertOnlyGeneratedModuleFile($application.'/app/Modules/User', $modulePath);
 
-        $this->artisan($application, ['module:make', 'User', 'model', 'Profile'], $environment);
+        $this->artisan($application, ['moduark:make', 'User', 'model', 'Profile'], $environment);
         $this->assertFileExists(
             $application.'/app/Modules/User/Models/Profile.php',
-            'module:make did not create the User Profile model.',
+            'moduark:make did not create the User Profile model.',
         );
         $this->artisan(
             $application,
-            ['module:make', 'User', 'controller', 'ProfileController', '--invokable'],
+            ['moduark:make', 'User', 'controller', 'ProfileController', '--invokable'],
             $environment,
         );
         $this->assertFileExists(
             $application.'/app/Modules/User/Http/Controllers/ProfileController.php',
-            'module:make did not create the User ProfileController.',
+            'moduark:make did not create the User ProfileController.',
         );
 
-        $list = $this->artisan($application, ['module:list'], $environment);
-        $this->assertContains('User', $list, 'module:list did not report the generated User Module.');
-        $this->assertContains('| 1', $list, 'module:list did not use the default Level 1 configuration.');
+        $list = $this->artisan($application, ['moduark:list'], $environment);
+        $this->assertContains('User', $list, 'moduark:list did not report the generated User Module.');
+        $this->assertContains('| 1', $list, 'moduark:list did not use the default Level 1 configuration.');
 
-        $inspection = $this->artisan($application, ['module:inspect', 'User'], $environment);
-        $this->assertContains('Public API (convention)', $inspection, 'module:inspect omitted the Public API.');
-        $this->assertContains('UserModule', $inspection, 'module:inspect omitted the generated Module.');
+        $inspection = $this->artisan($application, ['moduark:inspect', 'User'], $environment);
+        $this->assertContains('Public API (convention)', $inspection, 'moduark:inspect omitted the Public API.');
+        $this->assertContains('UserModule', $inspection, 'moduark:inspect omitted the generated Module.');
 
-        $check = $this->artisan($application, ['module:check'], $environment);
+        $check = $this->artisan($application, ['moduark:check'], $environment);
         $this->assertContains(
             'Architecture check passed: 6 rules evaluated at Level 1 (Modular).',
             $check,
-            'module:check did not complete the default Level 1 rule set.',
+            'moduark:check did not complete the default Level 1 rule set.',
         );
 
-        $baseline = $this->artisan($application, ['module:baseline'], $environment);
+        $baseline = $this->artisan($application, ['moduark:baseline'], $environment);
         $this->assertContains(
             'Created architecture baseline with 0 violations',
             $baseline,
-            'module:baseline did not create the initial architecture baseline.',
+            'moduark:baseline did not create the initial architecture baseline.',
         );
         $this->assertFileExists(
             $application.'/moduark-baseline.json',
-            'module:baseline did not write moduark-baseline.json.',
+            'moduark:baseline did not write moduark-baseline.json.',
         );
 
         $suppressionManifest = json_encode([
@@ -286,23 +286,23 @@ final class CleanApplicationRunner
 
         $suppressionCheck = $this->artisan(
             $application,
-            ['module:check', '--show-suppressions'],
+            ['moduark:check', '--show-suppressions'],
             $environment,
         );
         $this->assertContains(
             '1 stale suppression entry no longer matches an evaluated violation.',
             $suppressionCheck,
-            'module:check did not audit a stale architecture suppression.',
+            'moduark:check did not audit a stale architecture suppression.',
         );
         $this->assertContains(
             'Reason: Clean-install audit fixture.',
             $suppressionCheck,
-            'module:check did not render a suppression reason.',
+            'moduark:check did not render a suppression reason.',
         );
 
         $jsonCheck = $this->artisan(
             $application,
-            ['module:check', '--format=json'],
+            ['moduark:check', '--format=json'],
             $environment,
         );
         $jsonPayload = json_decode($jsonCheck, true, 512, JSON_THROW_ON_ERROR);
@@ -315,64 +315,64 @@ final class CleanApplicationRunner
             || ! is_array($jsonPayload['suppressions'] ?? null)
             || ($jsonPayload['suppressions']['stale'] ?? null) !== 1
         ) {
-            throw new RuntimeException('module:check JSON output did not report a passing result.');
+            throw new RuntimeException('moduark:check JSON output did not report a passing result.');
         }
 
         $githubCheck = $this->artisan(
             $application,
-            ['module:check', '--format=github'],
+            ['moduark:check', '--format=github'],
             $environment,
         );
         $this->assertContains(
             '::notice title=Moduark architecture check::'
                 .'Architecture check passed: 6 rules evaluated at Level 1 (Modular).',
             $githubCheck,
-            'module:check GitHub output did not report a passing result.',
+            'moduark:check GitHub output did not report a passing result.',
         );
 
-        $graph = $this->artisan($application, ['module:graph'], $environment);
-        $this->assertContains('User -> —', $graph, 'module:graph did not include the generated User Module.');
+        $graph = $this->artisan($application, ['moduark:graph'], $environment);
+        $this->assertContains('User -> —', $graph, 'moduark:graph did not include the generated User Module.');
 
         $capabilityGraph = $this->artisan(
             $application,
-            ['module:graph', '--view=capability'],
+            ['moduark:graph', '--view=capability'],
             $environment,
         );
         $this->assertContains(
             'User -> —',
             $capabilityGraph,
-            'module:graph Capability view did not include the generated User Module.',
+            'moduark:graph Capability view did not include the generated User Module.',
         );
 
         $combinedGraph = $this->artisan(
             $application,
-            ['module:graph', '--view=combined'],
+            ['moduark:graph', '--view=combined'],
             $environment,
         );
         $this->assertContains(
             'User -> —',
             $combinedGraph,
-            'module:graph combined view did not include the generated User Module.',
+            'moduark:graph combined view did not include the generated User Module.',
         );
 
         $moduleCachePath = $application.'/bootstrap/cache/moduark.php';
-        $moduleCache = $this->artisan($application, ['module:cache'], $environment);
+        $moduleCache = $this->artisan($application, ['moduark:cache'], $environment);
         $this->assertContains(
             'Module cache created successfully: 1 Module cached.',
             $moduleCache,
-            'module:cache did not report the generated User Module.',
+            'moduark:cache did not report the generated User Module.',
         );
-        $this->assertFileExists($moduleCachePath, 'module:cache did not create its manifest.');
+        $this->assertFileExists($moduleCachePath, 'moduark:cache did not create its manifest.');
 
-        $cachedModuleCheck = $this->artisan($application, ['module:check'], $environment);
+        $cachedModuleCheck = $this->artisan($application, ['moduark:check'], $environment);
         $this->assertContains(
             'Architecture check passed: 6 rules evaluated at Level 1 (Modular).',
             $cachedModuleCheck,
-            'module:check did not use the Module cache successfully.',
+            'moduark:check did not use the Module cache successfully.',
         );
 
-        $this->artisan($application, ['module:clear'], $environment);
-        $this->assertFileMissing($moduleCachePath, 'module:clear did not remove its manifest.');
+        $this->artisan($application, ['moduark:clear'], $environment);
+        $this->assertFileMissing($moduleCachePath, 'moduark:clear did not remove its manifest.');
 
         $this->artisan($application, ['optimize'], $environment);
         $this->assertFileExists(
@@ -388,21 +388,21 @@ final class CleanApplicationRunner
         $this->artisan($application, ['config:cache'], $environment);
 
         try {
-            $cachedCheck = $this->artisan($application, ['module:check'], $environment);
+            $cachedCheck = $this->artisan($application, ['moduark:check'], $environment);
             $this->assertContains(
                 'Architecture check passed: 6 rules evaluated at Level 1 (Modular).',
                 $cachedCheck,
-                'module:check did not survive Laravel configuration caching.',
+                'moduark:check did not survive Laravel configuration caching.',
             );
             $cachedInspection = $this->artisan(
                 $application,
-                ['module:inspect', 'User'],
+                ['moduark:inspect', 'User'],
                 $environment,
             );
             $this->assertContains(
                 'UserModule',
                 $cachedInspection,
-                'module:inspect did not survive Laravel configuration caching.',
+                'moduark:inspect did not survive Laravel configuration caching.',
             );
         } finally {
             $this->artisan($application, ['config:clear'], $environment);
@@ -650,7 +650,7 @@ final class CleanApplicationRunner
         sort($files, SORT_STRING);
 
         if ($files !== [$expected]) {
-            throw new RuntimeException('make:module must generate exactly one Module entry file.');
+            throw new RuntimeException('moduark:make-module must generate exactly one Module entry file.');
         }
     }
 

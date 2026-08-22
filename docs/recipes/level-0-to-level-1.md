@@ -13,7 +13,7 @@ At the end of the recipe:
 - `Order` declares its direct dependency on `User`;
 - `Order` consumes `User\Contracts\UserFinder`, not an internal service;
 - the Module graph is acyclic;
-- `module:check --level=1` exits `0` and reports a complete result;
+- `moduark:check --level=1` exits `0` and reports a complete result;
 - the shared configuration and CI gate both use Level 1.
 
 This is a Level 1 provider-owned API. It does not introduce Level 2
@@ -67,8 +67,8 @@ permanent.
 Acceptance:
 
 ```bash
-php artisan module:list
-php artisan module:check
+php artisan moduark:list
+php artisan moduark:check
 ```
 
 The check must exit `0`. At Level 0 that proves only Module structure and unique
@@ -79,8 +79,8 @@ identity; it does not approve cross-Module access.
 Create the two entry classes before moving implementation files:
 
 ```bash
-php artisan make:module User
-php artisan make:module Order
+php artisan moduark:make-module User
+php artisan moduark:make-module Order
 ```
 
 Move one behavior-preserving vertical slice at a time until the relevant layout
@@ -106,8 +106,8 @@ slice depends on. A typical checkpoint is:
 ```bash
 composer dump-autoload
 php artisan optimize:clear
-php artisan module:list
-php artisan module:check
+php artisan moduark:list
+php artisan moduark:check
 ```
 
 Keep Level 0 configured until application behavior and discovery both pass.
@@ -117,7 +117,7 @@ Keep Level 0 configured until application behavior and discovery both pass.
 Run Level 1 temporarily without changing shared configuration:
 
 ```bash
-php artisan module:check --level=1
+php artisan moduark:check --level=1
 ```
 
 The example direct reference should reveal two independent decisions:
@@ -160,8 +160,8 @@ final class OrderModule extends Module
 Inspect the direction before proceeding:
 
 ```bash
-php artisan module:graph
-php artisan module:graph Order
+php artisan moduark:graph
+php artisan moduark:graph Order
 ```
 
 If `User` already depends on `Order`, do not add a reverse dependency as a
@@ -265,7 +265,7 @@ begin at Level 2.
 Run the complete Level 1 probe again:
 
 ```bash
-php artisan module:check --level=1
+php artisan moduark:check --level=1
 ```
 
 Prefer repairs. When the rest of a brownfield application cannot migrate in one
@@ -274,7 +274,7 @@ change, use the narrowest reviewable mechanism:
 | Situation | Action |
 |---|---|
 | One intentional, temporary exception with an owner and reason | Add one narrow `moduark-suppressions.json` entry |
-| Many reviewed existing violations that need gradual repayment | Create `moduark-baseline.json` with `module:baseline --level=1` |
+| Many reviewed existing violations that need gradual repayment | Create `moduark-baseline.json` with `moduark:baseline --level=1` |
 | A new violation introduced by the current change | Fix it; do not expand the baseline |
 | A configuration, discovery, or analyzer failure | Fix the tool failure; never record it as debt |
 | A dependency cycle | Redesign or postpone the Level change; do not suppress it |
@@ -282,15 +282,15 @@ change, use the narrowest reviewable mechanism:
 For a reviewed baseline:
 
 ```bash
-php artisan module:baseline --level=1
+php artisan moduark:baseline --level=1
 git add moduark-baseline.json
-php artisan module:check --level=1
+php artisan moduark:check --level=1
 ```
 
 A baseline means the debt was adopted, not resolved. Prune it as code is fixed:
 
 ```bash
-php artisan module:baseline --prune
+php artisan moduark:baseline --prune
 ```
 
 See [Adopting Moduark](../adoption.md) for exact suppression selectors, audit
@@ -313,8 +313,8 @@ exits `0`:
 Run the configured contract and application regression tests:
 
 ```bash
-php artisan module:check
-php artisan module:graph
+php artisan moduark:check
+php artisan moduark:graph
 php artisan config:cache
 php artisan route:cache
 php artisan test
@@ -329,7 +329,7 @@ Add the complete Moduark check as a separate CI step:
 
 ```yaml
 - name: Check Module architecture
-  run: php artisan module:check --format=github
+  run: php artisan moduark:check --format=github
 ```
 
 The process contract is:
@@ -368,7 +368,7 @@ specific slice.
 - [ ] No consumer references `User\Services\UserService`.
 - [ ] Any suppression is narrow, reasoned, and reviewable.
 - [ ] Any baseline is committed and does not include a new regression.
-- [ ] `module:check --level=1` is complete and exits `0`.
+- [ ] `moduark:check --level=1` is complete and exits `0`.
 - [ ] Shared configuration uses Level 1 only after the probe passes.
 - [ ] CI preserves exit `1` and exit `2` as failures.
 

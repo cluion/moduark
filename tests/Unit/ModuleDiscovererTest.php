@@ -8,9 +8,11 @@ use Cluion\Moduark\Discovery\DiscoveredModule;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
 use Cluion\Moduark\Exceptions\ModuleDiscoveryFailed;
 use Cluion\Moduark\Registry\ModuleRegistry;
+use Composer\Autoload\ClassLoader;
 use PHPUnit\Framework\TestCase;
 use Tests\Fixtures\Discovery\Valid\Modules\Alpha\AlphaModule;
 use Tests\Fixtures\Discovery\Valid\Modules\Zeta\ZetaModule;
+use Tests\Fixtures\Nwidart\Modules\User\UserModule as NwidartUserModule;
 
 final class ModuleDiscovererTest extends TestCase
 {
@@ -40,6 +42,26 @@ final class ModuleDiscovererTest extends TestCase
         self::assertSame([AlphaModule::class, ZetaModule::class], $first->moduleClasses());
         self::assertSame($first->toArray(), $second->toArray());
         self::assertSame(['Alpha', 'Zeta'], array_column($first->toArray(), 'name'));
+    }
+
+    public function test_nwidart_app_entry_is_discovered_from_the_module_root(): void
+    {
+        $root = dirname(__DIR__).'/Fixtures/Nwidart/Modules';
+        $loader = new ClassLoader;
+        $loader->addPsr4(
+            'Tests\\Fixtures\\Nwidart\\Modules\\User\\',
+            $root.'/User/app',
+        );
+        $loader->register(true);
+
+        try {
+            $registry = $this->discoverer->discover($root);
+        } finally {
+            $loader->unregister();
+        }
+
+        self::assertSame([NwidartUserModule::class], $registry->moduleClasses());
+        self::assertSame($root.'/User/app/UserModule.php', $registry->all()[0]->path());
     }
 
     public function test_entry_file_must_match_its_module_directory(): void

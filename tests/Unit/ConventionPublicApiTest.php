@@ -73,6 +73,38 @@ final class ConventionPublicApiTest extends TestCase
         self::assertTrue((new ConventionPublicApi)->includes($symbol, $module));
     }
 
+    public function test_nwidart_app_contracts_and_events_are_public_without_broadening_other_directories(): void
+    {
+        $root = dirname(__DIR__).'/Fixtures/Nwidart/Modules/User/app';
+        $module = new DiscoveredModule(
+            'User',
+            'Tests\\Fixtures\\Nwidart\\Modules\\User\\UserModule',
+            $root.'/UserModule.php',
+            'Tests\\Fixtures\\Nwidart\\Modules\\User',
+        );
+        $publicApi = new ConventionPublicApi;
+
+        foreach (['Contracts/UserDirectory.php', 'Events/UserCreated.php'] as $path) {
+            $symbol = new SourceSymbol(
+                'Tests\\Fixtures\\Nwidart\\Modules\\User\\'.str_replace('/', '\\', substr($path, 0, -4)),
+                $module->moduleClass(),
+                $root.'/'.$path,
+                1,
+            );
+
+            self::assertTrue($publicApi->includes($symbol, $module), $path);
+        }
+
+        $internal = new SourceSymbol(
+            'Tests\\Fixtures\\Nwidart\\Modules\\User\\Services\\UserService',
+            $module->moduleClass(),
+            $root.'/Services/UserService.php',
+            1,
+        );
+
+        self::assertFalse($publicApi->includes($internal, $module));
+    }
+
     private function module(): DiscoveredModule
     {
         $root = dirname(__DIR__).'/Fixtures/Analysis/Modules/User';

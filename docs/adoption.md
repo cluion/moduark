@@ -21,7 +21,22 @@ Before moving source, record:
 
 Moduark's default path is `app/Modules`. A custom path must remain inside a
 registered Composer PSR-4 mapping so generated and discovered entry classes are
-autoloadable.
+autoloadable. When `nwidart/laravel-modules` is installed and `moduark.path`
+is `null` or absent, Moduark follows nwidart's `modules.paths.modules` root.
+
+For a nwidart layout, place the Moduark entry below the generated `app` source
+root and keep its namespace in the application's Composer mapping:
+
+```text
+Modules/User/app/UserModule.php
+Modules/User/app/Contracts/UserDirectory.php
+Modules/User/app/Events/UserCreated.php
+Modules/User/app/Services/InternalUserService.php
+```
+
+`Contracts`, `Data`, and `Events` are Public API conventions relative to the
+entry class. `Services` and other sibling implementation folders remain
+internal. Moduark does not replace nwidart's Module provider or `module.json`.
 
 ## 2. Start at Level 0
 
@@ -43,8 +58,8 @@ Set Level 0 while establishing structure:
 Create or hand-write one minimal entry class per Module:
 
 ```bash
-php artisan make:module User
-php artisan make:module Order
+php artisan moduark:make-module User
+php artisan moduark:make-module Order
 ```
 
 The entry class and directory must match exactly:
@@ -57,9 +72,9 @@ app/Modules/Order/OrderModule.php
 Run the discovery tools before moving more code:
 
 ```bash
-php artisan module:list
-php artisan module:check
-php artisan module:graph
+php artisan moduark:list
+php artisan moduark:check
+php artisan moduark:graph
 ```
 
 At Level 0, a passing check proves structure and identity only. It does not mean
@@ -109,9 +124,9 @@ the ownership decision is clear.
 Inspect the effective graph after each change:
 
 ```bash
-php artisan module:graph
-php artisan module:graph User
-php artisan module:graph --format=mermaid
+php artisan moduark:graph
+php artisan moduark:graph User
+php artisan moduark:graph --format=mermaid
 ```
 
 ## 5. Probe Level 1 Before Enabling It
@@ -119,7 +134,7 @@ php artisan module:graph --format=mermaid
 Keep the configured Level at 0 and run:
 
 ```bash
-php artisan module:check --level=1
+php artisan moduark:check --level=1
 ```
 
 Repair diagnostics in this order:
@@ -162,7 +177,7 @@ After the temporary Level 1 check passes, update configuration:
 Run the same command in CI:
 
 ```bash
-php artisan module:check
+php artisan moduark:check
 ```
 
 Treat exit codes separately:
@@ -173,7 +188,7 @@ Treat exit codes separately:
   command; the result is incomplete and must not be recorded as a pass.
 
 Configuration and discovery occur during Laravel bootstrap. If they fail before
-Artisan invokes `module:check`, use Laravel's rendered exception and process exit
+Artisan invokes `moduark:check`, use Laravel's rendered exception and process exit
 status rather than expecting the command's exit-code summary.
 
 ## Temporary Rule Overrides
@@ -222,7 +237,7 @@ violation that matches overlapping entries.
 Audit the debt in text output:
 
 ```bash
-php artisan module:check --show-suppressions
+php artisan moduark:check --show-suppressions
 ```
 
 `matched` entries suppress current violations. `stale` entries belong to rules
@@ -237,13 +252,13 @@ When the unsuppressed Level 1 result is too large to fix in one change, keep the
 rules enabled and capture the reviewed starting point:
 
 ```bash
-php artisan module:check --level=1
-php artisan module:baseline --level=1
+php artisan moduark:check --level=1
+php artisan moduark:baseline --level=1
 git add moduark-baseline.json
 ```
 
 The default file is `moduark-baseline.json` at the application root. Set
-`modules.architecture.baseline` to a different non-empty path when necessary.
+`moduark.architecture.baseline` to a different non-empty path when necessary.
 The JSON is deterministic and should be reviewed like source code.
 
 After creation, normal checks ignore matching existing counts but continue to
@@ -256,15 +271,15 @@ remain part of the match.
 As debt is repaired, safely remove stale counts:
 
 ```bash
-php artisan module:baseline --prune
+php artisan moduark:baseline --prune
 ```
 
 Prune never adds an identity or raises an allowance. A normal creation refuses
-to overwrite an existing file; `module:baseline --force` is deliberately
+to overwrite an existing file; `moduark:baseline --force` is deliberately
 separate because it replaces the file with all current unsuppressed violations
 and can adopt regressions.
 
-Suppressions run before the baseline. Consequently `module:baseline` never
+Suppressions run before the baseline. Consequently `moduark:baseline` never
 captures a violation already covered by an explicit suppression, and prune sees
 the same suppression-aware, unbaselined report as normal baseline creation.
 
@@ -279,8 +294,8 @@ files unchanged. See
 
 ## Adopt Level 2
 
-Level 2 became complete in `v0.2.0-beta.2`, and `v1.0.0-rc.1` freezes its
-candidate Stable eight-rule preset: typed Capability metadata, provider
+Level 2 became complete in `v0.2.0-beta.2`; the 1.0 release candidates validate
+its candidate Stable eight-rule preset: typed Capability metadata, provider
 preflight, runtime Port-to-Adapter wiring, Capability contracts, source-backed
 Adapter boundaries, Capability and combined graphs, and focused Module
 inspection. Install the exact RC from Packagist before adopting this contract:
@@ -295,25 +310,25 @@ follow the [Brownfield Level 1 to Level 2 recipe](recipes/level-1-to-level-2.md)
 
 Before selecting Level 2, give every consumer its own interface below `Ports/`,
 place each declared Adapter below `Adapters/{Provider}/`, and keep provider API
-references out of consumer core code. Run `module:check --level=2`; only change
+references out of consumer core code. Run `moduark:check --level=2`; only change
 the shared default after the complete eight-rule check exits 0.
 
 Inspect both the direct and inverted relationships before enabling Level 2:
 
 ```bash
-php artisan module:graph
-php artisan module:graph --view=capability
-php artisan module:graph Order --view=capability
-php artisan module:graph --view=capability --format=mermaid
-php artisan module:graph --view=combined
-php artisan module:graph Order --view=combined --format=mermaid
-php artisan module:inspect Order
+php artisan moduark:graph
+php artisan moduark:graph --view=capability
+php artisan moduark:graph Order --view=capability
+php artisan moduark:graph --view=capability --format=mermaid
+php artisan moduark:graph --view=combined
+php artisan moduark:graph Order --view=combined --format=mermaid
+php artisan moduark:inspect Order
 ```
 
 The Capability neighborhood keeps the selected Module's providers and sibling
 consumers visible. It does not flatten these edges into direct Module
 dependencies. The combined view retains all three labeled edge kinds and uses
-the union of direct and Capability neighborhoods. `module:inspect` adds the
+the union of direct and Capability neighborhoods. `moduark:inspect` adds the
 selected Module's resolved Capability provider, Port, Adapter, ServiceProviders,
 dependency status, explicit owned tables, current convention-based Public API,
 and explicit exports as separate reviewable rows.
@@ -351,7 +366,7 @@ raw DB writes remain explicit warnings rather than guessed owners. Add every
 cross-Module class-like boundary to the provider's `exports()` list; Module entry
 classes remain implicit identities. Explicit exports narrow the convention, so a
 symbol must also remain below `Contracts/`, `Data/`, or `Events/`. Enable Level 3
-only after `php artisan module:check --level=3` completes with exit 0.
+only after `php artisan moduark:check --level=3` completes with exit 0.
 
 ## Adoption Checklist
 
@@ -362,9 +377,9 @@ only after `php artisan module:check --level=3` completes with exit 0.
 - [ ] The dependency graph is acyclic.
 - [ ] Cross-Module references target only `Contracts/`, `Data/`, `Events/`, or
       the Module entry class.
-- [ ] `module:check --level=1` completes with exit 0.
+- [ ] `moduark:check --level=1` completes with exit 0.
 - [ ] Before Level 2 adoption, consumer Ports and provider-scoped Adapters pass
-      `module:check --level=2` with all eight rules enabled.
+      `moduark:check --level=2` with all eight rules enabled.
 - [ ] Configuration and CI both run the same default Level.
 - [ ] Any architecture baseline is committed, reviewed, and routinely pruned.
 - [ ] Every suppression has a narrow selector and current reason; stale entries
@@ -378,6 +393,6 @@ only after `php artisan module:check --level=3` completes with exit 0.
       suppressed, or explicitly kept.
 - [ ] Every cross-Module class-like reference targets both the convention Public
       API and the provider's explicit `exports()` metadata.
-- [ ] `module:check --level=3` evaluates all fourteen rules and exits 0 before
+- [ ] `moduark:check --level=3` evaluates all fourteen rules and exits 0 before
       Level 3 becomes the configured default.
 - [ ] Any rule override has an owner, reason, and removal condition.

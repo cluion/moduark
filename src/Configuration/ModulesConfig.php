@@ -88,22 +88,22 @@ final readonly class ModulesConfig
     private static function validate(array $values): void
     {
         if (! isset($values['path']) || ! is_string($values['path']) || $values['path'] === '') {
-            throw new InvalidArgumentException('The modules.path configuration must be a non-empty string.');
+            throw new InvalidArgumentException('The moduark.path configuration must be a non-empty string.');
         }
 
         if (! isset($values['architecture']) || ! is_array($values['architecture'])) {
-            throw new InvalidArgumentException('The modules.architecture configuration must be an array.');
+            throw new InvalidArgumentException('The moduark.architecture configuration must be an array.');
         }
 
         $architecture = $values['architecture'];
         $level = $architecture['level'] ?? null;
 
         if (! is_int($level) || $level < 0 || $level > 3) {
-            throw new InvalidArgumentException('The modules.architecture.level configuration must be an integer from 0 to 3.');
+            throw new InvalidArgumentException('The moduark.architecture.level configuration must be an integer from 0 to 3.');
         }
 
         if (! isset($architecture['rules']) || ! is_array($architecture['rules'])) {
-            throw new InvalidArgumentException('The modules.architecture.rules configuration must be an array.');
+            throw new InvalidArgumentException('The moduark.architecture.rules configuration must be an array.');
         }
 
         if (
@@ -111,7 +111,7 @@ final readonly class ModulesConfig
             && (! is_string($architecture['baseline']) || trim($architecture['baseline']) === '')
         ) {
             throw new InvalidArgumentException(
-                'The modules.architecture.baseline configuration must be a non-empty string.',
+                'The moduark.architecture.baseline configuration must be a non-empty string.',
             );
         }
 
@@ -120,7 +120,7 @@ final readonly class ModulesConfig
             && (! is_string($architecture['suppressions']) || trim($architecture['suppressions']) === '')
         ) {
             throw new InvalidArgumentException(
-                'The modules.architecture.suppressions configuration must be a non-empty string.',
+                'The moduark.architecture.suppressions configuration must be a non-empty string.',
             );
         }
     }
@@ -135,7 +135,7 @@ final readonly class ModulesConfig
 
         foreach ($values as $key => $value) {
             if (! is_string($key)) {
-                throw new InvalidArgumentException('The modules configuration must use string keys.');
+                throw new InvalidArgumentException('The moduark configuration must use string keys.');
             }
 
             $normalized[$key] = $value;

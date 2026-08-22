@@ -91,14 +91,14 @@ final class ModuleSuppressionCommandTest extends TestCase
     {
         $this->writeManifest();
 
-        $this->command('module:check --show-suppressions')
+        $this->command('moduark:check --show-suppressions')
             ->expectsOutputToContain('Suppressions: 1 violation suppressed by 1 entry')
             ->expectsOutputToContain('Suppression [matched] cycles MOD-CHECK-001')
             ->expectsOutputToContain('Reason: Legacy cycle tracked by ADR-012.')
             ->expectsOutputToContain('Architecture check passed: 1 rule evaluated')
             ->assertSuccessful();
 
-        [$jsonExitCode, $json] = $this->callCommand('module:check', ['--format' => 'json']);
+        [$jsonExitCode, $json] = $this->callCommand('moduark:check', ['--format' => 'json']);
         $payload = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 
         self::assertSame(ExitPolicy::SUCCESS, $jsonExitCode);
@@ -119,7 +119,7 @@ final class ModuleSuppressionCommandTest extends TestCase
         self::assertSame('matched', $details[0]['status']);
         self::assertSame('Legacy cycle tracked by ADR-012.', $details[0]['reason']);
 
-        [$githubExitCode, $github] = $this->callCommand('module:check', ['--format' => 'github']);
+        [$githubExitCode, $github] = $this->callCommand('moduark:check', ['--format' => 'github']);
 
         self::assertSame(ExitPolicy::SUCCESS, $githubExitCode);
         self::assertStringContainsString(
@@ -133,7 +133,7 @@ final class ModuleSuppressionCommandTest extends TestCase
         $this->writeManifest();
         $this->raw->report = $this->report();
 
-        $this->command('module:check')
+        $this->command('moduark:check')
             ->expectsOutputToContain('1 stale suppression entry no longer matches an evaluated violation.')
             ->assertSuccessful();
     }
@@ -142,7 +142,7 @@ final class ModuleSuppressionCommandTest extends TestCase
     {
         file_put_contents($this->suppressionPath, '{not-json');
 
-        $this->command('module:check')
+        $this->command('moduark:check')
             ->expectsOutputToContain('Architecture analysis could not be completed: Suppression manifest')
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }
@@ -151,7 +151,7 @@ final class ModuleSuppressionCommandTest extends TestCase
     {
         $this->writeManifest();
 
-        $this->command('module:baseline')
+        $this->command('moduark:baseline')
             ->expectsOutputToContain('Created architecture baseline with 0 violations')
             ->assertSuccessful();
 
@@ -160,7 +160,7 @@ final class ModuleSuppressionCommandTest extends TestCase
         self::assertInstanceOf(ArchitectureBaseline::class, $baseline);
         self::assertSame(0, $baseline->violationCount());
 
-        [$exitCode, $json] = $this->callCommand('module:check', ['--format' => 'json']);
+        [$exitCode, $json] = $this->callCommand('moduark:check', ['--format' => 'json']);
         $payload = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 
         self::assertSame(ExitPolicy::SUCCESS, $exitCode);

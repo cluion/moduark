@@ -109,7 +109,7 @@ final class PublicContractTest extends TestCase
 
     public function test_configuration_and_versioned_machine_contracts_remain_stable(): void
     {
-        $configuration = config('modules');
+        $configuration = config('moduark');
 
         self::assertIsArray($configuration);
         self::assertSame(['path', 'architecture'], array_keys($configuration));
@@ -123,7 +123,7 @@ final class PublicContractTest extends TestCase
 
         $output = new BufferedOutput;
         $exitCode = $this->application()->make(Kernel::class)->call(
-            'module:check',
+            'moduark:check',
             ['--format' => 'json'],
             $output,
         );
@@ -155,15 +155,15 @@ final class PublicContractTest extends TestCase
     {
         $commands = $this->application()->make(Kernel::class)->all();
         $arguments = [
-            'make:module' => ['name'],
-            'module:make' => ['module', 'type', 'name'],
-            'module:list' => [],
-            'module:inspect' => ['module'],
-            'module:graph' => ['module'],
-            'module:check' => [],
-            'module:baseline' => [],
-            'module:cache' => [],
-            'module:clear' => [],
+            'moduark:make-module' => ['name'],
+            'moduark:make' => ['module', 'type', 'name'],
+            'moduark:list' => [],
+            'moduark:inspect' => ['module'],
+            'moduark:graph' => ['module'],
+            'moduark:check' => [],
+            'moduark:baseline' => [],
+            'moduark:cache' => [],
+            'moduark:clear' => [],
         ];
 
         foreach ($arguments as $name => $expectedArguments) {
@@ -172,7 +172,21 @@ final class PublicContractTest extends TestCase
             self::assertSame($expectedArguments, array_keys($command->getDefinition()->getArguments()));
         }
 
-        foreach (['make:module' => 'name', 'module:inspect' => 'module'] as $command => $argument) {
+        foreach ([
+            'make:module',
+            'module:make',
+            'module:list',
+            'module:inspect',
+            'module:graph',
+            'module:check',
+            'module:baseline',
+            'module:cache',
+            'module:clear',
+        ] as $legacyCommand) {
+            self::assertArrayNotHasKey($legacyCommand, $commands);
+        }
+
+        foreach (['moduark:make-module' => 'name', 'moduark:inspect' => 'module'] as $command => $argument) {
             self::assertTrue(
                 $this->documentedCommand($commands, $command)
                     ->getDefinition()
@@ -183,7 +197,7 @@ final class PublicContractTest extends TestCase
 
         foreach (['module', 'type', 'name'] as $argument) {
             self::assertTrue(
-                $this->documentedCommand($commands, 'module:make')
+                $this->documentedCommand($commands, 'moduark:make')
                     ->getDefinition()
                     ->getArgument($argument)
                     ->isRequired(),
@@ -191,28 +205,28 @@ final class PublicContractTest extends TestCase
         }
 
         self::assertFalse(
-            $this->documentedCommand($commands, 'module:graph')
+            $this->documentedCommand($commands, 'moduark:graph')
                 ->getDefinition()
                 ->getArgument('module')
                 ->isRequired(),
         );
 
-        $this->assertOptionDefaults($this->documentedCommand($commands, 'module:make'), [
+        $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:make'), [
             'force' => false,
             'invokable' => false,
             'resource' => false,
             'api' => false,
         ]);
-        $this->assertOptionDefaults($this->documentedCommand($commands, 'module:graph'), [
+        $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:graph'), [
             'view' => 'module',
             'format' => 'text',
         ]);
-        $this->assertOptionDefaults($this->documentedCommand($commands, 'module:check'), [
+        $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:check'), [
             'level' => null,
             'format' => 'text',
             'show-suppressions' => false,
         ]);
-        $this->assertOptionDefaults($this->documentedCommand($commands, 'module:baseline'), [
+        $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:baseline'), [
             'level' => null,
             'force' => false,
             'prune' => false,

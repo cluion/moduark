@@ -37,7 +37,7 @@ final class ModuleInspectCommandTest extends TestCase
         ];
         $this->useInspectionFixture($modules);
 
-        $this->command('module:inspect order')
+        $this->command('moduark:inspect order')
             ->expectsTable(
                 ['Field', 'Value'],
                 [
@@ -68,7 +68,7 @@ final class ModuleInspectCommandTest extends TestCase
 
     public function test_unknown_module_is_a_tool_error(): void
     {
-        $this->command('module:inspect Unknown')
+        $this->command('moduark:inspect Unknown')
             ->expectsOutputToContain(
                 'Module inspection failed: Module [Unknown] was not found.',
             )

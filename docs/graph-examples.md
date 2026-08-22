@@ -41,15 +41,15 @@ the website example cannot silently drift from executable package behavior.
 Use the same commands in an application:
 
 ```bash
-php artisan module:graph --view=module --format=mermaid
-php artisan module:graph --view=capability --format=mermaid
-php artisan module:graph --view=combined --format=mermaid
+php artisan moduark:graph --view=module --format=mermaid
+php artisan moduark:graph --view=capability --format=mermaid
+php artisan moduark:graph --view=combined --format=mermaid
 ```
 
 Select one Module by placing its name after the command:
 
 ```bash
-php artisan module:graph Checkout --view=combined --format=mermaid
+php artisan moduark:graph Checkout --view=combined --format=mermaid
 ```
 
 The neighborhood contract depends on the view:

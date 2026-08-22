@@ -14,7 +14,7 @@ use Illuminate\Console\Command;
 final class ModuleMakeCommand extends Command
 {
     /** @var string */
-    protected $signature = 'module:make
+    protected $signature = 'moduark:make
         {module : Existing Module name}
         {type : Maker type: model or controller}
         {name : StudlyCase class name, optionally with nested segments}

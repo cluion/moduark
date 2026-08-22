@@ -44,6 +44,7 @@ final class ReleasePolicyContractTest extends TestCase
             'test:dependencies',
             'test:distribution',
             'test:installation',
+            'test:interop',
         ] as $script) {
             self::assertArrayHasKey($script, $composer['scripts']);
             self::assertStringContainsString("composer {$script}", $policy);
@@ -54,6 +55,7 @@ final class ReleasePolicyContractTest extends TestCase
             'composer audit --locked',
             'composer test:installation -- --boost',
             'composer test:installation -- --package="${MODUARK_RELEASE_VERSION}"',
+            'composer test:interop -- --package="${MODUARK_RELEASE_VERSION}"',
         ] as $command) {
             self::assertStringContainsString($command, $policy);
         }
@@ -104,10 +106,9 @@ final class ReleasePolicyContractTest extends TestCase
         }
 
         $changelog = $this->contents('CHANGELOG.md');
-        self::assertStringContainsString(
-            "## [Unreleased]\n\n## [1.0.0-rc.1]",
-            $changelog,
-        );
+        self::assertStringContainsString('## [Unreleased]', $changelog);
+        self::assertStringContainsString('Laravel 13 + `nwidart/laravel-modules`', $changelog);
+        self::assertStringContainsString('## [1.0.0-rc.1]', $changelog);
         self::assertStringContainsString(
             '[Unreleased]: https://github.com/cluion/moduark/compare/v1.0.0-rc.1...HEAD',
             $changelog,

@@ -78,26 +78,40 @@ final class ModuarkServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $path = dirname(__DIR__).'/config/modules.php';
+        $path = dirname(__DIR__).'/config/moduark.php';
         $defaults = require $path;
 
         if (! is_array($defaults)) {
             throw new InvalidArgumentException('The Moduark default configuration must return an array.');
         }
 
-        $this->mergeConfigFrom($path, 'modules');
-
         /** @var Repository $repository */
         $repository = $this->app->make(Repository::class);
-        $configured = $repository->get('modules', []);
+        $applicationConfiguration = $repository->get('moduark', []);
+
+        if (! is_array($applicationConfiguration)) {
+            throw new InvalidArgumentException('The moduark configuration must be an array.');
+        }
+
+        $this->mergeConfigFrom($path, 'moduark');
+
+        $configured = $repository->get('moduark', []);
 
         if (! is_array($configured)) {
-            throw new InvalidArgumentException('The modules configuration must be an array.');
+            throw new InvalidArgumentException('The moduark configuration must be an array.');
+        }
+
+        if (
+            ! array_key_exists('path', $applicationConfiguration)
+            || $applicationConfiguration['path'] === null
+        ) {
+            $configured['path'] = $this->nwidartModulesPath($repository)
+                ?? app_path('Modules');
         }
 
         $configuration = ModulesConfig::from($defaults, $configured);
 
-        $repository->set('modules', $configuration->all());
+        $repository->set('moduark', $configuration->all());
         $this->app->instance(ModulesConfig::class, $configuration);
         $this->app->singleton(RulePresets::class);
         $this->app->singleton(RuleResolver::class);
@@ -238,14 +252,25 @@ final class ModuarkServiceProvider extends ServiceProvider
             ModuleMakeCommand::class,
         ]);
 
-        $this->optimizes('module:cache', 'module:clear');
+        $this->optimizes('moduark:cache', 'moduark:clear');
 
         $this->publishes([
-            dirname(__DIR__).'/config/modules.php' => config_path('modules.php'),
+            dirname(__DIR__).'/config/moduark.php' => config_path('moduark.php'),
         ], 'moduark-config');
 
         $this->publishes([
             dirname(__DIR__).'/stubs/module.stub' => base_path('stubs/module.stub'),
         ], 'moduark-stubs');
+    }
+
+    private function nwidartModulesPath(Repository $repository): ?string
+    {
+        if (! class_exists('Nwidart\\Modules\\LaravelModulesServiceProvider')) {
+            return null;
+        }
+
+        $path = $repository->get('modules.paths.modules', $this->app->basePath('Modules'));
+
+        return is_string($path) && $path !== '' ? $path : null;
     }
 }

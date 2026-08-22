@@ -41,6 +41,7 @@ use Cluion\Moduark\Persistence\TableOwnershipIndex;
 use Cluion\Moduark\ModuarkServiceProvider;
 use Cluion\Moduark\Registry\ModuleRegistry;
 use Illuminate\Contracts\Config\Repository;
+use Illuminate\Support\ServiceProvider;
 use LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -108,7 +109,14 @@ final class PackageBaselineTest extends TestCase
             $this->application()->basePath('moduark-suppressions.json'),
             $configuration->suppressionPath(),
         );
-        self::assertSame(1, config('modules.architecture.level'));
+        self::assertSame(1, config('moduark.architecture.level'));
+    }
+
+    public function test_config_publish_uses_the_package_owned_filename(): void
+    {
+        self::assertSame([
+            dirname(__DIR__, 2).'/config/moduark.php' => $this->application()->configPath('moduark.php'),
+        ], ServiceProvider::pathsToPublish(ModuarkServiceProvider::class, 'moduark-config'));
     }
 
     public function test_configuration_survives_config_cache(): void

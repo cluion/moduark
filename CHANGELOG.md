@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added a Laravel 13 + `nwidart/laravel-modules` interoperability fixture that
+  verifies package installation, command ownership, configuration publishing,
+  `Modules/*/app` discovery, Public API boundaries, architecture checks,
+  Module caching, and Laravel optimization lifecycle behavior.
+- Added discovery support for both `<Module>/<Module>Module.php` and
+  `<Module>/app/<Module>Module.php`; convention-based Public API folders remain
+  relative to the selected entry class source root.
+
+### Changed
+
+- Namespaced every Moduark Artisan command below `moduark:*` and moved the
+  package configuration from `config/modules.php` / `modules.*` to
+  `config/moduark.php` / `moduark.*` so Moduark can coexist with packages that
+  own the generic Module command and configuration namespaces.
+
+### Fixed
+
+- Fixed false-green interoperability checks that could unknowingly execute a
+  third-party `module:*` command or overwrite another package's
+  `config/modules.php`.
+- Fixed 1.0 RC documentation recommending the currently incompatible
+  `moduark-phpstan` beta; compatibility remains blocked on a separately tested
+  companion release.
+
 ## [1.0.0-rc.1] - 2026-08-22
 
 This first 1.0 release candidate freezes the candidate Stable contract for

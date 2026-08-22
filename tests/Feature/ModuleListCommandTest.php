@@ -10,7 +10,7 @@ final class ModuleListCommandTest extends TestCase
 {
     public function test_it_lists_modules_in_deterministic_order(): void
     {
-        $this->expectModuleTable('module:list');
+        $this->expectModuleTable('moduark:list');
     }
 
     public function test_it_lists_the_same_modules_after_config_cache(): void
@@ -19,7 +19,7 @@ final class ModuleListCommandTest extends TestCase
             $this->command('config:cache')->assertSuccessful();
             $this->refreshApplication();
 
-            $this->expectModuleTable('module:list');
+            $this->expectModuleTable('moduark:list');
         } finally {
             $this->command('config:clear')->run();
         }

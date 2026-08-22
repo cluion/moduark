@@ -13,7 +13,7 @@ use RuntimeException;
 final class ModuleClearCommand extends Command
 {
     /** @var string */
-    protected $signature = 'module:clear';
+    protected $signature = 'moduark:clear';
 
     /** @var string */
     protected $description = 'Remove cached Module metadata and source analysis';

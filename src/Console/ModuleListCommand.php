@@ -12,7 +12,7 @@ final class ModuleListCommand extends Command
     /**
      * @var string
      */
-    protected $signature = 'module:list';
+    protected $signature = 'moduark:list';
 
     /**
      * @var string
