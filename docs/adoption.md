@@ -301,7 +301,7 @@ Adapter boundaries, Capability and combined graphs, and focused Module
 inspection. Install the exact RC from Packagist before adopting this contract:
 
 ```bash
-composer require cluion/moduark:1.0.0-rc.1
+composer require cluion/moduark:1.0.0-rc.2
 ```
 
 For a concrete continuation of the `User` / `Order` example, including runtime
@@ -335,12 +335,12 @@ and explicit exports as separate reviewable rows.
 
 ## Adopt Level 3 with the `1.0` RC
 
-`v1.0.0-rc.1` retains the complete fourteen-rule Level 3 preset while its
+`v1.0.0-rc.2` retains the complete fourteen-rule Level 3 preset while its
 stability classification remains Preview. Install the exact RC from Packagist
 before adopting this contract:
 
 ```bash
-composer require cluion/moduark:1.0.0-rc.1
+composer require cluion/moduark:1.0.0-rc.2
 ```
 
 For a staged `User` / `Order` migration with explicit rollback boundaries and

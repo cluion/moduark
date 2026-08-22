@@ -4,8 +4,8 @@ Moduark is a Laravel-native modular architecture toolkit. It keeps Modules in a
 normal Laravel application while making their dependencies, lifecycle order,
 resources, and architecture boundaries executable and inspectable.
 
-> **Pre-release status:** `1.0.0-rc.1` is the first published candidate. The
-> next RC revises its command and configuration identities for nwidart
+> **Pre-release status:** `1.0.0-rc.2` is the current release candidate. It
+> revises the RC.1 command and configuration identities for nwidart
 > interoperability before stable. Levels 0 through 2 remain candidate Stable,
 > Level 3 remains Preview, and the zero-configuration default remains Level 1.
 
@@ -20,7 +20,7 @@ resources, and architecture boundaries executable and inspectable.
 Install the current release candidate from Packagist:
 
 ```bash
-composer require cluion/moduark:1.0.0-rc.1
+composer require cluion/moduark:1.0.0-rc.2
 ```
 
 The package remains pre-release software. Keep the exact RC constraint so
@@ -44,17 +44,22 @@ php artisan vendor:publish --tag=moduark-config
 See [ADR-0047](docs/adr/0047-nwidart-interoperability.md) and the
 [upgrade guide](UPGRADING.md) for the RC.1 namespace migration.
 
-The currently published `cluion/moduark-phpstan` beta supports only the
-Moduark `0.4` / `0.5` beta lines and still defaults to `config/modules.php`.
-Do not install it with a 1.0 RC until a companion release explicitly adds the
-1.0 constraint and `config/moduark.php` default. See
-[PHPStan and Larastan Integration](docs/phpstan-integration.md). The companion
-extension covers only `internal_api_access`; `moduark:check` remains
+The optional `cluion/moduark-phpstan` `v0.2.0-beta.1` companion supports the
+Moduark `^1.0@RC` line, defaults to `config/moduark.php`, and understands both
+classic and nwidart `Modules/*/app` source roots. Install it as a development
+dependency:
+
+```bash
+composer require --dev cluion/moduark-phpstan:^0.2@beta
+```
+
+See [PHPStan and Larastan Integration](docs/phpstan-integration.md). The
+companion extension covers only `internal_api_access`; `moduark:check` remains
 authoritative for the complete rule set.
 
 ## Laravel Boost Agent Skill
 
-The `1.0.0-rc.1` release candidate includes a Laravel Boost-compatible
+The `1.0.0-rc.2` release candidate includes a Laravel Boost-compatible
 `moduark-development` Skill in this Composer package. Applications using Boost
 can run its installation flow after adding or updating Moduark:
 
@@ -672,7 +677,7 @@ acceptance against the Packagist dist instead of the local path repository. This
 mode also verifies the installed archive layout:
 
 ```bash
-composer test:installation -- --package=1.0.0-rc.1
+composer test:installation -- --package=1.0.0-rc.2
 ```
 
 The GitHub Actions compatibility workflow runs PHPUnit on all four
@@ -699,7 +704,7 @@ contract.
 
 ## Current Scope
 
-The next release candidate revises the RC.1 command and configuration
+The RC.2 release candidate revises the RC.1 command and configuration
 namespaces for nwidart interoperability while retaining Levels 0 through 2 as
 candidate Stable and the complete Level 3 preset as Preview. Level 2
 includes typed Capability metadata, descriptor-only
@@ -723,9 +728,10 @@ direct Query Builder writes inside transaction callbacks, while unresolved
 expressions remain reviewable warnings. Explicit `exports()` metadata narrows the
 convention-based Public API. The complete fourteen-rule Level 3 preset can now
 produce a complete pass. The optional `cluion/moduark-phpstan`
-`v0.1.0-beta.2` companion beta integrates `internal_api_access` with PHPStan and
-Larastan; suppression expiry and extension coverage for the remaining rules
-remain later work. See
+`v0.2.0-beta.1` companion beta integrates `internal_api_access` with PHPStan and
+Larastan across the Moduark 1.0 RC and nwidart-compatible source layouts;
+suppression expiry and extension coverage for the remaining rules remain later
+work. See
 [ADR-0035](docs/adr/0035-cross-module-model-access.md),
 [ADR-0036](docs/adr/0036-table-ownership-index.md),
 [ADR-0037](docs/adr/0037-database-ownership-rule.md),

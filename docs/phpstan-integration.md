@@ -21,33 +21,30 @@ rules.
 
 ## Version Compatibility
 
-The currently published `cluion/moduark-phpstan` `v0.1.0-beta.2` requires
-Moduark `^0.4@beta || ^0.5@beta` and defaults its cache input to
-`config/modules.php`. It is not compatible with a Moduark 1.0 release
-candidate. Before this guide can recommend the companion for 1.0 again, a
-companion release must accept the 1.0 RC constraint, default to
-`config/moduark.php`, and pass its compatibility matrix.
+The published `cluion/moduark-phpstan` `v0.2.0-beta.1` requires Moduark
+`^1.0@RC`, defaults its cache input to `config/moduark.php`, and recognizes
+classic and nwidart `Modules/*/app` source roots. Its release matrix covers PHP
+8.2 through 8.5, Laravel 12 and 13, PHPStan `^2.2`, and optional Larastan 3.10.
+It passed against the published Moduark `1.0.0-rc.1` and this RC.2 checkout.
 
-The installation below therefore applies only to the older beta lines.
+Applications remaining on Moduark 0.4 or 0.5 beta must remain on the companion
+`^0.1@beta` line and its `config/modules.php` cache input.
 
-## Install Both Packages on the Beta Lines
+## Install Both Packages on the 1.0 RC Line
 
 Composer stability flags on a dependency do not relax the consuming
-application's stability constraints. A clean application must declare the
-Moduark beta as a root requirement before installing the extension:
+application's stability constraints. Install the exact reviewed Moduark RC as
+an application dependency before installing the companion as a development
+dependency:
 
 ```bash
-composer require cluion/moduark:^0.5@beta
-composer require --dev cluion/moduark-phpstan:^0.1@beta
+composer require cluion/moduark:1.0.0-rc.2
+composer require --dev cluion/moduark-phpstan:^0.2@beta
 ```
 
-If the application already requires `cluion/moduark:^0.5@beta`, only the second
-command is needed. Pin exact beta versions when repeatable pre-release upgrades
-matter.
-
-The `v0.1.0-beta.2` extension release is verified with PHP 8.2 through 8.5,
-Moduark `^0.4@beta || ^0.5@beta`, PHPStan `^2.2`, Laravel 12 and 13, and optional
-Larastan 3.10 integration.
+If the application already requires the reviewed Moduark RC, only the second
+command is needed. Pin the exact companion beta as well when repeatable
+pre-release upgrades matter.
 
 ## Load the Extension
 
@@ -98,8 +95,8 @@ loaded.
 ## Configure the Application Boundary
 
 The extension does not boot Laravel and does not import values from the Laravel
-configuration file. The following values are the required target defaults for
-a future 1.0-compatible companion release:
+configuration file. The following values are the current 1.0 RC companion
+defaults:
 
 ```neon
 parameters:
@@ -211,9 +208,9 @@ JSON reports as tool failures rather than successful architecture checks.
   loaded. Verify the Composer plugin or the manual include.
 - If services or diagnostics appear twice, remove either automatic or manual
   loading for the duplicate extension.
-- If a clean install cannot resolve `cluion/moduark`, declare
-  `cluion/moduark:^0.5@beta` in the application root before requiring the
-  extension.
+- If a clean install cannot resolve `cluion/moduark`, declare the exact reviewed
+  `cluion/moduark:1.0.0-rc.2` version in the application root before requiring
+  the extension.
 - If custom Modules are not analysed, align `modulesPath`, `rootNamespace`, and
   PHPStan `paths`.
 - If CLI and PHPStan results differ, compare the effective Level, rule override,

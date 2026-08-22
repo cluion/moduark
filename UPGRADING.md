@@ -4,15 +4,15 @@ This guide covers application-owned changes required when upgrading Moduark.
 Read the complete changelog between the installed and target versions as well
 as the section below for the target release.
 
-> **Current status:** `1.0.0-rc.1` is the first published 1.0 release
-> candidate. The next RC changes the candidate command and configuration
-> namespaces to support `nwidart/laravel-modules` interoperability. The
-> `1.0.0` stable release has not been published.
+> **Current status:** `1.0.0-rc.2` is the current 1.0 release candidate. It
+> changes the RC.1 command and configuration namespaces to support
+> `nwidart/laravel-modules` interoperability. The `1.0.0` stable release has
+> not been published.
 
 Install the RC with an exact pre-release constraint:
 
 ```bash
-composer require cluion/moduark:1.0.0-rc.1
+composer require cluion/moduark:1.0.0-rc.2
 ```
 
 ## Upgrade Safety Checklist
@@ -42,13 +42,13 @@ use Moduark's default filenames. Substitute the paths configured in
 `moduark.architecture.baseline` and `moduark.architecture.suppressions` after
 the namespace migration when the application overrides them.
 
-## Upgrading from `1.0.0-rc.1` to the next RC
+## Upgrading from `1.0.0-rc.1` to `1.0.0-rc.2`
 
-The next RC replaces candidate identities that collide with
+RC.2 replaces candidate identities that collide with
 `nwidart/laravel-modules`. No legacy Artisan aliases are registered because
 those generic names may already belong to nwidart or another package.
 
-| `1.0.0-rc.1` | Next RC |
+| `1.0.0-rc.1` | `1.0.0-rc.2` |
 |---|---|
 | `make:module` | `moduark:make-module` |
 | `module:make` | `moduark:make` |

@@ -98,6 +98,6 @@ guards the executable portions of this decision.
 - Promoting another surface to Stable requires documentation and executable
   contract coverage; removing one requires the later deprecation policy and a
   major release, except for an urgent security response.
-- Candidate identities changed between RC.1 and the next RC are documented as
+- Candidate identities changed between RC.1 and RC.2 are documented as
   a pre-stable migration in `UPGRADING.md`; no stable `1.x` contract has been
   broken.

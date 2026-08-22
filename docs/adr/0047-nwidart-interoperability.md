@@ -64,8 +64,9 @@ real Laravel application before the candidate Stable contract is promoted.
   identities explicitly; the upgrade guide contains the exact mapping.
 - Moduark and nwidart can coexist without claiming each other's generic
   command or configuration namespace.
-- The separately released `moduark-phpstan` companion must update its Composer
-  constraint and `configPath` default before it can claim 1.0 RC compatibility.
+- The separately released `moduark-phpstan` `v0.2.0-beta.1` companion accepts
+  Moduark `^1.0@RC`, defaults `configPath` to `config/moduark.php`, and verifies
+  both classic and nwidart `Modules/*/app` source roots independently.
 - Supporting the nwidart directory layout does not make nwidart Module
   providers, routes, resources, or `module.json` part of Moduark's public API.
 - Stable publication remains gated on a reviewed RC, exact-commit CI, and

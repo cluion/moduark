@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-rc.2] - 2026-08-22
+
 ### Added
 
 - Added a Laravel 13 + `nwidart/laravel-modules` interoperability fixture that
@@ -29,9 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed false-green interoperability checks that could unknowingly execute a
   third-party `module:*` command or overwrite another package's
   `config/modules.php`.
-- Fixed 1.0 RC documentation recommending the currently incompatible
-  `moduark-phpstan` beta; compatibility remains blocked on a separately tested
-  companion release.
+- Updated the 1.0 RC integration guidance for the separately published
+  `moduark-phpstan` `v0.2.0-beta.1`, whose Composer constraint, independent
+  configuration input, nwidart source-root handling, and Laravel 12 / 13
+  compatibility matrix now match this candidate.
 
 ## [1.0.0-rc.1] - 2026-08-22
 
@@ -303,7 +306,8 @@ incomplete and are not part of this release contract.
 - Clean installation acceptance from release-tag checkouts by explicitly
   mapping the local path repository to `dev-main`.
 
-[Unreleased]: https://github.com/cluion/moduark/compare/v1.0.0-rc.1...HEAD
+[Unreleased]: https://github.com/cluion/moduark/compare/v1.0.0-rc.2...HEAD
+[1.0.0-rc.2]: https://github.com/cluion/moduark/compare/v1.0.0-rc.1...v1.0.0-rc.2
 [1.0.0-rc.1]: https://github.com/cluion/moduark/compare/v0.5.0-beta.1...v1.0.0-rc.1
 [0.5.0-beta.1]: https://github.com/cluion/moduark/compare/v0.4.0-beta.1...v0.5.0-beta.1
 [0.4.0-beta.1]: https://github.com/cluion/moduark/compare/v0.3.0-beta.5...v0.4.0-beta.1

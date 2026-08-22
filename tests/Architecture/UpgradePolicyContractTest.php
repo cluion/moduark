@@ -13,10 +13,11 @@ final class UpgradePolicyContractTest extends TestCase
         $guide = $this->contents('UPGRADING.md');
 
         foreach ([
-            '`1.0.0-rc.1` is the first published 1.0 release',
-            'The next RC changes the candidate command and configuration',
+            '`1.0.0-rc.2` is the current 1.0 release candidate',
+            'changes the RC.1 command and configuration namespaces',
             '`1.0.0` stable release has not been published',
-            'composer require cluion/moduark:1.0.0-rc.1',
+            'composer require cluion/moduark:1.0.0-rc.2',
+            'Upgrading from `1.0.0-rc.1` to `1.0.0-rc.2`',
             'php artisan moduark:check --format=json',
             'php artisan moduark:check --show-suppressions',
             'exit `2`, `complete: false`, or `status: incomplete`',

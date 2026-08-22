@@ -2,8 +2,9 @@
 
 This document defines the candidate compatibility contract for Moduark 1.0.
 `1.0.0-rc.1` exposed an interoperability defect in its command and
-configuration identities; ADR-0047 documents the revised boundary for the next
-RC. It becomes the stable-release policy only when `1.0.0` is published.
+configuration identities; `1.0.0-rc.2` adopts the revised boundary documented
+by ADR-0047. It becomes the stable-release policy only when `1.0.0` is
+published.
 
 ## Contract Categories
 
