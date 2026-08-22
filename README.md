@@ -58,6 +58,18 @@ agent through inventory, staged Level adoption, diagnostics, reviewed debt, and
 upgrade verification. See
 [ADR-0044](docs/adr/0044-laravel-boost-agent-skill-distribution.md).
 
+## Stability and Versioning
+
+The current beta remains pre-stable. Moduark now documents the candidate
+`1.0.0` compatibility boundary so applications can review it before the stable
+release: Levels 0 through 2 are planned as Stable, Level 3 remains an opt-in
+Preview, and lifecycle internals such as capability resolver and cache objects
+are not application extension points.
+
+See [Stability and Versioning](docs/stability.md) for the PHP, configuration,
+CLI, diagnostic, and machine-schema contracts, and
+[ADR-0045](docs/adr/0045-stable-contract-boundary.md) for the boundary decision.
+
 ## Quick Start
 
 Create the smallest valid Module:
@@ -656,6 +668,7 @@ contract.
 
 ## Documentation
 
+- [Stability and Versioning](docs/stability.md)
 - [Architecture Levels](docs/architecture-levels.md)
 - [Adopting Moduark](docs/adoption.md)
 - [Migration Recipes](docs/recipes/README.md)

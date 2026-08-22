@@ -13,6 +13,7 @@ final class PackageArchiveContract
         'README.md',
         'composer.json',
         'config/modules.php',
+        'docs/stability.md',
         'resources/boost/skills/moduark-development/SKILL.md',
         'resources/boost/skills/moduark-development/references/adoption-and-levels.md',
         'resources/boost/skills/moduark-development/references/diagnostics-and-debt.md',

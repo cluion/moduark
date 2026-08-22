@@ -101,7 +101,6 @@ declares what a Module requires or provides.
 ```php
 use Cluion\Moduark\Capability;
 use Cluion\Moduark\CapabilityRequirement;
-use Cluion\Moduark\Capabilities\CapabilityResolver;
 use Cluion\Moduark\Module;
 
 interface UserLookup extends Capability
@@ -126,17 +125,16 @@ final class OrderModule extends Module
 `FindUser` is the consumer-owned Port interface and `UserModuleAdapter` is an
 instantiable Adapter implementing it. A provider declares the same Capability
 identity from `provides()`. Metadata compilation validates these declarations
-and serializes them using cache-safe class strings and arrays. Given the complete
-compiled descriptor list, provider resolution is deterministic and side-effect
-free:
+and serializes them using cache-safe class strings and arrays. During the Module
+lifecycle, Moduark compiles the complete descriptor list and resolves provider,
+consumer, Port, and Adapter bindings deterministically before any Module
+ServiceProvider or container work begins. Missing providers and consumed
+Capabilities with multiple providers fail during that preflight.
 
-```php
-$plan = (new CapabilityResolver)->resolve($descriptors);
-```
-
-Each plan binding identifies the Capability, provider Module, consumer Module,
-Port, and Adapter. Missing providers and consumed Capabilities with multiple
-providers fail before any Module ServiceProvider or container work begins.
+Applications declare this metadata and resolve the consumer-owned Port through
+Laravel's container. Descriptor, resolver, and binding-plan classes are
+lifecycle-managed implementation details rather than supported application
+extension points. See [Stability and Versioning](stability.md).
 
 The Module lifecycle runs this resolution as a preflight after direct dependency
 ordering and before registering any Module ServiceProvider. After every provider

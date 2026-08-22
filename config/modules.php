@@ -6,7 +6,7 @@ return [
     'path' => app_path('Modules'),
 
     'architecture' => [
-        // The beta currently guarantees the Level 0, Level 1, and Level 2 rule sets.
+        // Levels 0 through 2 are candidate 1.0 Stable presets; Level 3 is Preview.
         'level' => 1,
 
         // Existing violations can be adopted explicitly with module:baseline.

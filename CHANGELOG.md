@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added the candidate `1.0.0` Stable, Preview, and Internal contract boundary,
+  with executable coverage for supported PHP extension points, configuration,
+  Level presets, CLI definitions, exit codes, and versioned machine schemas.
 - Added a Laravel Boost-compatible `moduark-development` Agent Skill with
   focused adoption, diagnostics, debt, inspection, and upgrade guidance; the
   Skill ships with the Composer package and preserves Moduark's machine-readable
