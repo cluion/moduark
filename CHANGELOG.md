@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   migrations, resolved and unresolved foreign keys, inline transactions, and
   all fourteen rules; the 1.0 go/no-go review keeps Level 3 in Preview pending
   independent brownfield evidence.
+- Added a maintainer release policy with a mandatory 1.0 RC, separately
+  authorized publication stages, exact-commit CI, annotated-tag, Packagist, and
+  published Laravel 12 / 13 dist acceptance gates.
 - Added a Laravel Boost-compatible `moduark-development` Agent Skill with
   focused adoption, diagnostics, debt, inspection, and upgrade guidance; the
   Skill ships with the Composer package and preserves Moduark's machine-readable

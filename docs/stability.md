@@ -188,5 +188,10 @@ Published security support and the verified private reporting channel are
 defined in the [Security Policy](../SECURITY.md). The policy distinguishes
 security-impacting boundary bypasses from ordinary analyzer false positives.
 
+Maintainer release stages, RC requirements, exact-commit CI, Packagist
+visibility, and published-dist acceptance are defined in the
+[Release Policy](releases.md). A local pass, tag, GitHub Release, registry
+version, and verified public installation are separate evidence states.
+
 See [ADR-0045](adr/0045-stable-contract-boundary.md) for the decision and
 acceptance criteria behind this boundary.

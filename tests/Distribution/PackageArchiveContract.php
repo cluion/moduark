@@ -16,6 +16,7 @@ final class PackageArchiveContract
         'UPGRADING.md',
         'composer.json',
         'config/modules.php',
+        'docs/releases.md',
         'docs/stability.md',
         'resources/boost/skills/moduark-development/SKILL.md',
         'resources/boost/skills/moduark-development/references/adoption-and-levels.md',
