@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   focused adoption, diagnostics, debt, inspection, and upgrade guidance; the
   Skill ships with the Composer package and preserves Moduark's machine-readable
   exit, warning, incomplete-analysis, baseline, and suppression contracts.
+- Added an opt-in clean Laravel 12 / 13 installation gate that verifies Laravel
+  Boost discovery, complete Codex Skill synchronization, and idempotent repeated
+  installation from the current package checkout.
 
 ## [0.5.0-beta.1] - 2026-08-22
 

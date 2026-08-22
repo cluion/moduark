@@ -594,6 +594,7 @@ composer verify
 composer test:dependencies
 composer test:distribution
 composer test:installation
+composer test:installation -- --boost
 composer benchmark
 ```
 
@@ -631,6 +632,12 @@ commands without publishing configuration. It is intentionally separate from
 the default offline-friendly verification command. See
 [ADR-0013](docs/adr/0013-clean-laravel-installation-matrix.md) for the matrix
 contract and initial resolved versions.
+
+Add `--boost` to install Laravel Boost in the same disposable applications,
+select Codex and `cluion/moduark` through a deterministic `boost.json`, and run
+the skills-only installation twice. This gate verifies that the complete
+`moduark-development` Skill is copied to `.agents/skills/` without drift and
+that repeated installation is idempotent.
 
 After a version is published, pass an exact version to repeat the same Laravel
 acceptance against the Packagist dist instead of the local path repository. This

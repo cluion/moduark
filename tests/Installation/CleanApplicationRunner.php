@@ -21,6 +21,7 @@ final class CleanApplicationRunner
         string $packagePath,
         private readonly bool $keep = false,
         ?string $packageVersion = null,
+        private readonly bool $withBoost = false,
     ) {
         $resolved = realpath($packagePath);
 
@@ -108,6 +109,9 @@ final class CleanApplicationRunner
         echo $this->packageVersion === null
             ? "Package source: current checkout as cluion/moduark:dev-main\n"
             : "Package source: Packagist cluion/moduark:{$this->packageVersion}\n";
+        echo $this->withBoost
+            ? "Laravel Boost Skill installation: enabled\n"
+            : "Laravel Boost Skill installation: disabled\n";
 
         try {
             foreach ($majors as $major) {
@@ -207,6 +211,10 @@ final class CleanApplicationRunner
                 $commands,
                 "Package auto-discovery did not register [{$command}].",
             );
+        }
+
+        if ($this->withBoost) {
+            $this->installAndVerifyBoostSkill($application, $environment);
         }
 
         $versionOutput = $this->artisan($application, ['--version'], $environment);
@@ -406,6 +414,140 @@ final class CleanApplicationRunner
             'major' => $major,
             'version' => $version,
         ];
+    }
+
+    /** @param array<string, string> $environment */
+    private function installAndVerifyBoostSkill(string $application, array $environment): void
+    {
+        $source = $application.'/vendor/cluion/moduark/resources/boost/skills/moduark-development';
+        $installed = $application.'/.agents/skills/moduark-development';
+
+        $this->assertFileMissing(
+            $installed,
+            'Installing Moduark alone must not write a Codex repository Skill.',
+        );
+        $this->assertFileExists(
+            $source.'/SKILL.md',
+            'The installed Moduark package is missing its Laravel Boost Skill source.',
+        );
+
+        $this->command([
+            'composer',
+            'require',
+            '--dev',
+            'laravel/boost:^2.0',
+            '--no-interaction',
+            '--no-progress',
+            '--prefer-dist',
+        ], $application, $environment);
+
+        $boostConfig = json_encode([
+            'agents' => ['codex'],
+            'packages' => ['cluion/moduark'],
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR).PHP_EOL;
+
+        if (file_put_contents($application.'/boost.json', $boostConfig) === false) {
+            throw new RuntimeException('Unable to write the clean-install Boost configuration.');
+        }
+
+        $arguments = ['boost:install', '--skills', '--no-interaction'];
+        $this->artisan($application, $arguments, $environment);
+        $this->assertBoostSkillMatchesSource($source, $installed);
+
+        $firstConfig = file_get_contents($application.'/boost.json');
+        if ($firstConfig === false) {
+            throw new RuntimeException('Unable to read boost.json after Skill installation.');
+        }
+
+        $this->assertBoostConfig($firstConfig);
+        $firstHashes = $this->directoryFileHashes($installed);
+
+        $this->artisan($application, $arguments, $environment);
+        $this->assertBoostSkillMatchesSource($source, $installed);
+
+        $secondConfig = file_get_contents($application.'/boost.json');
+        if ($secondConfig === false) {
+            throw new RuntimeException('Unable to read boost.json after repeated Skill installation.');
+        }
+
+        if ($secondConfig !== $firstConfig) {
+            throw new RuntimeException('Repeated Boost Skill installation changed boost.json.');
+        }
+
+        if ($this->directoryFileHashes($installed) !== $firstHashes) {
+            throw new RuntimeException('Repeated Boost Skill installation changed the installed files.');
+        }
+    }
+
+    private function assertBoostSkillMatchesSource(string $source, string $installed): void
+    {
+        $sourceHashes = $this->directoryFileHashes($source);
+        $installedHashes = $this->directoryFileHashes($installed);
+
+        if ($installedHashes !== $sourceHashes) {
+            throw new RuntimeException(sprintf(
+                'Installed Boost Skill does not match its package source: expected %s, got %s.',
+                json_encode($sourceHashes, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES),
+                json_encode($installedHashes, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES),
+            ));
+        }
+    }
+
+    private function assertBoostConfig(string $contents): void
+    {
+        $config = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+
+        if (! is_array($config)) {
+            throw new RuntimeException('Boost configuration is not a JSON object.');
+        }
+
+        foreach (
+            [
+                'agents' => 'codex',
+                'packages' => 'cluion/moduark',
+                'skills' => 'moduark-development',
+            ] as $key => $expected
+        ) {
+            $values = $config[$key] ?? null;
+
+            if (! is_array($values) || ! in_array($expected, $values, true)) {
+                throw new RuntimeException("Boost configuration [{$key}] is missing [{$expected}].");
+            }
+        }
+    }
+
+    /** @return array<string, string> */
+    private function directoryFileHashes(string $directory): array
+    {
+        if (! is_dir($directory)) {
+            throw new RuntimeException("Expected Skill directory [{$directory}] does not exist.");
+        }
+
+        $prefix = str_replace('\\', '/', rtrim($directory, '/')).'/';
+        $hashes = [];
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS),
+        );
+
+        /** @var SplFileInfo $file */
+        foreach ($iterator as $file) {
+            if (! $file->isFile()) {
+                continue;
+            }
+
+            $path = str_replace('\\', '/', $file->getPathname());
+            $hash = hash_file('sha256', $file->getPathname());
+
+            if (! str_starts_with($path, $prefix) || $hash === false) {
+                throw new RuntimeException("Unable to hash Skill file [{$path}].");
+            }
+
+            $hashes[substr($path, strlen($prefix))] = $hash;
+        }
+
+        ksort($hashes, SORT_STRING);
+
+        return $hashes;
     }
 
     /**

@@ -6,7 +6,7 @@ use Tests\Installation\CleanApplicationRunner;
 
 require dirname(__DIR__, 2).'/vendor/autoload.php';
 
-$options = getopt('', ['laravel:', 'package:', 'keep', 'help']);
+$options = getopt('', ['laravel:', 'package:', 'boost', 'keep', 'help']);
 
 if ($options === false) {
     fwrite(STDERR, "Unable to parse installation test options.\n");
@@ -19,6 +19,7 @@ Usage: php tests/Installation/run.php [options]
 
   --laravel=12,13    Laravel majors to test
   --package=VERSION  Install one exact published Packagist version
+  --boost            Install Laravel Boost and verify the Codex Skill
   --keep             Preserve generated applications for inspection
 
 HELP;
@@ -31,13 +32,17 @@ try {
         dirname(__DIR__, 2),
         array_key_exists('keep', $options),
         $packageVersion,
+        array_key_exists('boost', $options),
     );
     $majors = CleanApplicationRunner::parseMajors($options['laravel'] ?? false);
     $results = $runner->run($majors);
 
-    echo $packageVersion === null
-        ? "\nClean current-checkout installation matrix passed:\n"
-        : "\nClean Packagist installation matrix passed for cluion/moduark:{$packageVersion}:\n";
+    $source = $packageVersion === null
+        ? 'current-checkout'
+        : "Packagist cluion/moduark:{$packageVersion}";
+    $boost = array_key_exists('boost', $options) ? ' with Laravel Boost' : '';
+
+    echo "\nClean {$source} installation matrix{$boost} passed:\n";
 
     foreach ($results as $result) {
         echo "- Laravel {$result['major']}: {$result['version']}\n";

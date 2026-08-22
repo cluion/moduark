@@ -69,7 +69,15 @@ rules:
   remain excluded.
 - Forward tests install Moduark into fresh Laravel 12 and 13 applications with
   Laravel Boost, confirm the discovered skill layout for selected agents, and
-  exercise representative Level adoption and diagnostic prompts.
+  prove repeated installation is idempotent.
+- Separate behavior reviews exercise representative Level adoption and
+  diagnostic prompts before the `0.6.x` line is accepted.
+
+The installation gate was exercised on 2026-08-22 against Laravel Framework
+12.67.0 and 13.26.1 with Laravel Boost 2.5.5. In both disposable applications,
+Boost discovered `moduark-development`, installed its complete source tree for
+Codex at `.agents/skills/moduark-development/`, and produced identical
+configuration and file hashes on a second skills-only installation.
 
 ## Consequences
 
@@ -77,5 +85,6 @@ rules:
   on the same version boundary.
 - Boost users can install the skill without a second Moduark-specific plugin;
   non-Boost users incur no runtime behavior or dependency.
-- The first slice validates packaging and instructions. Real agent behavior and
-  false-positive prompt evidence remain a separate forward-testing slice.
+- Packaging, instructions, and Boost-native installation now have automated
+  evidence. Real agent behavior and false-positive prompt evidence remain a
+  separate forward-testing slice.
