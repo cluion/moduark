@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-rc.1] - 2026-08-22
+
+This first 1.0 release candidate freezes the candidate Stable contract for
+Levels 0 through 2, keeps Level 3 in Preview, and packages the reviewed upgrade,
+security, contribution, Laravel Boost Skill, and release policies for public
+validation before `1.0.0`.
+
 ### Added
 
 - Added the candidate `1.0.0` Stable, Preview, and Internal contract boundary,
@@ -16,8 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   including reviewed `MOD-DEPENDENCY-002` pair-identity migration, cache rebuild,
   and baseline / suppression safety gates.
 - Added executable security support and contribution policies with a verified
-  private vulnerability reporting channel, current beta support matrix, real
-  repository commands, ADR thresholds, and corpus privacy safeguards.
+  private vulnerability reporting channel, current pre-release support matrix,
+  real repository commands, ADR thresholds, and corpus privacy safeguards.
 - Added a complete Level 3 adoption fixture covering Capability wiring, owned
   migrations, resolved and unresolved foreign keys, inline transactions, and
   all fourteen rules; the 1.0 go/no-go review keeps Level 3 in Preview pending
@@ -270,7 +277,8 @@ incomplete and are not part of this release contract.
 - Clean installation acceptance from release-tag checkouts by explicitly
   mapping the local path repository to `dev-main`.
 
-[Unreleased]: https://github.com/cluion/moduark/compare/v0.5.0-beta.1...HEAD
+[Unreleased]: https://github.com/cluion/moduark/compare/v1.0.0-rc.1...HEAD
+[1.0.0-rc.1]: https://github.com/cluion/moduark/compare/v0.5.0-beta.1...v1.0.0-rc.1
 [0.5.0-beta.1]: https://github.com/cluion/moduark/compare/v0.4.0-beta.1...v0.5.0-beta.1
 [0.4.0-beta.1]: https://github.com/cluion/moduark/compare/v0.3.0-beta.5...v0.4.0-beta.1
 [0.3.0-beta.5]: https://github.com/cluion/moduark/compare/v0.3.0-beta.4...v0.3.0-beta.5

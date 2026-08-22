@@ -90,6 +90,54 @@ final class ReleasePolicyContractTest extends TestCase
         }
     }
 
+    public function test_current_rc_preparation_documents_are_version_aligned(): void
+    {
+        foreach ([
+            'CHANGELOG.md',
+            'README.md',
+            'SECURITY.md',
+            'UPGRADING.md',
+            'docs/adoption.md',
+            'docs/stability.md',
+        ] as $path) {
+            self::assertStringContainsString('1.0.0-rc.1', $this->contents($path));
+        }
+
+        $changelog = $this->contents('CHANGELOG.md');
+        self::assertStringContainsString(
+            "## [Unreleased]\n\n## [1.0.0-rc.1]",
+            $changelog,
+        );
+        self::assertStringContainsString(
+            '[Unreleased]: https://github.com/cluion/moduark/compare/v1.0.0-rc.1...HEAD',
+            $changelog,
+        );
+        self::assertStringContainsString(
+            '[1.0.0-rc.1]: https://github.com/cluion/moduark/compare/v0.5.0-beta.1...v1.0.0-rc.1',
+            $changelog,
+        );
+
+        $installationDocs = '';
+        foreach (['README.md', 'docs/adoption.md'] as $path) {
+            $contents = $this->contents($path);
+            $installationDocs .= $contents;
+
+            self::assertStringContainsString(
+                'composer require cluion/moduark:1.0.0-rc.1',
+                $contents,
+            );
+        }
+
+        self::assertStringNotContainsString(
+            'composer require cluion/moduark:^0.5@beta',
+            $installationDocs,
+        );
+        self::assertStringNotContainsString(
+            'The `0.6.x` development line includes',
+            $installationDocs,
+        );
+    }
+
     private function contents(string $path): string
     {
         $contents = file_get_contents(dirname(__DIR__, 2).'/'.$path);

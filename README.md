@@ -4,10 +4,11 @@ Moduark is a Laravel-native modular architecture toolkit. It keeps Modules in a
 normal Laravel application while making their dependencies, lifecycle order,
 resources, and architecture boundaries executable and inspectable.
 
-> **Pre-release status:** `0.5.0-beta.1` guarantees complete Level 0 through
-> Level 3 presets and adds PHPStan/Larastan adoption guidance, brownfield
-> migration recipes, interactive graph examples, and real-project analyzer
-> hardening. The zero-configuration default remains Level 1.
+> **Pre-release status:** `1.0.0-rc.1` freezes the candidate Stable contract
+> for Levels 0 through 2 and keeps Level 3 in Preview. It includes the complete
+> Level 0 through Level 3 presets, Laravel Boost Agent Skill, upgrade and
+> support policies, and the existing adoption guidance. The zero-configuration
+> default remains Level 1.
 
 ## Requirements
 
@@ -17,14 +18,14 @@ resources, and architecture boundaries executable and inspectable.
 
 ## Installation
 
-Install the current beta from Packagist:
+Install the current release candidate from Packagist:
 
 ```bash
-composer require cluion/moduark:^0.5@beta
+composer require cluion/moduark:1.0.0-rc.1
 ```
 
-The package is pre-release software. Pin an exact beta version when an
-application requires fully repeatable pre-release upgrades.
+The package remains pre-release software. Keep the exact RC constraint so
+installations do not move to a later candidate without review.
 
 Laravel package discovery registers `Cluion\Moduark\ModuarkServiceProvider`.
 Configuration publishing is optional because package defaults are merged even
@@ -43,7 +44,7 @@ remains authoritative for the complete rule set.
 
 ## Laravel Boost Agent Skill
 
-The `0.6.x` development line includes a Laravel Boost-compatible
+The `1.0.0-rc.1` release candidate includes a Laravel Boost-compatible
 `moduark-development` Skill in this Composer package. Applications using Boost
 can run its installation flow after adding or updating Moduark:
 
@@ -60,11 +61,11 @@ upgrade verification. See
 
 ## Stability and Versioning
 
-The current beta remains pre-stable. Moduark now documents the candidate
-`1.0.0` compatibility boundary so applications can review it before the stable
-release: Levels 0 through 2 are planned as Stable, Level 3 remains an opt-in
-Preview, and lifecycle internals such as capability resolver and cache objects
-are not application extension points.
+The current RC remains pre-stable and freezes the candidate `1.0.0`
+compatibility boundary for validation before the stable release. Levels 0
+through 2 are classified as Stable, Level 3 remains an opt-in Preview, and
+lifecycle internals such as capability resolver and cache objects are not
+application extension points.
 
 See [Stability and Versioning](docs/stability.md) for the PHP, configuration,
 CLI, diagnostic, and machine-schema contracts, and
@@ -332,7 +333,7 @@ dependency is declared.
 The analyzer resolves named PHP class-like references from attributes, types,
 inheritance, interfaces, traits, catch clauses, construction, static access,
 class constants, and `instanceof`. An unused `use` statement, PHPDoc, and dynamic
-string references are not treated as observed dependencies in the current beta.
+string references are not treated as observed dependencies in the current RC.
 
 ## Laravel Resource Conventions
 
@@ -404,7 +405,8 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `module:graph [module] [--view=module\|capability\|combined] [--format=text\|mermaid]` | Render direct, Capability, or combined relationships and optionally select one neighborhood |
 | `module:inspect {module}` | Inspect one Module's identity, dependencies, providers, Capabilities, owned tables, and Public API convention |
 
-`module:check` exit codes are part of the candidate `1.0.0` stable contract:
+`module:check` exit codes are part of the RC-frozen candidate `1.0.0` Stable
+contract:
 
 | Exit | Meaning |
 |---:|---|
@@ -660,7 +662,7 @@ acceptance against the Packagist dist instead of the local path repository. This
 mode also verifies the installed archive layout:
 
 ```bash
-composer test:installation -- --package=0.5.0-beta.1
+composer test:installation -- --package=1.0.0-rc.1
 ```
 
 The GitHub Actions compatibility workflow runs PHPUnit on all four
@@ -687,8 +689,9 @@ contract.
 
 ## Current Scope
 
-The `v0.5.0-beta.1` release guarantees foundation plus complete Level 0 through
-Level 3 presets. Level 2 includes typed Capability metadata, descriptor-only
+The `v1.0.0-rc.1` release candidate freezes the candidate Stable contract for
+Levels 0 through 2 and retains the complete Level 3 preset as Preview. Level 2
+includes typed Capability metadata, descriptor-only
 provider resolution, lifecycle preflight, consumer-owned Port wiring,
 Capability contract validation, source-enforced Adapter boundaries,
 deterministic Capability and combined graphs, `module:inspect`, and the large

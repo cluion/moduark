@@ -279,14 +279,14 @@ files unchanged. See
 
 ## Adopt Level 2
 
-Level 2 became complete in `v0.2.0-beta.2`, and the current `0.5` beta retains
-its complete eight-rule preset: typed Capability metadata, provider preflight,
-runtime Port-to-Adapter wiring, Capability contracts, source-backed Adapter
-boundaries, Capability and combined graphs, and focused Module inspection.
-Install the current beta from Packagist before adopting this contract:
+Level 2 became complete in `v0.2.0-beta.2`, and `v1.0.0-rc.1` freezes its
+candidate Stable eight-rule preset: typed Capability metadata, provider
+preflight, runtime Port-to-Adapter wiring, Capability contracts, source-backed
+Adapter boundaries, Capability and combined graphs, and focused Module
+inspection. Install the exact RC from Packagist before adopting this contract:
 
 ```bash
-composer require cluion/moduark:^0.5@beta
+composer require cluion/moduark:1.0.0-rc.1
 ```
 
 For a concrete continuation of the `User` / `Order` example, including runtime
@@ -318,13 +318,14 @@ selected Module's resolved Capability provider, Port, Adapter, ServiceProviders,
 dependency status, explicit owned tables, current convention-based Public API,
 and explicit exports as separate reviewable rows.
 
-## Adopt Level 3 with the `0.5` Beta
+## Adopt Level 3 with the `1.0` RC
 
-`v0.5.0-beta.1` retains the complete Level 3 contract with fourteen implemented
-rules. Install the `0.5` beta from Packagist before adopting this contract:
+`v1.0.0-rc.1` retains the complete fourteen-rule Level 3 preset while its
+stability classification remains Preview. Install the exact RC from Packagist
+before adopting this contract:
 
 ```bash
-composer require cluion/moduark:^0.5@beta
+composer require cluion/moduark:1.0.0-rc.1
 ```
 
 For a staged `User` / `Order` migration with explicit rollback boundaries and

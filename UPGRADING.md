@@ -4,9 +4,15 @@ This guide covers application-owned changes required when upgrading Moduark.
 Read the complete changelog between the installed and target versions as well
 as the section below for the target release.
 
-> **Current status:** `1.0.0` has not been published. The `1.0.0` section is a
-> candidate migration contract for the current development line, not an
-> instruction to install a release that does not exist.
+> **Current status:** `1.0.0-rc.1` is the first 1.0 release candidate. The
+> `1.0.0` stable release has not been published; this RC freezes the candidate
+> migration contract for validation before stable.
+
+Install the RC with an exact pre-release constraint:
+
+```bash
+composer require cluion/moduark:1.0.0-rc.1
+```
 
 ## Upgrade Safety Checklist
 

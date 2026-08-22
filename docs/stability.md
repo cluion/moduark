@@ -1,9 +1,9 @@
 # Stability and Versioning
 
-This document defines the candidate compatibility contract for Moduark
-`1.0.0`. It becomes the stable-release policy when `1.0.0` is published. The
-current beta line remains pre-stable and may still make documented breaking
-changes before that release.
+This document defines the candidate compatibility contract frozen by Moduark
+`1.0.0-rc.1`. It becomes the stable-release policy when `1.0.0` is published.
+The RC remains pre-stable; a discovered contract defect must be documented with
+its upgrade impact and validated in a later RC before the stable release.
 
 ## Contract Categories
 

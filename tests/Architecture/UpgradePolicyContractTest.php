@@ -13,7 +13,9 @@ final class UpgradePolicyContractTest extends TestCase
         $guide = $this->contents('UPGRADING.md');
 
         foreach ([
-            '`1.0.0` has not been published',
+            '`1.0.0-rc.1` is the first 1.0 release candidate',
+            '`1.0.0` stable release has not been published',
+            'composer require cluion/moduark:1.0.0-rc.1',
             'php artisan module:check --format=json',
             'php artisan module:check --show-suppressions',
             'exit `2`, `complete: false`, or `status: incomplete`',
