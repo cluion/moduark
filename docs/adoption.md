@@ -34,6 +34,51 @@ Modules/User/app/Events/UserCreated.php
 Modules/User/app/Services/InternalUserService.php
 ```
 
+nwidart generates a `composer.json` inside each Module, but those mappings are
+not loaded automatically. Configure nwidart's Composer merge plugin in the
+application root `composer.json`:
+
+```json
+{
+    "extra": {
+        "merge-plugin": {
+            "include": [
+                "Modules/*/composer.json"
+            ]
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "wikimedia/composer-merge-plugin": true
+        }
+    }
+}
+```
+
+Preserve any existing entries in `extra` and `config`; the fragment shows only
+the keys relevant to Module autoloading. An equivalent explicit root mapping,
+such as `"Modules\\User\\": "Modules/User/app/"`, is also valid. After
+creating a Module or changing either form of mapping, rebuild Composer's loader:
+
+```bash
+composer dump-autoload
+```
+
+Create the nwidart Module and its Laravel classes with nwidart-owned commands:
+
+```bash
+php artisan module:make User
+php artisan module:make-model Profile User
+php artisan module:make-controller ProfileController User
+```
+
+Then add the minimal Moduark entry class at
+`Modules/User/app/UserModule.php`. The `moduark:make-module` and
+`moduark:make` workflow documented below targets Modules inside Laravel's
+application source root. `moduark:make` deliberately rejects nwidart's default
+external `Modules/` root rather than delegating a Laravel Maker across an
+unowned path; continue using nwidart's `module:make-*` family there.
+
 `Contracts`, `Data`, and `Events` are Public API conventions relative to the
 entry class. `Services` and other sibling implementation folders remain
 internal. Moduark does not replace nwidart's Module provider or `module.json`.

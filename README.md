@@ -41,6 +41,18 @@ discovers entry classes at either `<Module>/<Module>Module.php` or
 php artisan vendor:publish --tag=moduark-config
 ```
 
+nwidart-generated Module classes must already be Composer-autoloadable. Follow
+nwidart's installation guidance by loading `Modules/*/composer.json` through
+its Composer merge plugin, or provide equivalent explicit per-Module PSR-4
+mappings, then run `composer dump-autoload`.
+
+For nwidart's default external `Modules/` root, use nwidart's `module:make` and
+`module:make-*` commands to create Modules and their Laravel classes, and place
+the Moduark entry at `Modules/<Name>/app/<Name>Module.php`. Moduark's Maker
+commands target Modules inside Laravel's application source root; in
+particular, `moduark:make` intentionally rejects an external Module path. See
+[Adopting Moduark](docs/adoption.md) for the complete setup.
+
 See [ADR-0047](docs/adr/0047-nwidart-interoperability.md) and the
 [upgrade guide](UPGRADING.md) for the RC.1 namespace migration.
 
