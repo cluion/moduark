@@ -1,9 +1,10 @@
 # Stability and Versioning
 
-This document defines the candidate compatibility contract frozen by Moduark
-`1.0.0-rc.1`. It becomes the stable-release policy when `1.0.0` is published.
-The RC remains pre-stable; a discovered contract defect must be documented with
-its upgrade impact and validated in a later RC before the stable release.
+This document defines the candidate compatibility contract for Moduark 1.0.
+`1.0.0-rc.1` exposed an interoperability defect in its command and
+configuration identities; `1.0.0-rc.2` adopts the revised boundary documented
+by ADR-0047. It becomes the stable-release policy only when `1.0.0` is
+published.
 
 ## Contract Categories
 
@@ -77,11 +78,11 @@ does not promote an implementation type to Stable.
 
 These configuration identities are Stable:
 
-- `modules.path`;
-- `modules.architecture.level`;
-- `modules.architecture.baseline`;
-- `modules.architecture.suppressions`;
-- `modules.architecture.rules`.
+- `moduark.path`;
+- `moduark.architecture.level`;
+- `moduark.architecture.baseline`;
+- `moduark.architecture.suppressions`;
+- `moduark.architecture.rules`.
 
 Level numbers and labels remain `0` Organization, `1` Modular, `2` Decoupled,
 and `3` Isolated. Published rule IDs remain stable machine identities. Level 0
@@ -97,15 +98,15 @@ rule semantics.
 The following commands and their documented arguments and options are Stable:
 
 ```text
-make:module {name}
-module:make {module} {type} {name} [--force] [--invokable] [--resource] [--api]
-module:list
-module:inspect {module}
-module:graph [{module}] [--view=module] [--format=text]
-module:check [--level=] [--format=text] [--show-suppressions]
-module:baseline [--level=] [--force] [--prune]
-module:cache
-module:clear
+moduark:make-module {name}
+moduark:make {module} {type} {name} [--force] [--invokable] [--resource] [--api]
+moduark:list
+moduark:inspect {module}
+moduark:graph [{module}] [--view=module] [--format=text]
+moduark:check [--level=] [--format=text] [--show-suppressions]
+moduark:baseline [--level=] [--force] [--prune]
+moduark:cache
+moduark:clear
 ```
 
 Architecture checks use these process exit codes:
@@ -121,7 +122,7 @@ identities instead of matching prose.
 
 ## Machine-Readable and Persistent Contracts
 
-`module:check --format=json` schema version `1` has these required top-level
+`moduark:check --format=json` schema version `1` has these required top-level
 fields: `schema_version`, `status`, `complete`, `exit_code`, `architecture`,
 `summary`, `suppressions`, `baseline`, `unavailable_rules`, `results`, and
 `error`. The status vocabulary is `passed`, `violations_found`, and

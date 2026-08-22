@@ -21,7 +21,7 @@ final class ModuleBaselineCommand extends Command
     /**
      * @var string
      */
-    protected $signature = 'module:baseline
+    protected $signature = 'moduark:baseline
         {--level= : Temporarily use an architecture Level from 0 to 3}
         {--force : Replace an existing baseline with every current violation}
         {--prune : Only remove stale violations from an existing baseline}';
@@ -59,7 +59,7 @@ final class ModuleBaselineCommand extends Command
         $path = $this->configuration->baselinePath();
 
         if ($path === null) {
-            $this->components->error('The modules.architecture.baseline path is not configured.');
+            $this->components->error('The moduark.architecture.baseline path is not configured.');
 
             return ExitPolicy::TOOL_ERROR;
         }

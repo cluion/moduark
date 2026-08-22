@@ -76,13 +76,13 @@ final class ModuleBaselineCommandTest extends TestCase
 
     public function test_command_creates_a_baseline_and_check_reports_the_match(): void
     {
-        $this->command('module:baseline')
+        $this->command('moduark:baseline')
             ->expectsOutputToContain('Created architecture baseline with 1 violation')
             ->assertSuccessful();
 
         self::assertFileExists($this->baselinePath);
 
-        $this->command('module:check')
+        $this->command('moduark:check')
             ->expectsOutputToContain('Baseline: 1 existing violation matched')
             ->expectsOutputToContain('Architecture check passed: 1 rule evaluated')
             ->assertSuccessful();
@@ -90,9 +90,9 @@ final class ModuleBaselineCommandTest extends TestCase
 
     public function test_existing_baseline_requires_force_to_capture_current_debt(): void
     {
-        $this->command('module:baseline')->assertSuccessful();
+        $this->command('moduark:baseline')->assertSuccessful();
 
-        $this->command('module:baseline')
+        $this->command('moduark:baseline')
             ->expectsOutputToContain('already exists')
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
 
@@ -101,7 +101,7 @@ final class ModuleBaselineCommandTest extends TestCase
             $this->violation('Billing', 'Order'),
         );
 
-        $this->command('module:baseline --force')
+        $this->command('moduark:baseline --force')
             ->expectsOutputToContain('Replaced architecture baseline with 2 violations')
             ->assertSuccessful();
     }
@@ -112,13 +112,13 @@ final class ModuleBaselineCommandTest extends TestCase
             $this->violation('Order', 'User'),
             $this->violation('User', 'Order'),
         );
-        $this->command('module:baseline')->assertSuccessful();
+        $this->command('moduark:baseline')->assertSuccessful();
         $this->raw->report = $this->report(
             $this->violation('Order', 'User'),
             $this->violation('Billing', 'Order'),
         );
 
-        $this->command('module:baseline --prune')
+        $this->command('moduark:baseline --prune')
             ->expectsOutputToContain('Pruned 1 stale baseline violation')
             ->assertSuccessful();
 
@@ -131,9 +131,9 @@ final class ModuleBaselineCommandTest extends TestCase
 
     public function test_json_and_github_outputs_include_baseline_audit_metadata(): void
     {
-        $this->command('module:baseline')->assertSuccessful();
+        $this->command('moduark:baseline')->assertSuccessful();
 
-        [$jsonExitCode, $json] = $this->callCommand('module:check', ['--format' => 'json']);
+        [$jsonExitCode, $json] = $this->callCommand('moduark:check', ['--format' => 'json']);
         $payload = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 
         self::assertSame(ExitPolicy::SUCCESS, $jsonExitCode);
@@ -146,7 +146,7 @@ final class ModuleBaselineCommandTest extends TestCase
             'exceeded' => 0,
         ], $payload['baseline']);
 
-        [$githubExitCode, $github] = $this->callCommand('module:check', ['--format' => 'github']);
+        [$githubExitCode, $github] = $this->callCommand('moduark:check', ['--format' => 'github']);
 
         self::assertSame(ExitPolicy::SUCCESS, $githubExitCode);
         self::assertStringContainsString(
@@ -159,7 +159,7 @@ final class ModuleBaselineCommandTest extends TestCase
     {
         file_put_contents($this->baselinePath, '{not-json');
 
-        $this->command('module:check')
+        $this->command('moduark:check')
             ->expectsOutputToContain('Architecture analysis could not be completed: Architecture baseline')
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }
@@ -173,7 +173,7 @@ final class ModuleBaselineCommandTest extends TestCase
             [RuleId::DatabaseOwnership],
         );
 
-        $this->command('module:baseline')
+        $this->command('moduark:baseline')
             ->expectsOutputToContain('Architecture analysis is incomplete; no baseline was written.')
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
 

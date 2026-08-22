@@ -24,7 +24,7 @@ final class ModuleCheckCommand extends Command
     /**
      * @var string
      */
-    protected $signature = 'module:check
+    protected $signature = 'moduark:check
         {--level= : Temporarily use an architecture Level from 0 to 3}
         {--format=text : Output format (text, json, or github)}
         {--show-suppressions : Show every configured suppression and its audit status}';
@@ -196,7 +196,7 @@ final class ModuleCheckCommand extends Command
 
         if ($baseline->stale() > 0) {
             $this->components->warn(sprintf(
-                '%d stale baseline violation%s can be removed with module:baseline --prune.',
+                '%d stale baseline violation%s can be removed with moduark:baseline --prune.',
                 $baseline->stale(),
                 $baseline->stale() === 1 ? '' : 's',
             ));

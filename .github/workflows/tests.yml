@@ -84,6 +84,10 @@ jobs:
         if: matrix.dependencies == 'highest'
         run: composer test:installation -- --laravel=${{ matrix.major }}
 
+      - name: Run Laravel 13 nwidart interoperability installation
+        if: matrix.major == 13 && matrix.dependencies == 'highest'
+        run: composer test:interop
+
   static-analysis:
     name: Static analysis
     runs-on: ubuntu-latest

@@ -17,7 +17,7 @@ At the end of the recipe:
 - cross-owner foreign keys and transactions have explicit project decisions;
 - every non-Module-entry cross-Module class-like reference targets an explicit
   provider export;
-- `module:check --level=3` evaluates all fourteen rules and exits `0`;
+- `moduark:check --level=3` evaluates all fourteen rules and exits `0`;
 - any remaining warnings are understood rather than mistaken for proof;
 - the shared configuration and CI gate both use Level 3.
 
@@ -71,10 +71,10 @@ composer require cluion/moduark:^0.5@beta
 Confirm Level 2, then run a temporary Level 3 probe:
 
 ```bash
-php artisan module:check
-php artisan module:check --level=3
-php artisan module:inspect User
-php artisan module:inspect Order
+php artisan moduark:check
+php artisan moduark:check --level=3
+php artisan moduark:inspect User
+php artisan moduark:inspect Order
 ```
 
 The configured Level 2 command must exit `0`. Record the Level 3 diagnostics by
@@ -162,9 +162,9 @@ public function tables(): array
 Acceptance:
 
 ```bash
-php artisan module:inspect User
-php artisan module:inspect Order
-php artisan module:cache
+php artisan moduark:inspect User
+php artisan moduark:inspect Order
+php artisan moduark:cache
 ```
 
 Inspection must show each table once. Conflicting ownership or malformed names
@@ -411,8 +411,8 @@ class public. `MOD-EXPORT-001` reports an unexported reference,
 Rebuild deployable metadata and inspect both surfaces:
 
 ```bash
-php artisan module:cache
-php artisan module:inspect User
+php artisan moduark:cache
+php artisan moduark:inspect User
 ```
 
 `Public API (convention)` and `Explicit exports` must remain separate reviewable
@@ -423,10 +423,10 @@ rows.
 Run the complete Level 3 contract after every blocking issue is repaired:
 
 ```bash
-php artisan module:check --level=3
-php artisan module:graph --view=combined
-php artisan module:inspect User
-php artisan module:inspect Order
+php artisan moduark:check --level=3
+php artisan moduark:graph --view=combined
+php artisan moduark:inspect User
+php artisan moduark:inspect Order
 ```
 
 The command must evaluate fourteen rules and exit `0`. Exit `0` may include
@@ -438,16 +438,16 @@ same change, create a reviewed Level 3 baseline only after ownership is
 understood:
 
 ```bash
-php artisan module:baseline --level=3
+php artisan moduark:baseline --level=3
 git add moduark-baseline.json
-php artisan module:check --level=3
+php artisan moduark:check --level=3
 ```
 
 Use a narrow suppression for one intentional exception, and prune debt as it is
 repaired:
 
 ```bash
-php artisan module:baseline --prune
+php artisan moduark:baseline --prune
 ```
 
 Do not baseline invalid metadata, exit `2`, unresolved ownership decisions, or
@@ -472,8 +472,8 @@ exits `0`:
 Run application and deployment gates:
 
 ```bash
-php artisan module:check
-php artisan module:cache
+php artisan moduark:check
+php artisan moduark:cache
 php artisan config:cache
 php artisan route:cache
 php artisan migrate:status --env=testing
@@ -484,7 +484,7 @@ Keep CI on the shared default:
 
 ```yaml
 - name: Check Module architecture
-  run: php artisan module:check --format=github
+  run: php artisan moduark:check --format=github
 ```
 
 CI must preserve exit `1` and exit `2` as failures while allowing reviewed
@@ -527,7 +527,7 @@ activation into one irreversible deployment.
 - [ ] Module entry classes are not redundantly listed in `exports()`.
 - [ ] Metadata and configuration caches rebuild successfully.
 - [ ] Any baseline or suppression is narrow, reviewed, and committed.
-- [ ] `module:check --level=3` evaluates fourteen rules and exits `0`.
+- [ ] `moduark:check --level=3` evaluates fourteen rules and exits `0`.
 - [ ] Remaining warnings are documented rather than described as safe.
 - [ ] Shared configuration uses Level 3 only after the probe passes.
 - [ ] CI preserves exit `1` and exit `2` as failures.

@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-rc.2] - 2026-08-22
+
+### Added
+
+- Added a Laravel 13 + `nwidart/laravel-modules` interoperability fixture that
+  verifies package installation, command ownership, configuration publishing,
+  `Modules/*/app` discovery, Public API boundaries, architecture checks,
+  Module caching, and Laravel optimization lifecycle behavior.
+- Added discovery support for both `<Module>/<Module>Module.php` and
+  `<Module>/app/<Module>Module.php`; convention-based Public API folders remain
+  relative to the selected entry class source root.
+
+### Changed
+
+- Namespaced every Moduark Artisan command below `moduark:*` and moved the
+  package configuration from `config/modules.php` / `modules.*` to
+  `config/moduark.php` / `moduark.*` so Moduark can coexist with packages that
+  own the generic Module command and configuration namespaces.
+
+### Fixed
+
+- Fixed false-green interoperability checks that could unknowingly execute a
+  third-party `module:*` command or overwrite another package's
+  `config/modules.php`.
+- Updated the 1.0 RC integration guidance for the separately published
+  `moduark-phpstan` `v0.2.0-beta.1`, whose Composer constraint, independent
+  configuration input, nwidart source-root handling, and Laravel 12 / 13
+  compatibility matrix now match this candidate.
+
 ## [1.0.0-rc.1] - 2026-08-22
 
 This first 1.0 release candidate freezes the candidate Stable contract for
@@ -277,7 +306,8 @@ incomplete and are not part of this release contract.
 - Clean installation acceptance from release-tag checkouts by explicitly
   mapping the local path repository to `dev-main`.
 
-[Unreleased]: https://github.com/cluion/moduark/compare/v1.0.0-rc.1...HEAD
+[Unreleased]: https://github.com/cluion/moduark/compare/v1.0.0-rc.2...HEAD
+[1.0.0-rc.2]: https://github.com/cluion/moduark/compare/v1.0.0-rc.1...v1.0.0-rc.2
 [1.0.0-rc.1]: https://github.com/cluion/moduark/compare/v0.5.0-beta.1...v1.0.0-rc.1
 [0.5.0-beta.1]: https://github.com/cluion/moduark/compare/v0.4.0-beta.1...v0.5.0-beta.1
 [0.4.0-beta.1]: https://github.com/cluion/moduark/compare/v0.3.0-beta.5...v0.4.0-beta.1

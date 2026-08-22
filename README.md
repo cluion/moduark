@@ -4,11 +4,10 @@ Moduark is a Laravel-native modular architecture toolkit. It keeps Modules in a
 normal Laravel application while making their dependencies, lifecycle order,
 resources, and architecture boundaries executable and inspectable.
 
-> **Pre-release status:** `1.0.0-rc.1` freezes the candidate Stable contract
-> for Levels 0 through 2 and keeps Level 3 in Preview. It includes the complete
-> Level 0 through Level 3 presets, Laravel Boost Agent Skill, upgrade and
-> support policies, and the existing adoption guidance. The zero-configuration
-> default remains Level 1.
+> **Pre-release status:** `1.0.0-rc.2` is the current release candidate. It
+> revises the RC.1 command and configuration identities for nwidart
+> interoperability before stable. Levels 0 through 2 remain candidate Stable,
+> Level 3 remains Preview, and the zero-configuration default remains Level 1.
 
 ## Requirements
 
@@ -21,7 +20,7 @@ resources, and architecture boundaries executable and inspectable.
 Install the current release candidate from Packagist:
 
 ```bash
-composer require cluion/moduark:1.0.0-rc.1
+composer require cluion/moduark:1.0.0-rc.2
 ```
 
 The package remains pre-release software. Keep the exact RC constraint so
@@ -29,22 +28,38 @@ installations do not move to a later candidate without review.
 
 Laravel package discovery registers `Cluion\Moduark\ModuarkServiceProvider`.
 Configuration publishing is optional because package defaults are merged even
-when `config/modules.php` does not exist in the application.
+when `config/moduark.php` does not exist in the application.
 
-For PHPStan or Larastan diagnostics, install the optional development-only
-companion package and follow the loading and configuration guide:
+When `nwidart/laravel-modules` is installed, Moduark keeps nwidart's
+`module:*` commands and `config/modules.php` untouched. A `null` `moduark.path`
+follows nwidart's configured Module root when that package is present and uses
+`app/Modules` otherwise; set a non-empty path to override auto-detection. Moduark
+discovers entry classes at either `<Module>/<Module>Module.php` or
+`<Module>/app/<Module>Module.php`. Publish Moduark settings independently with:
 
 ```bash
-composer require --dev cluion/moduark-phpstan:^0.1@beta
+php artisan vendor:publish --tag=moduark-config
+```
+
+See [ADR-0047](docs/adr/0047-nwidart-interoperability.md) and the
+[upgrade guide](UPGRADING.md) for the RC.1 namespace migration.
+
+The optional `cluion/moduark-phpstan` `v0.2.0-beta.1` companion supports the
+Moduark `^1.0@RC` line, defaults to `config/moduark.php`, and understands both
+classic and nwidart `Modules/*/app` source roots. Install it as a development
+dependency:
+
+```bash
+composer require --dev cluion/moduark-phpstan:^0.2@beta
 ```
 
 See [PHPStan and Larastan Integration](docs/phpstan-integration.md). The
-companion extension currently covers `internal_api_access`; `module:check`
-remains authoritative for the complete rule set.
+companion extension covers only `internal_api_access`; `moduark:check` remains
+authoritative for the complete rule set.
 
 ## Laravel Boost Agent Skill
 
-The `1.0.0-rc.1` release candidate includes a Laravel Boost-compatible
+The `1.0.0-rc.2` release candidate includes a Laravel Boost-compatible
 `moduark-development` Skill in this Composer package. Applications using Boost
 can run its installation flow after adding or updating Moduark:
 
@@ -61,11 +76,11 @@ upgrade verification. See
 
 ## Stability and Versioning
 
-The current RC remains pre-stable and freezes the candidate `1.0.0`
-compatibility boundary for validation before the stable release. Levels 0
-through 2 are classified as Stable, Level 3 remains an opt-in Preview, and
-lifecycle internals such as capability resolver and cache objects are not
-application extension points.
+The release line remains pre-stable. A real-package interoperability defect in
+RC.1 requires reviewed command and configuration namespace changes in another
+RC before stable. Levels 0 through 2 are classified as candidate Stable, Level
+3 remains an opt-in Preview, and lifecycle internals such as capability
+resolver and cache objects are not application extension points.
 
 See [Stability and Versioning](docs/stability.md) for the PHP, configuration,
 CLI, diagnostic, and machine-schema contracts, and
@@ -80,7 +95,7 @@ application-owned architecture debt are reviewed rather than rewritten.
 Create the smallest valid Module:
 
 ```bash
-php artisan make:module User
+php artisan moduark:make-module User
 ```
 
 This creates one file, `app/Modules/User/UserModule.php`:
@@ -103,10 +118,10 @@ Generate classes inside an existing Module through Moduark's single Maker entry
 point:
 
 ```bash
-php artisan module:make User model Profile
-php artisan module:make User controller ProfileController
-php artisan module:make User controller ProfileController --invokable
-php artisan module:make User controller ProfileController --resource --api
+php artisan moduark:make User model Profile
+php artisan moduark:make User controller ProfileController
+php artisan moduark:make User controller ProfileController --invokable
+php artisan moduark:make User controller ProfileController --resource --api
 ```
 
 Models are generated below `Models/`; controllers are generated below
@@ -126,17 +141,17 @@ into Laravel or third-party `make:*` commands. See
 Inspect the discovered architecture:
 
 ```bash
-php artisan module:list
-php artisan module:check
-php artisan module:check --format=json
-php artisan module:check --format=github
-php artisan module:graph
-php artisan module:graph --format=mermaid
-php artisan module:graph --view=capability
-php artisan module:graph --view=capability --format=mermaid
-php artisan module:graph --view=combined
-php artisan module:inspect Order
-php artisan module:cache
+php artisan moduark:list
+php artisan moduark:check
+php artisan moduark:check --format=json
+php artisan moduark:check --format=github
+php artisan moduark:graph
+php artisan moduark:graph --format=mermaid
+php artisan moduark:graph --view=capability
+php artisan moduark:graph --view=capability --format=mermaid
+php artisan moduark:graph --view=combined
+php artisan moduark:inspect Order
+php artisan moduark:cache
 ```
 
 The default configuration uses Level 1, so a successful check evaluates six
@@ -384,8 +399,8 @@ guarantee, while enabling an unavailable rule makes the analysis incomplete.
 `--level` changes one command run without changing configuration:
 
 ```bash
-php artisan module:check --level=0
-php artisan module:check --level=1
+php artisan moduark:check --level=0
+php artisan moduark:check --level=1
 ```
 
 See [Architecture Levels](docs/architecture-levels.md) for the complete preset
@@ -395,17 +410,17 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 
 | Command | Current contract |
 |---|---|
-| `make:module {name}` | Create one minimal, non-overwriting Module entry class |
-| `module:make {module} {type} {name}` | Generate a model or controller inside an existing application Module |
-| `module:baseline [--level=0..3] [--force] [--prune]` | Adopt current violations explicitly or safely remove stale baseline debt |
-| `module:cache` | Cache deterministic Module discovery and typed metadata |
-| `module:clear` | Remove cached Module metadata and incremental source analysis |
-| `module:list` | List discovered Modules in deterministic order |
-| `module:check [--level=0..3] [--format=text\|json\|github] [--show-suppressions]` | Run the effective architecture rules, audit suppressions, and optionally emit JSON or GitHub Actions annotations |
-| `module:graph [module] [--view=module\|capability\|combined] [--format=text\|mermaid]` | Render direct, Capability, or combined relationships and optionally select one neighborhood |
-| `module:inspect {module}` | Inspect one Module's identity, dependencies, providers, Capabilities, owned tables, and Public API convention |
+| `moduark:make-module {name}` | Create one minimal, non-overwriting Module entry class |
+| `moduark:make {module} {type} {name}` | Generate a model or controller inside an existing application Module |
+| `moduark:baseline [--level=0..3] [--force] [--prune]` | Adopt current violations explicitly or safely remove stale baseline debt |
+| `moduark:cache` | Cache deterministic Module discovery and typed metadata |
+| `moduark:clear` | Remove cached Module metadata and incremental source analysis |
+| `moduark:list` | List discovered Modules in deterministic order |
+| `moduark:check [--level=0..3] [--format=text\|json\|github] [--show-suppressions]` | Run the effective architecture rules, audit suppressions, and optionally emit JSON or GitHub Actions annotations |
+| `moduark:graph [module] [--view=module\|capability\|combined] [--format=text\|mermaid]` | Render direct, Capability, or combined relationships and optionally select one neighborhood |
+| `moduark:inspect {module}` | Inspect one Module's identity, dependencies, providers, Capabilities, owned tables, and Public API convention |
 
-`module:check` exit codes are part of the RC-frozen candidate `1.0.0` Stable
+`moduark:check` exit codes are part of the candidate `1.0.0` Stable
 contract:
 
 | Exit | Meaning |
@@ -418,8 +433,8 @@ Use JSON when another tool needs the complete result without parsing terminal
 formatting. This option is included in `v0.3.0-beta.1`:
 
 ```bash
-php artisan module:check --format=json
-php artisan module:check --level=2 --format=json
+php artisan moduark:check --format=json
+php artisan moduark:check --level=2 --format=json
 ```
 
 Schema version `1` includes `status`, `complete`, `exit_code`, effective
@@ -435,7 +450,7 @@ file and line while preserving the same exit-code contract:
 
 ```yaml
 - name: Check Module architecture
-  run: php artisan module:check --format=github
+  run: php artisan moduark:check --format=github
 ```
 
 Errors and warnings become workflow annotations; a clean run emits one notice.
@@ -472,7 +487,7 @@ Normal text output summarizes suppression debt. Audit every entry and its reason
 with:
 
 ```bash
-php artisan module:check --show-suppressions
+php artisan moduark:check --show-suppressions
 ```
 
 An entry is `matched`, `stale` when its evaluated rule no longer produces a
@@ -488,12 +503,12 @@ For a brownfield application, first review the unsuppressed violations, then
 create one repository-visible baseline:
 
 ```bash
-php artisan module:check --level=1
-php artisan module:baseline --level=1
+php artisan moduark:check --level=1
+php artisan moduark:baseline --level=1
 git add moduark-baseline.json
 ```
 
-Normal `module:check` runs automatically apply the configured baseline. The
+Normal `moduark:check` runs automatically apply the configured baseline. The
 identity excludes diagnostic wording and line number, but retains rule, code,
 severity, file, Module endpoints, and symbol. If the number of matching current
 violations grows beyond the recorded count, the whole group is reported so a
@@ -502,7 +517,7 @@ new occurrence cannot be guessed away.
 Routine cleanup is one-way and cannot adopt new debt:
 
 ```bash
-php artisan module:baseline --prune
+php artisan moduark:baseline --prune
 ```
 
 The command refuses to overwrite an existing baseline by default. Use
@@ -521,23 +536,23 @@ The graph command defaults to direct Module dependencies. The Capability view
 renders typed `requires` and `provides` edges:
 
 ```bash
-php artisan module:graph --view=capability
-php artisan module:graph Order --view=capability
-php artisan module:graph --view=capability --format=mermaid
-php artisan module:graph --view=combined
-php artisan module:graph Order --view=combined --format=mermaid
+php artisan moduark:graph --view=capability
+php artisan moduark:graph Order --view=capability
+php artisan moduark:graph --view=capability --format=mermaid
+php artisan moduark:graph --view=combined
+php artisan moduark:graph Order --view=combined --format=mermaid
 ```
 
 Selecting a Module in the Capability view retains its connected Capabilities,
 providers, and other consumers so the relationship remains complete. The
 combined view overlays labeled `depends`, `requires`, and `provides` edges and
 uses the union of direct and Capability neighborhoods. JSON graph output remains
-later work. These views are included in `v0.2.0-beta.2`. `module:check` JSON and
+later work. These views are included in `v0.2.0-beta.2`. `moduark:check` JSON and
 GitHub Actions annotations are included in `v0.3.0-beta.1`; inline suppressions
 are intentionally replaced by the reviewable external suppression manifest.
 Per-Module check filtering remains later work.
 
-Use `module:inspect Order` when one Module needs more detail than the graph. It
+Use `moduark:inspect Order` when one Module needs more detail than the graph. It
 shows the effective architecture level, discovered or missing direct
 dependencies, Module ServiceProviders, each required Capability's resolved
 provider, consumer Port and Adapter, provided Capabilities, explicit owned
@@ -548,7 +563,7 @@ separate so Level 3 narrowing is directly reviewable.
 Application bootstrap happens before Artisan invokes a command. A configuration,
 discovery, metadata, or runtime Capability-resolution exception raised during
 bootstrap may therefore be rendered by Laravel itself rather than by
-`module:check`'s exit-code renderer.
+`moduark:check`'s exit-code renderer.
 
 ## Module Cache
 
@@ -556,7 +571,7 @@ For deployment, cache Module discovery and typed metadata directly or through
 Laravel's optimization command:
 
 ```bash
-php artisan module:cache
+php artisan moduark:cache
 # or
 php artisan optimize
 ```
@@ -574,7 +589,7 @@ Rebuild the cache after adding, removing, or moving a Module, or after changing
 Clear it to return to fresh discovery:
 
 ```bash
-php artisan module:clear
+php artisan moduark:clear
 # or
 php artisan optimize:clear
 ```
@@ -587,7 +602,7 @@ in `v0.3.0-beta.2`.
 
 ## Incremental Source Analysis
 
-When an enabled rule needs the PHP source index, `module:check` stores an
+When an enabled rule needs the PHP source index, `moduark:check` stores an
 internal per-file analysis manifest at `bootstrap/cache/moduark-analysis.php`.
 Every run still reads each current Module PHP file and computes its SHA-256
 content hash. Only entries with the same content hash, Module owner, and cache
@@ -599,8 +614,8 @@ Changed files are parsed again, removed files are pruned, and a moved file is a
 new cache entry. An unknown, malformed, or semantically invalid cache falls back
 to a complete cold analysis. A failed analysis never replaces the previous
 manifest, and an unwritable cache cannot turn a complete fresh result into a
-tool error. `module:clear` and `optimize:clear` remove both the Module metadata
-cache and this source-analysis cache. `module:cache` intentionally does not
+tool error. `moduark:clear` and `optimize:clear` remove both the Module metadata
+cache and this source-analysis cache. `moduark:cache` intentionally does not
 pre-parse application source; the first source-enabled check creates the
 incremental manifest. See
 [ADR-0033](docs/adr/0033-incremental-source-analysis.md).
@@ -628,7 +643,7 @@ comparison.
 The Level 2 acceptance fixture models eight business Modules, five shared
 Capabilities, and twelve consumer-owned Port/Adapter bindings. It proves all
 eight Level 2 rules, runtime container composition, combined graph output, and
-`module:inspect` against one connected architecture. See
+`moduark:inspect` against one connected architecture. See
 [ADR-0026](docs/adr/0026-large-level-two-fixture.md).
 
 `composer test:distribution` builds the repository's Git archive and verifies
@@ -662,7 +677,7 @@ acceptance against the Packagist dist instead of the local path repository. This
 mode also verifies the installed archive layout:
 
 ```bash
-composer test:installation -- --package=1.0.0-rc.1
+composer test:installation -- --package=1.0.0-rc.2
 ```
 
 The GitHub Actions compatibility workflow runs PHPUnit on all four
@@ -689,12 +704,13 @@ contract.
 
 ## Current Scope
 
-The `v1.0.0-rc.1` release candidate freezes the candidate Stable contract for
-Levels 0 through 2 and retains the complete Level 3 preset as Preview. Level 2
+The RC.2 release candidate revises the RC.1 command and configuration
+namespaces for nwidart interoperability while retaining Levels 0 through 2 as
+candidate Stable and the complete Level 3 preset as Preview. Level 2
 includes typed Capability metadata, descriptor-only
 provider resolution, lifecycle preflight, consumer-owned Port wiring,
 Capability contract validation, source-enforced Adapter boundaries,
-deterministic Capability and combined graphs, `module:inspect`, and the large
+deterministic Capability and combined graphs, `moduark:inspect`, and the large
 Level 2 acceptance fixture. Developer Experience output includes versioned JSON
 reports, GitHub Actions annotations, and deterministic Module metadata caching
 with Laravel optimize integration. Brownfield adoption includes a reviewable
@@ -712,9 +728,10 @@ direct Query Builder writes inside transaction callbacks, while unresolved
 expressions remain reviewable warnings. Explicit `exports()` metadata narrows the
 convention-based Public API. The complete fourteen-rule Level 3 preset can now
 produce a complete pass. The optional `cluion/moduark-phpstan`
-`v0.1.0-beta.2` companion beta integrates `internal_api_access` with PHPStan and
-Larastan; suppression expiry and extension coverage for the remaining rules
-remain later work. See
+`v0.2.0-beta.1` companion beta integrates `internal_api_access` with PHPStan and
+Larastan across the Moduark 1.0 RC and nwidart-compatible source layouts;
+suppression expiry and extension coverage for the remaining rules remain later
+work. See
 [ADR-0035](docs/adr/0035-cross-module-model-access.md),
 [ADR-0036](docs/adr/0036-table-ownership-index.md),
 [ADR-0037](docs/adr/0037-database-ownership-rule.md),

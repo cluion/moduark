@@ -17,7 +17,7 @@ use RuntimeException;
 final class ModuleInspectCommand extends Command
 {
     /** @var string */
-    protected $signature = 'module:inspect
+    protected $signature = 'moduark:inspect
         {module : Module name to inspect}';
 
     /** @var string */

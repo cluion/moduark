@@ -23,7 +23,7 @@ final class SourceAnalysisFailed extends RuntimeException
         return new self(
             "Unable to scan Module source path [{$path}]: {$message}",
             $path,
-            'Check that the Module source directory exists and is readable, then rerun module:check.',
+            'Check that the Module source directory exists and is readable, then rerun moduark:check.',
         );
     }
 
@@ -32,7 +32,7 @@ final class SourceAnalysisFailed extends RuntimeException
         return new self(
             "Unable to read Module source file [{$path}].",
             $path,
-            'Make the Module source file readable, then rerun module:check.',
+            'Make the Module source file readable, then rerun moduark:check.',
         );
     }
 
@@ -43,7 +43,7 @@ final class SourceAnalysisFailed extends RuntimeException
         return new self(
             "Unable to parse Module source [{$location}]: {$message}",
             $location,
-            'Fix the PHP syntax at the reported location, then rerun module:check.',
+            'Fix the PHP syntax at the reported location, then rerun moduark:check.',
         );
     }
 
@@ -55,7 +55,7 @@ final class SourceAnalysisFailed extends RuntimeException
         return new self(
             "Module symbol [{$symbol}] is declared by both [{$firstFile}] and [{$secondFile}].",
             $firstFile,
-            'Keep one canonical declaration for the symbol, then rerun module:check.',
+            'Keep one canonical declaration for the symbol, then rerun moduark:check.',
         );
     }
 
@@ -64,7 +64,7 @@ final class SourceAnalysisFailed extends RuntimeException
         return new self(
             "Module source reference [{$symbol}] at [{$file}:{$line}] has no matching symbol owner.",
             "{$file}:{$line}",
-            'Ensure the referenced symbol is declared once under a discovered Module, then rerun module:check.',
+            'Ensure the referenced symbol is declared once under a discovered Module, then rerun moduark:check.',
         );
     }
 

@@ -7,7 +7,7 @@ latest published pre-release only:
 
 | Version | Security support |
 |---|---|
-| Latest `1.0` RC (`v1.0.0-rc.1`) | Supported |
+| Latest `1.0` RC (`v1.0.0-rc.2`) | Supported |
 | `v0.5.0-beta.1` and earlier | Not supported |
 | Unreleased `main` and future versions | Not a published support line |
 

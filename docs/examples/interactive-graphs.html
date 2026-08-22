@@ -1155,7 +1155,7 @@
                 }));
 
                 const moduleArgument = state.module === 'all' ? '' : ` ${moduleById.get(state.module).name}`;
-                graphCommand.textContent = `php artisan module:graph${moduleArgument} --view=${state.view} --format=mermaid`;
+                graphCommand.textContent = `php artisan moduark:graph${moduleArgument} --view=${state.view} --format=mermaid`;
 
                 document.querySelectorAll('[data-view]').forEach((button) => {
                     button.setAttribute('aria-pressed', String(button.dataset.view === state.view));

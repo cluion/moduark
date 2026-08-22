@@ -1,6 +1,6 @@
 ---
 name: moduark-development
-description: Adopt, configure, inspect, troubleshoot, and upgrade cluion/moduark boundaries in Laravel applications. Use when working with Moduark Modules, architecture Levels, module:check diagnostics, graphs, baselines, suppressions, or PHPStan integration.
+description: Adopt, configure, inspect, troubleshoot, and upgrade cluion/moduark boundaries in Laravel applications. Use when working with Moduark Modules, architecture Levels, moduark:check diagnostics, graphs, baselines, suppressions, or PHPStan integration.
 ---
 
 # Moduark Development
@@ -18,10 +18,10 @@ Before recommending or making a change:
 2. Run `git status --short` and preserve unrelated work.
 3. Locate the installed package and version with
    `composer show cluion/moduark --path`.
-4. Inspect `config/modules.php` when published, the package default
-   `config/modules.php`, Composer PSR-4 roots, and existing Module entry classes.
-5. Run the smallest read-only inventory needed, usually `module:list`,
-   `module:inspect`, `module:graph`, or `module:check --format=json`.
+4. Inspect `config/moduark.php` when published, the package default
+   `config/moduark.php`, Composer PSR-4 roots, and existing Module entry classes.
+5. Run the smallest read-only inventory needed, usually `moduark:list`,
+   `moduark:inspect`, `moduark:graph`, or `moduark:check --format=json`.
 
 If the package or expected commands are unavailable, stop and report the
 missing prerequisite. Do not invent a Moduark contract from memory.
@@ -44,7 +44,7 @@ reference. Package docs and executable output override summaries in this skill.
 2. Change one ownership, dependency, Port/Adapter, resource, or configuration
    boundary at a time.
 3. Prefer repairing metadata or code over weakening a rule.
-4. Run the focused application test plus `module:check --format=json` at the
+4. Run the focused application test plus `moduark:check --format=json` at the
    intended Level.
 5. Report evaluated rules, blocking violations, warnings, incomplete analysis,
    and any remaining unknowns separately.

@@ -27,7 +27,7 @@ final class ModuleCheckCommandTest extends TestCase
 {
     public function test_level_zero_check_passes(): void
     {
-        $this->command('module:check --level=0')
+        $this->command('moduark:check --level=0')
             ->expectsOutputToContain(
                 'Architecture check passed: 2 rules evaluated at Level 0 (Organization).',
             )
@@ -36,7 +36,7 @@ final class ModuleCheckCommandTest extends TestCase
 
     public function test_default_level_check_passes(): void
     {
-        $this->command('module:check')
+        $this->command('moduark:check')
             ->expectsOutputToContain(
                 'Architecture check passed: 6 rules evaluated at Level 1 (Modular).',
             )
@@ -45,7 +45,7 @@ final class ModuleCheckCommandTest extends TestCase
 
     public function test_level_two_check_passes(): void
     {
-        $this->command('module:check --level=2')
+        $this->command('moduark:check --level=2')
             ->expectsOutputToContain(
                 'Architecture check passed: 8 rules evaluated at Level 2 (Decoupled).',
             )
@@ -154,14 +154,14 @@ final class ModuleCheckCommandTest extends TestCase
 
     public function test_invalid_check_output_format_is_a_tool_error(): void
     {
-        $this->command('module:check --format=xml')
+        $this->command('moduark:check --format=xml')
             ->expectsOutputToContain('The --format option must be text, json, or github.')
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }
 
     public function test_github_check_output_emits_a_notice_for_a_pass(): void
     {
-        $this->command('module:check --format=github')
+        $this->command('moduark:check --format=github')
             ->expectsOutput(
                 '::notice title=Moduark architecture check::'
                     .'Architecture check passed: 6 rules evaluated at Level 1 (Modular).',
@@ -171,7 +171,7 @@ final class ModuleCheckCommandTest extends TestCase
 
     public function test_github_check_output_preserves_tool_error_exit_code(): void
     {
-        $this->command('module:check --level=4 --format=github')
+        $this->command('moduark:check --level=4 --format=github')
             ->expectsOutput(
                 '::error title=MOD-CHECK-OPTION-001::'
                     .'The --level option must be an integer from 0 to 3.%0A'
@@ -235,14 +235,14 @@ final class ModuleCheckCommandTest extends TestCase
             'message' => 'Unable to parse Module source '
                 .'[/app/Modules/Order/Actions/CreateOrder.php:17]: Unexpected token "}"',
             'location' => '/app/Modules/Order/Actions/CreateOrder.php:17',
-            'suggestion' => 'Fix the PHP syntax at the reported location, then rerun module:check.',
+            'suggestion' => 'Fix the PHP syntax at the reported location, then rerun moduark:check.',
         ], $payload['error']);
     }
 
     #[DataProvider('invalidLevels')]
     public function test_invalid_level_is_a_tool_error(string $level): void
     {
-        $this->command("module:check --level={$level}")
+        $this->command("moduark:check --level={$level}")
             ->expectsOutputToContain('The --level option must be an integer from 0 to 3.')
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }
@@ -264,7 +264,7 @@ final class ModuleCheckCommandTest extends TestCase
             $this->command('config:cache')->assertSuccessful();
             $this->refreshApplication();
 
-            $this->command('module:check --level=0')
+            $this->command('moduark:check --level=0')
                 ->expectsOutputToContain(
                     'Architecture check passed: 2 rules evaluated at Level 0 (Organization).',
                 )
@@ -280,7 +280,7 @@ final class ModuleCheckCommandTest extends TestCase
             $this->command('config:cache')->assertSuccessful();
             $this->refreshApplication();
 
-            $this->command('module:check')
+            $this->command('moduark:check')
                 ->expectsOutputToContain(
                     'Architecture check passed: 6 rules evaluated at Level 1 (Modular).',
                 )
@@ -316,7 +316,7 @@ final class ModuleCheckCommandTest extends TestCase
             },
         );
 
-        $this->command('module:check')
+        $this->command('moduark:check')
             ->expectsOutputToContain('MOD-CHECK-001')
             ->expectsOutputToContain('Tests\\FixtureSymbol')
             ->expectsOutputToContain('Break the dependency.')
@@ -355,7 +355,7 @@ final class ModuleCheckCommandTest extends TestCase
             },
         );
 
-        $this->command('module:check --level=0')
+        $this->command('moduark:check --level=0')
             ->expectsOutputToContain(
                 'Architecture analysis could not be completed: Fixture analyzer failed.',
             )
@@ -379,12 +379,12 @@ final class ModuleCheckCommandTest extends TestCase
             },
         );
 
-        $this->command('module:check')
+        $this->command('moduark:check')
             ->expectsOutputToContain('Architecture source analysis could not be completed.')
             ->expectsOutputToContain('MOD-ANALYSIS-001 Unable to parse Module source')
             ->expectsOutputToContain('Location: /app/Modules/Order/Actions/CreateOrder.php:17')
             ->expectsOutputToContain(
-                'Suggestion: Fix the PHP syntax at the reported location, then rerun module:check.',
+                'Suggestion: Fix the PHP syntax at the reported location, then rerun moduark:check.',
             )
             ->expectsOutputToContain(
                 'Result: incomplete; no architecture pass result was produced.',
@@ -449,7 +449,7 @@ final class ModuleCheckCommandTest extends TestCase
     {
         $output = new BufferedOutput;
         $exitCode = $this->application()->make(Kernel::class)->call(
-            'module:check',
+            'moduark:check',
             ['--format' => 'json', ...$parameters],
             $output,
         );

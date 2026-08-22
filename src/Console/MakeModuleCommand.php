@@ -13,7 +13,7 @@ final class MakeModuleCommand extends Command
     /**
      * @var string
      */
-    protected $signature = 'make:module {name : The StudlyCase name of the Module}';
+    protected $signature = 'moduark:make-module {name : The StudlyCase name of the Module}';
 
     /**
      * @var string

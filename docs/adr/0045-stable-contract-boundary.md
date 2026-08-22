@@ -46,14 +46,16 @@ The supported PHP application extension points are:
 - Laravel package discovery through
   `Cluion\Moduark\ModuarkServiceProvider`.
 
-The following identities are stable within the `1.x` line:
+The following identities are the candidate Stable contract for the `1.x` line.
+ADR-0047 replaces the RC.1 command and configuration identities before the
+stable release because real-package interoperability invalidated them:
 
-- the `modules.path` and `modules.architecture.*` configuration keys;
+- the `moduark.path` and `moduark.architecture.*` configuration keys;
 - Levels `0` through `3`, all published rule IDs, and the Level 0 through Level
   2 preset membership and severities;
 - documented Artisan command names, arguments, options, and exit codes `0`,
   `1`, and `2`;
-- `module:check --format=json` schema version `1`, architecture baseline schema
+- `moduark:check --format=json` schema version `1`, architecture baseline schema
   version `1`, suppression manifest schema version `1`, and published `MOD-*`
   diagnostic identities.
 
@@ -96,3 +98,6 @@ guards the executable portions of this decision.
 - Promoting another surface to Stable requires documentation and executable
   contract coverage; removing one requires the later deprecation policy and a
   major release, except for an urgent security response.
+- Candidate identities changed between RC.1 and RC.2 are documented as
+  a pre-stable migration in `UPGRADING.md`; no stable `1.x` contract has been
+  broken.

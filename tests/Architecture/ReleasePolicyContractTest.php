@@ -44,6 +44,7 @@ final class ReleasePolicyContractTest extends TestCase
             'test:dependencies',
             'test:distribution',
             'test:installation',
+            'test:interop',
         ] as $script) {
             self::assertArrayHasKey($script, $composer['scripts']);
             self::assertStringContainsString("composer {$script}", $policy);
@@ -54,6 +55,7 @@ final class ReleasePolicyContractTest extends TestCase
             'composer audit --locked',
             'composer test:installation -- --boost',
             'composer test:installation -- --package="${MODUARK_RELEASE_VERSION}"',
+            'composer test:interop -- --package="${MODUARK_RELEASE_VERSION}"',
         ] as $command) {
             self::assertStringContainsString($command, $policy);
         }
@@ -100,20 +102,20 @@ final class ReleasePolicyContractTest extends TestCase
             'docs/adoption.md',
             'docs/stability.md',
         ] as $path) {
-            self::assertStringContainsString('1.0.0-rc.1', $this->contents($path));
+            self::assertStringContainsString('1.0.0-rc.2', $this->contents($path));
         }
 
         $changelog = $this->contents('CHANGELOG.md');
+        self::assertStringContainsString('## [Unreleased]', $changelog);
+        self::assertStringContainsString('Laravel 13 + `nwidart/laravel-modules`', $changelog);
+        self::assertStringContainsString('## [1.0.0-rc.2]', $changelog);
+        self::assertStringContainsString('## [1.0.0-rc.1]', $changelog);
         self::assertStringContainsString(
-            "## [Unreleased]\n\n## [1.0.0-rc.1]",
+            '[Unreleased]: https://github.com/cluion/moduark/compare/v1.0.0-rc.2...HEAD',
             $changelog,
         );
         self::assertStringContainsString(
-            '[Unreleased]: https://github.com/cluion/moduark/compare/v1.0.0-rc.1...HEAD',
-            $changelog,
-        );
-        self::assertStringContainsString(
-            '[1.0.0-rc.1]: https://github.com/cluion/moduark/compare/v0.5.0-beta.1...v1.0.0-rc.1',
+            '[1.0.0-rc.2]: https://github.com/cluion/moduark/compare/v1.0.0-rc.1...v1.0.0-rc.2',
             $changelog,
         );
 
@@ -123,7 +125,7 @@ final class ReleasePolicyContractTest extends TestCase
             $installationDocs .= $contents;
 
             self::assertStringContainsString(
-                'composer require cluion/moduark:1.0.0-rc.1',
+                'composer require cluion/moduark:1.0.0-rc.2',
                 $contents,
             );
         }

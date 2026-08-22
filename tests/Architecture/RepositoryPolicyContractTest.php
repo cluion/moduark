@@ -14,7 +14,7 @@ final class RepositoryPolicyContractTest extends TestCase
         $policy = $this->contents('SECURITY.md');
 
         foreach ([
-            'Latest `1.0` RC (`v1.0.0-rc.1`)',
+            'Latest `1.0` RC (`v1.0.0-rc.2`)',
             '`v0.5.0-beta.1` and earlier',
             '`1.0.0` stable has not been published',
             'https://github.com/cluion/moduark/security/advisories/new',

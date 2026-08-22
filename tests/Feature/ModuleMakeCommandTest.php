@@ -60,7 +60,7 @@ final class ModuleMakeCommandTest extends TestCase
     {
         $path = $this->temporaryBasePath.'/app/Modules/User/Models/Admin/Profile.php';
 
-        $this->command('module:make user model Admin/Profile')->assertSuccessful();
+        $this->command('moduark:make user model Admin/Profile')->assertSuccessful();
 
         self::assertFileExists($path);
         self::assertStringContainsString(
@@ -73,7 +73,7 @@ final class ModuleMakeCommandTest extends TestCase
     {
         $path = $this->temporaryBasePath.'/app/Modules/User/Http/Controllers/ProfileController.php';
 
-        $this->command('module:make User controller ProfileController --invokable')->assertSuccessful();
+        $this->command('moduark:make User controller ProfileController --invokable')->assertSuccessful();
 
         $source = (string) file_get_contents($path);
 
@@ -88,7 +88,7 @@ final class ModuleMakeCommandTest extends TestCase
     {
         $path = $this->temporaryBasePath.'/app/Modules/User/Http/Controllers/ProfileController.php';
 
-        $this->command('module:make User controller ProfileController --resource --api')
+        $this->command('moduark:make User controller ProfileController --resource --api')
             ->assertSuccessful();
 
         $source = (string) file_get_contents($path);
@@ -104,28 +104,28 @@ final class ModuleMakeCommandTest extends TestCase
     {
         $path = $this->temporaryBasePath.'/app/Modules/User/Models/Profile.php';
 
-        $this->command('module:make User model Profile')->assertSuccessful();
+        $this->command('moduark:make User model Profile')->assertSuccessful();
         self::assertIsInt(file_put_contents($path, 'existing source'));
 
-        $this->command('module:make User model Profile')
+        $this->command('moduark:make User model Profile')
             ->expectsOutputToContain('Model already exists.')
             ->assertFailed();
         self::assertSame('existing source', file_get_contents($path));
 
-        $this->command('module:make User model Profile --force')->assertSuccessful();
+        $this->command('moduark:make User model Profile --force')->assertSuccessful();
         self::assertNotSame('existing source', file_get_contents($path));
     }
 
     public function test_it_rejects_an_unknown_module(): void
     {
-        $this->command('module:make Unknown model Profile')
+        $this->command('moduark:make Unknown model Profile')
             ->expectsOutputToContain('Module Maker failed: Module [Unknown] was not found.')
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }
 
     public function test_it_rejects_an_unsupported_maker_type(): void
     {
-        $this->command('module:make User request ProfileRequest')
+        $this->command('moduark:make User request ProfileRequest')
             ->expectsOutputToContain(
                 'Module Maker failed: Maker type [request] is not supported; expected model or controller.',
             )
@@ -134,7 +134,7 @@ final class ModuleMakeCommandTest extends TestCase
 
     public function test_it_rejects_unsafe_class_names(): void
     {
-        $this->command('module:make User model ../Profile')
+        $this->command('moduark:make User model ../Profile')
             ->expectsOutputToContain(
                 'Module Maker failed: Maker name [../Profile] must contain one or more StudlyCase class segments.',
             )
@@ -143,7 +143,7 @@ final class ModuleMakeCommandTest extends TestCase
 
     public function test_it_rejects_php_reserved_class_names_after_qualification(): void
     {
-        $this->command('module:make User model Admin/Class')
+        $this->command('moduark:make User model Admin/Class')
             ->expectsOutputToContain(
                 'Module Maker failed: Maker class name [Class] is reserved by PHP.',
             )
@@ -156,7 +156,7 @@ final class ModuleMakeCommandTest extends TestCase
 
     public function test_it_rejects_controller_options_for_models(): void
     {
-        $this->command('module:make User model Profile --invokable')
+        $this->command('moduark:make User model Profile --invokable')
             ->expectsOutputToContain(
                 'Module Maker failed: The --invokable option is not supported for Maker type [model].',
             )
@@ -165,7 +165,7 @@ final class ModuleMakeCommandTest extends TestCase
 
     public function test_it_rejects_conflicting_controller_modes(): void
     {
-        $this->command('module:make User controller ProfileController --invokable --resource')
+        $this->command('moduark:make User controller ProfileController --invokable --resource')
             ->expectsOutputToContain(
                 'Module Maker failed: The controller Maker options [--invokable, --resource] cannot be combined.',
             )
@@ -180,7 +180,7 @@ final class ModuleMakeCommandTest extends TestCase
         self::assertIsInt(file_put_contents($path, "<?php\n"));
         $this->useModule($path, 'Domain\\Modules\\User');
 
-        $this->command('module:make User model Profile')
+        $this->command('moduark:make User model Profile')
             ->expectsOutputToContain(
                 'must be inside Laravel application path',
             )
@@ -194,10 +194,10 @@ final class ModuleMakeCommandTest extends TestCase
             'Wrong\\Modules\\User',
         );
 
-        $this->command('module:make User model Profile')
+        $this->command('moduark:make User model Profile')
             ->expectsOutputToContain(
                 'Module Maker failed: Module [User] namespace [Wrong\\Modules\\User]'
-                    .' must match application path namespace [MakerFixture\\Modules\\User] for module:make.',
+                    .' must match application path namespace [MakerFixture\\Modules\\User] for moduark:make.',
             )
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }
@@ -206,7 +206,7 @@ final class ModuleMakeCommandTest extends TestCase
     {
         self::assertIsInt(file_put_contents($this->temporaryBasePath.'/composer.json', "{}\n"));
 
-        $this->command('module:make User model Profile')
+        $this->command('moduark:make User model Profile')
             ->expectsOutputToContain(
                 'Module Maker failed: The Laravel application namespace could not be resolved.',
             )

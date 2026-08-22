@@ -18,7 +18,7 @@ At the end of the recipe:
   the provider API;
 - the Capability resolves to exactly one provider before container mutation;
 - Laravel binds the consumer Port to its declared Adapter automatically;
-- `module:check --level=2` evaluates all eight Level 2 rules and exits `0`;
+- `moduark:check --level=2` evaluates all eight Level 2 rules and exits `0`;
 - the shared configuration and CI gate both use Level 2.
 
 Level 2 does not remove the provider's Level 1 Public API. It moves that API
@@ -84,8 +84,8 @@ Confirm the configured contract, then probe Level 2 without changing shared
 configuration:
 
 ```bash
-php artisan module:check
-php artisan module:check --level=2
+php artisan moduark:check
+php artisan moduark:check --level=2
 ```
 
 The first command must exit `0`. The second command should expose the remaining
@@ -251,8 +251,8 @@ providers fail before partial Port bindings are applied.
 Acceptance:
 
 ```bash
-php artisan module:inspect Order
-php artisan module:graph --view=capability
+php artisan moduark:inspect Order
+php artisan moduark:graph --view=capability
 ```
 
 The inspection must show `UserLookupCapability`, `UserModule`,
@@ -308,14 +308,14 @@ The provider must not import the consumer Port, Adapter, action, or Module.
 Inspect direct and inverted relationships separately before enabling Level 2:
 
 ```bash
-php artisan module:graph
-php artisan module:graph Order
-php artisan module:graph --view=capability
-php artisan module:graph Order --view=capability
-php artisan module:graph --view=combined
-php artisan module:graph Order --view=combined --format=mermaid
-php artisan module:inspect Order
-php artisan module:check --level=2
+php artisan moduark:graph
+php artisan moduark:graph Order
+php artisan moduark:graph --view=capability
+php artisan moduark:graph Order --view=capability
+php artisan moduark:graph --view=combined
+php artisan moduark:graph Order --view=combined --format=mermaid
+php artisan moduark:inspect Order
+php artisan moduark:check --level=2
 ```
 
 The direct graph must still show `Order -> User`. The Capability graph must show
@@ -351,7 +351,7 @@ exit `2` failure as debt.
 
 ## Checkpoint 6: Enable Level 2 and Keep the CI Gate Complete
 
-Change the shared default only after `module:check --level=2` is complete and
+Change the shared default only after `moduark:check --level=2` is complete and
 exits `0`:
 
 ```php
@@ -366,8 +366,8 @@ exits `0`:
 Run the configured check and application regression gates:
 
 ```bash
-php artisan module:check
-php artisan module:graph --view=combined
+php artisan moduark:check
+php artisan moduark:graph --view=combined
 php artisan config:cache
 php artisan route:cache
 php artisan test
@@ -377,7 +377,7 @@ Keep the normal CI command; it now inherits Level 2 from shared configuration:
 
 ```yaml
 - name: Check Module architecture
-  run: php artisan module:check --format=github
+  run: php artisan moduark:check --format=github
 ```
 
 CI must preserve exit `1` and exit `2` as failures. Do not pin CI to
@@ -416,7 +416,7 @@ still needs a stable provider-facing contract.
 - [ ] `CreateOrder` depends on the Port, not the provider or concrete Adapter.
 - [ ] The provider has no reference to `Order` source.
 - [ ] Direct, Capability, and combined graph views preserve distinct edge kinds.
-- [ ] `module:check --level=2` evaluates eight rules and exits `0`.
+- [ ] `moduark:check --level=2` evaluates eight rules and exits `0`.
 - [ ] Shared configuration uses Level 2 only after the probe passes.
 - [ ] CI preserves exit `1` and exit `2` as failures.
 

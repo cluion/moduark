@@ -11,32 +11,40 @@ or its complete architecture check.
 |---|---|
 | `cluion/moduark` | Module discovery, metadata, runtime wiring, all architecture rules, baselines, and suppressions |
 | `cluion/moduark-phpstan` | Optional PHPStan adapter for rules that have reached documented parity |
-| `php artisan module:check` | Authoritative complete architecture result and warning output |
+| `php artisan moduark:check` | Authoritative complete architecture result and warning output |
 | `vendor/bin/phpstan analyse` | PHP and Laravel analysis plus the currently supported Moduark diagnostic |
 
 The first extension beta supports only `internal_api_access` /
-`MOD-BOUNDARY-001`. Continue running `module:check` for dependency, cycle,
+`MOD-BOUNDARY-001`. Continue running `moduark:check` for dependency, cycle,
 Capability, Adapter, persistence, migration, transaction, and explicit export
 rules.
 
-## Install Both Packages
+## Version Compatibility
+
+The published `cluion/moduark-phpstan` `v0.2.0-beta.1` requires Moduark
+`^1.0@RC`, defaults its cache input to `config/moduark.php`, and recognizes
+classic and nwidart `Modules/*/app` source roots. Its release matrix covers PHP
+8.2 through 8.5, Laravel 12 and 13, PHPStan `^2.2`, and optional Larastan 3.10.
+It passed against the published Moduark `1.0.0-rc.1` and this RC.2 checkout.
+
+Applications remaining on Moduark 0.4 or 0.5 beta must remain on the companion
+`^0.1@beta` line and its `config/modules.php` cache input.
+
+## Install Both Packages on the 1.0 RC Line
 
 Composer stability flags on a dependency do not relax the consuming
-application's stability constraints. A clean application must declare the
-Moduark beta as a root requirement before installing the extension:
+application's stability constraints. Install the exact reviewed Moduark RC as
+an application dependency before installing the companion as a development
+dependency:
 
 ```bash
-composer require cluion/moduark:^0.5@beta
-composer require --dev cluion/moduark-phpstan:^0.1@beta
+composer require cluion/moduark:1.0.0-rc.2
+composer require --dev cluion/moduark-phpstan:^0.2@beta
 ```
 
-If the application already requires `cluion/moduark:^0.5@beta`, only the second
-command is needed. Pin exact beta versions when repeatable pre-release upgrades
-matter.
-
-The `v0.1.0-beta.2` extension release is verified with PHP 8.2 through 8.5,
-Moduark `^0.4@beta || ^0.5@beta`, PHPStan `^2.2`, Laravel 12 and 13, and optional
-Larastan 3.10 integration.
+If the application already requires the reviewed Moduark RC, only the second
+command is needed. Pin the exact companion beta as well when repeatable
+pre-release upgrades matter.
 
 ## Load the Extension
 
@@ -86,8 +94,9 @@ loaded.
 
 ## Configure the Application Boundary
 
-The extension does not boot Laravel and does not import values from
-`config/modules.php`. Its standard defaults are:
+The extension does not boot Laravel and does not import values from the Laravel
+configuration file. The following values are the current 1.0 RC companion
+defaults:
 
 ```neon
 parameters:
@@ -95,7 +104,7 @@ parameters:
         basePath: %currentWorkingDirectory%
         modulesPath: %currentWorkingDirectory%/app/Modules
         rootNamespace: App\Modules
-        configPath: %currentWorkingDirectory%/config/modules.php
+        configPath: %currentWorkingDirectory%/config/moduark.php
         baselinePath: %currentWorkingDirectory%/moduark-baseline.json
         suppressionsPath: %currentWorkingDirectory%/moduark-suppressions.json
         internalApiAccess:
@@ -135,7 +144,7 @@ architecture contract:
 
 ```bash
 vendor/bin/phpstan analyse --memory-limit=1G
-php artisan module:check --format=github
+php artisan moduark:check --format=github
 ```
 
 The current mapping is:
@@ -149,7 +158,7 @@ failures use `moduark.analysisFailure`. They are non-ignorable so an analyzer
 failure cannot become an empty pass.
 
 Warnings remain non-blocking. When the extension severity is `warning`, it does
-not emit a PHPStan error; use `module:check` to retain the warning in text, JSON,
+not emit a PHPStan error; use `moduark:check` to retain the warning in text, JSON,
 or GitHub output.
 
 ## Baselines and Reviewed Suppressions
@@ -161,8 +170,8 @@ for both tools.
 Adopt reviewed brownfield debt with Moduark:
 
 ```bash
-php artisan module:check --level=1
-php artisan module:baseline --level=1
+php artisan moduark:check --level=1
+php artisan moduark:baseline --level=1
 git add moduark-baseline.json
 ```
 
@@ -186,11 +195,11 @@ responsibilities remain visible:
   run: vendor/bin/phpstan analyse --memory-limit=1G
 
 - name: Check complete Module architecture
-  run: php artisan module:check --format=github
+  run: php artisan moduark:check --format=github
 ```
 
 If automatic loading is used, keep Composer scripts enabled in the install
-step. Treat PHPStan configuration errors, `module:check` exit `2`, and incomplete
+step. Treat PHPStan configuration errors, `moduark:check` exit `2`, and incomplete
 JSON reports as tool failures rather than successful architecture checks.
 
 ## Troubleshooting
@@ -199,9 +208,9 @@ JSON reports as tool failures rather than successful architecture checks.
   loaded. Verify the Composer plugin or the manual include.
 - If services or diagnostics appear twice, remove either automatic or manual
   loading for the duplicate extension.
-- If a clean install cannot resolve `cluion/moduark`, declare
-  `cluion/moduark:^0.5@beta` in the application root before requiring the
-  extension.
+- If a clean install cannot resolve `cluion/moduark`, declare the exact reviewed
+  `cluion/moduark:1.0.0-rc.2` version in the application root before requiring
+  the extension.
 - If custom Modules are not analysed, align `modulesPath`, `rootNamespace`, and
   PHPStan `paths`.
 - If CLI and PHPStan results differ, compare the effective Level, rule override,

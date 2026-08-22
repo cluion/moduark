@@ -13,16 +13,23 @@ final class UpgradePolicyContractTest extends TestCase
         $guide = $this->contents('UPGRADING.md');
 
         foreach ([
-            '`1.0.0-rc.1` is the first 1.0 release candidate',
+            '`1.0.0-rc.2` is the current 1.0 release candidate',
+            'changes the RC.1 command and configuration namespaces',
             '`1.0.0` stable release has not been published',
-            'composer require cluion/moduark:1.0.0-rc.1',
-            'php artisan module:check --format=json',
-            'php artisan module:check --show-suppressions',
+            'composer require cluion/moduark:1.0.0-rc.2',
+            'Upgrading from `1.0.0-rc.1` to `1.0.0-rc.2`',
+            'php artisan moduark:check --format=json',
+            'php artisan moduark:check --show-suppressions',
             'exit `2`, `complete: false`, or `status: incomplete`',
-            'php artisan module:clear',
+            'php artisan moduark:clear',
             'php artisan boost:install',
-            '`module:baseline --force` captures every current unsuppressed violation',
+            '`moduark:baseline --force` captures every current unsuppressed violation',
             'must not be run automatically',
+            '`make:module` | `moduark:make-module`',
+            '`module:make` | `moduark:make`',
+            '`module:clear` | `moduark:clear`',
+            '`config/modules.php` belongs to `nwidart/laravel-modules`',
+            '`moduark.architecture.baseline`',
         ] as $contract) {
             self::assertStringContainsString($contract, $guide);
         }
@@ -38,7 +45,7 @@ final class UpgradePolicyContractTest extends TestCase
             '"consumer": "Order"',
             '"target": "User"',
             'Do not carry an old amplified count forward.',
-            'php artisan module:baseline --prune',
+            'php artisan moduark:baseline --prune',
             'Prune never adopts the newly visible pair diagnostic.',
         ] as $contract) {
             self::assertStringContainsString($contract, $guide);

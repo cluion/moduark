@@ -23,7 +23,7 @@ final class ModuleGraphCommand extends Command
     /**
      * @var string
      */
-    protected $signature = 'module:graph
+    protected $signature = 'moduark:graph
         {module? : Limit the graph to a Module neighborhood}
         {--view=module : Graph view (module, capability, or combined)}
         {--format=text : Output format (text or mermaid)}';

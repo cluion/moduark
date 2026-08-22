@@ -34,17 +34,17 @@ final class LargeLevelTwoCommandsTest extends TestCase
     {
         $this->useLargeFixture();
 
-        $this->command('module:check --level=2')
+        $this->command('moduark:check --level=2')
             ->expectsOutputToContain(
                 'Architecture check passed: 8 rules evaluated at Level 2 (Decoupled).',
             )
             ->assertSuccessful();
-        $this->command('module:graph --view=combined')
+        $this->command('moduark:graph --view=combined')
             ->expectsOutputToContain('Checkout -[requires]-> CustomerLookup')
             ->expectsOutputToContain('Customer -[provides]-> CustomerLookup')
             ->expectsOutputToContain('Returns -[depends]-> Payment')
             ->assertSuccessful();
-        $this->command('module:inspect Returns')
+        $this->command('moduark:inspect Returns')
             ->expectsOutputToContain('2 (Decoupled)')
             ->expectsOutputToContain('Provider: Payment')
             ->expectsOutputToContain('Public API (convention)')

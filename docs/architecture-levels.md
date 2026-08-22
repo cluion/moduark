@@ -3,7 +3,7 @@
 Moduark Levels are preset collections of independent architecture rules. A Level
 is not a conditional hidden inside the analyzer: configuration resolves the
 preset plus explicit boolean overrides into an effective rule set, and
-`module:check` reports whether every enabled rule has an implementation.
+`moduark:check` reports whether every enabled rule has an implementation.
 
 ## Availability
 
@@ -179,13 +179,13 @@ In `v0.2.0-beta.2`, inspect the direct dependency and Capability views
 separately:
 
 ```bash
-php artisan module:graph
-php artisan module:graph --view=capability
-php artisan module:graph Order --view=capability
-php artisan module:graph --view=capability --format=mermaid
-php artisan module:graph --view=combined
-php artisan module:graph Order --view=combined --format=mermaid
-php artisan module:inspect Order
+php artisan moduark:graph
+php artisan moduark:graph --view=capability
+php artisan moduark:graph Order --view=capability
+php artisan moduark:graph --view=capability --format=mermaid
+php artisan moduark:graph --view=combined
+php artisan moduark:graph Order --view=combined --format=mermaid
+php artisan moduark:inspect Order
 ```
 
 The Capability view preserves `requires` and `provides` as different edge kinds.
@@ -197,7 +197,7 @@ meaning. JSON graph output remains separate work. See
 [ADR-0023](adr/0023-capability-graph-output.md), and
 [ADR-0024](adr/0024-combined-graph-output.md).
 
-`module:inspect {module}` reuses those validated graphs to display one Module's
+`moduark:inspect {module}` reuses those validated graphs to display one Module's
 direct dependency status and resolved Capability details, together with its
 ServiceProviders, explicit owned tables, and convention-based Public API. It
 deliberately does not claim the Level 3 explicit exports contract. See
@@ -219,7 +219,7 @@ exercised through combined graph and Module inspection commands. See
 Running the normal preset demonstrates this explicitly:
 
 ```bash
-php artisan module:check --level=2
+php artisan moduark:check --level=2
 ```
 
 On a valid architecture, the command evaluates all eight Level 2 rules and exits
@@ -256,7 +256,7 @@ public function tables(): array
 Names are unquoted dot-separated identifiers. Ownership lookup and conflict
 detection are case-insensitive while the declared spelling is preserved for
 output. A canonical table has exactly one owner; multiple claims are invalid
-metadata. `module:inspect` displays the selected Module's indexed tables.
+metadata. `moduark:inspect` displays the selected Module's indexed tables.
 Migration inference, shared/legacy table overrides, and connection scoping are
 deliberately not inferred by this foundation. See
 [ADR-0036](adr/0036-table-ownership-index.md).
@@ -319,7 +319,7 @@ claiming another owner's symbol.
 This rule narrows rather than replaces the Level 1 convention. A symbol must
 still satisfy `internal_api_access`, so adding a `Services/` class to `exports()`
 does not broaden the Public API. PHPDoc, dynamic class strings, and API backward
-compatibility are outside the current AST contract. `module:inspect` shows the
+compatibility are outside the current AST contract. `moduark:inspect` shows the
 convention Public API and explicit exports separately. See
 [ADR-0041](adr/0041-explicit-public-exports-rule.md).
 
@@ -350,7 +350,7 @@ Overrides are global rule switches. When the rule should remain active, prefer
 one reviewed entry in `moduark-suppressions.json` over disabling it globally.
 Each suppression requires a stable rule and code, a reason, and a narrow file,
 symbol, or Module-pair selector; global ignores are rejected. Use a baseline for
-larger reviewed brownfield debt and `module:baseline --prune` as that debt is
+larger reviewed brownfield debt and `moduark:baseline --prune` as that debt is
 removed. Suppressions are applied before baseline matching and generation. See
 [ADR-0034](adr/0034-auditable-architecture-suppressions.md).
 
@@ -360,13 +360,13 @@ Architecture violations include a stable code, rule and severity, message,
 location when available, Module relationship, symbol evidence, and a suggested
 repair. Blocking violations return exit 1. Warnings alone return exit 0.
 
-`module:check --show-suppressions` lists each suppression's scope, reason,
+`moduark:check --show-suppressions` lists each suppression's scope, reason,
 match count, and `matched`, `stale`, or `inactive` audit state. Stale or inactive
 entries remain visible debt metadata but do not change the architecture exit
 policy. Invalid or overlapping suppression definitions return exit 2.
 
 Command input, parse, duplicate-symbol, filesystem, and unavailable-rule failures
-handled by `module:check` return exit 2. Typed source-analysis failures use
+handled by `moduark:check` return exit 2. Typed source-analysis failures use
 `MOD-ANALYSIS-001`, report their source location when known, and state that no
 passing result was produced. Configuration, discovery, metadata, or runtime
 Capability resolution can fail during Laravel bootstrap before the command's
@@ -375,8 +375,8 @@ renderer runs; those exceptions use Laravel's process-level handling.
 Use `--level` to evaluate a migration target without editing configuration:
 
 ```bash
-php artisan module:check --level=1
+php artisan moduark:check --level=1
 ```
 
-When it passes, update `config/modules.php` so local runs and CI use the same
+When it passes, update `config/moduark.php` so local runs and CI use the same
 default.

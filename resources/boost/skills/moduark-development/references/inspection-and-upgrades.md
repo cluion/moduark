@@ -5,12 +5,12 @@ behavior, PHPStan integration, or a Moduark package upgrade.
 
 ## Select the Smallest Inspection
 
-- `php artisan module:list` lists discovered Modules deterministically.
-- `php artisan module:inspect {module}` shows one Module's dependencies,
+- `php artisan moduark:list` lists discovered Modules deterministically.
+- `php artisan moduark:inspect {module}` shows one Module's dependencies,
   providers, Capabilities, table ownership, and public API convention.
-- `php artisan module:graph [module]` shows direct Module relationships.
-- `php artisan module:graph --view=capability` shows Capability relationships.
-- `php artisan module:graph --view=combined` shows the union of direct and
+- `php artisan moduark:graph [module]` shows direct Module relationships.
+- `php artisan moduark:graph --view=capability` shows Capability relationships.
+- `php artisan moduark:graph --view=combined` shows the union of direct and
   Capability neighborhoods.
 - Add `--format=mermaid` when a reviewable diagram is useful.
 
@@ -20,7 +20,7 @@ recommended redesign.
 
 ## Cache Lifecycle
 
-Use `module:cache` and `module:clear` according to the installed package's
+Use `moduark:cache` and `moduark:clear` according to the installed package's
 README and cache ADRs. Discovery and effective configuration happen during
 Laravel bootstrap, so configuration or source changes can require normal
 Laravel configuration, route, or optimization cache verification as well as a
@@ -36,7 +36,7 @@ The companion `cluion/moduark-phpstan` package is optional and development-only.
 Read the installed Moduark `docs/phpstan-integration.md` and the companion
 package version before changing PHPStan or Larastan configuration.
 
-`module:check` remains authoritative for the complete Moduark rule set. Do not
+`moduark:check` remains authoritative for the complete Moduark rule set. Do not
 claim that a PHPStan pass covers rules the installed companion extension does
 not implement, and do not maintain two conflicting Level, baseline, or
 suppression configurations.
@@ -44,7 +44,7 @@ suppression configurations.
 ## Upgrade Workflow
 
 1. Record `composer show cluion/moduark` and the current Git state.
-2. Run application tests and `module:check --format=json` before the upgrade.
+2. Run application tests and `moduark:check --format=json` before the upgrade.
 3. Read the target package `CHANGELOG.md`, `README.md`, relevant adoption docs,
    recipes, and ADRs. Treat beta diagnostic identity changes as migrations.
 4. Update the Composer constraint only within the user's requested scope.

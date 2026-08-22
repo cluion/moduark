@@ -15,7 +15,7 @@ final class PackageArchiveContract
         'SECURITY.md',
         'UPGRADING.md',
         'composer.json',
-        'config/modules.php',
+        'config/moduark.php',
         'docs/releases.md',
         'docs/stability.md',
         'resources/boost/skills/moduark-development/SKILL.md',

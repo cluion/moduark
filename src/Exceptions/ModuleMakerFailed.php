@@ -43,14 +43,14 @@ final class ModuleMakerFailed extends RuntimeException
     public static function externalModulePath(string $module, string $path, string $applicationPath): self
     {
         return new self(
-            "Module [{$module}] path [{$path}] must be inside Laravel application path [{$applicationPath}] for module:make.",
+            "Module [{$module}] path [{$path}] must be inside Laravel application path [{$applicationPath}] for moduark:make.",
         );
     }
 
     public static function namespaceMismatch(string $module, string $namespace, string $expected): self
     {
         return new self(
-            "Module [{$module}] namespace [{$namespace}] must match application path namespace [{$expected}] for module:make.",
+            "Module [{$module}] namespace [{$namespace}] must match application path namespace [{$expected}] for moduark:make.",
         );
     }
 

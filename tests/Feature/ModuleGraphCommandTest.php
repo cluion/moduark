@@ -22,12 +22,12 @@ final class ModuleGraphCommandTest extends TestCase
 {
     public function test_it_displays_the_module_dependency_graph_as_text(): void
     {
-        $this->expectWorkbenchTextGraph('module:graph');
+        $this->expectWorkbenchTextGraph('moduark:graph');
     }
 
     public function test_it_displays_the_module_dependency_graph_as_mermaid(): void
     {
-        $this->command('module:graph --format=mermaid')
+        $this->command('moduark:graph --format=mermaid')
             ->expectsOutputToContain('flowchart LR')
             ->expectsOutputToContain('M0["Order"]')
             ->expectsOutputToContain('M1["User"]')
@@ -38,7 +38,7 @@ final class ModuleGraphCommandTest extends TestCase
 
     public function test_it_limits_output_to_a_module_and_direct_neighbors(): void
     {
-        $this->command('module:graph User')
+        $this->command('moduark:graph User')
             ->expectsOutputToContain('Order -> User')
             ->expectsOutputToContain('User -> —')
             ->doesntExpectOutputToContain('Workbench')
@@ -47,7 +47,7 @@ final class ModuleGraphCommandTest extends TestCase
 
     public function test_unknown_module_is_a_tool_error(): void
     {
-        $this->command('module:graph Unknown')
+        $this->command('moduark:graph Unknown')
             ->expectsOutputToContain(
                 'Module graph could not be generated: Module [Unknown] was not found in the dependency graph.',
             )
@@ -56,7 +56,7 @@ final class ModuleGraphCommandTest extends TestCase
 
     public function test_unknown_output_format_is_a_tool_error(): void
     {
-        $this->command('module:graph --format=json')
+        $this->command('moduark:graph --format=json')
             ->expectsOutputToContain('The --format option must be text or mermaid.')
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }
@@ -65,7 +65,7 @@ final class ModuleGraphCommandTest extends TestCase
     {
         $this->useLevelTwoGraphFixture();
 
-        $this->command('module:graph --view=capability')
+        $this->command('moduark:graph --view=capability')
             ->expectsOutputToContain('Checkout -[requires]-> UserLookup')
             ->expectsOutputToContain('Inventory -> —')
             ->expectsOutputToContain('Order -[requires]-> UserLookup')
@@ -77,7 +77,7 @@ final class ModuleGraphCommandTest extends TestCase
     {
         $this->useLevelTwoGraphFixture();
 
-        $this->command('module:graph --view=capability --format=mermaid')
+        $this->command('moduark:graph --view=capability --format=mermaid')
             ->expectsOutputToContain('flowchart LR')
             ->expectsOutputToContain('C0(["UserLookup"])')
             ->expectsOutputToContain('M3 -->|"provides"| C0')
@@ -89,7 +89,7 @@ final class ModuleGraphCommandTest extends TestCase
     {
         $this->useLevelTwoGraphFixture();
 
-        $this->command('module:graph Order --view=capability')
+        $this->command('moduark:graph Order --view=capability')
             ->expectsOutputToContain('Checkout -[requires]-> UserLookup')
             ->expectsOutputToContain('Order -[requires]-> UserLookup')
             ->expectsOutputToContain('User -[provides]-> UserLookup')
@@ -101,7 +101,7 @@ final class ModuleGraphCommandTest extends TestCase
     {
         $this->useLevelTwoGraphFixture();
 
-        $this->command('module:graph Unknown --view=capability')
+        $this->command('moduark:graph Unknown --view=capability')
             ->expectsOutputToContain(
                 'Module graph could not be generated: Module [Unknown] was not found in the Capability graph.',
             )
@@ -112,7 +112,7 @@ final class ModuleGraphCommandTest extends TestCase
     {
         $this->useLevelTwoGraphFixture();
 
-        $this->command('module:graph --view=combined')
+        $this->command('moduark:graph --view=combined')
             ->expectsOutputToContain('Checkout -[depends]-> User')
             ->expectsOutputToContain('Checkout -[requires]-> UserLookup')
             ->expectsOutputToContain('Inventory -> —')
@@ -124,7 +124,7 @@ final class ModuleGraphCommandTest extends TestCase
     {
         $this->useLevelTwoGraphFixture();
 
-        $this->command('module:graph --view=combined --format=mermaid')
+        $this->command('moduark:graph --view=combined --format=mermaid')
             ->expectsOutputToContain('flowchart LR')
             ->expectsOutputToContain('C0(["UserLookup"])')
             ->expectsOutputToContain('M0 -->|"depends"| M3')
@@ -136,7 +136,7 @@ final class ModuleGraphCommandTest extends TestCase
     {
         $this->useLevelTwoGraphFixture();
 
-        $this->command('module:graph Order --view=combined')
+        $this->command('moduark:graph Order --view=combined')
             ->expectsOutputToContain('Checkout -[depends]-> User')
             ->expectsOutputToContain('Checkout -[requires]-> UserLookup')
             ->expectsOutputToContain('Order -[depends]-> User')
@@ -149,7 +149,7 @@ final class ModuleGraphCommandTest extends TestCase
     {
         $this->useLevelTwoGraphFixture();
 
-        $this->command('module:graph Unknown --view=combined')
+        $this->command('moduark:graph Unknown --view=combined')
             ->expectsOutputToContain(
                 'Module graph could not be generated: Module [Unknown] was not found in the combined graph.',
             )
@@ -158,7 +158,7 @@ final class ModuleGraphCommandTest extends TestCase
 
     public function test_unknown_graph_view_is_a_tool_error(): void
     {
-        $this->command('module:graph --view=architecture')
+        $this->command('moduark:graph --view=architecture')
             ->expectsOutputToContain(
                 'The --view option must be module, capability, or combined.',
             )
@@ -171,7 +171,7 @@ final class ModuleGraphCommandTest extends TestCase
             $this->command('config:cache')->assertSuccessful();
             $this->refreshApplication();
 
-            $this->expectWorkbenchTextGraph('module:graph');
+            $this->expectWorkbenchTextGraph('moduark:graph');
         } finally {
             $this->command('config:clear')->run();
         }

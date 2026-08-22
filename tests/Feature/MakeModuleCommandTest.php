@@ -54,7 +54,7 @@ final class MakeModuleCommandTest extends TestCase
         $path = $this->modulePath.'/Billing/BillingModule.php';
         $moduleClass = $this->namespace.'\\Modules\\Billing\\BillingModule';
 
-        $this->command('make:module Billing')
+        $this->command('moduark:make-module Billing')
             ->expectsOutputToContain("Module [{$path}] created successfully.")
             ->assertSuccessful();
 
@@ -73,7 +73,7 @@ final class MakeModuleCommandTest extends TestCase
     #[DataProvider('invalidNames')]
     public function test_it_rejects_non_studly_or_unsafe_names(string $name): void
     {
-        $this->command('make:module '.$name)
+        $this->command('moduark:make-module '.$name)
             ->expectsOutputToContain("Module name [{$name}] must be StudlyCase")
             ->assertFailed();
 
@@ -82,7 +82,7 @@ final class MakeModuleCommandTest extends TestCase
 
     public function test_it_rejects_php_reserved_names(): void
     {
-        $this->command('make:module Class')
+        $this->command('moduark:make-module Class')
             ->expectsOutputToContain('Module name [Class] is reserved by PHP.')
             ->assertFailed();
 
@@ -93,10 +93,10 @@ final class MakeModuleCommandTest extends TestCase
     {
         $path = $this->modulePath.'/User/UserModule.php';
 
-        $this->command('make:module User')->assertSuccessful();
+        $this->command('moduark:make-module User')->assertSuccessful();
         self::assertIsInt(file_put_contents($path, 'existing source'));
 
-        $this->command('make:module User')
+        $this->command('moduark:make-module User')
             ->expectsOutputToContain("Module entry file [{$path}] already exists.")
             ->assertFailed();
 
@@ -108,7 +108,7 @@ final class MakeModuleCommandTest extends TestCase
         $unmappedPath = $this->temporaryBasePath.'/unmapped/Modules';
         $this->useModulePath($unmappedPath);
 
-        $this->command('make:module User')
+        $this->command('moduark:make-module User')
             ->expectsOutputToContain(
                 "Module path [{$unmappedPath}] is not inside a registered Composer PSR-4 path.",
             )
@@ -131,7 +131,7 @@ final class MakeModuleCommandTest extends TestCase
 
     private function useModulePath(string $path): void
     {
-        $defaults = require dirname(__DIR__, 2).'/config/modules.php';
+        $defaults = require dirname(__DIR__, 2).'/config/moduark.php';
 
         self::assertIsArray($defaults);
 

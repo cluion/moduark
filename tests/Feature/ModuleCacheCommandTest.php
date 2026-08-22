@@ -41,7 +41,7 @@ final class ModuleCacheCommandTest extends TestCase
 
     public function test_module_cache_creates_a_versioned_manifest_and_clear_removes_it(): void
     {
-        $this->command('module:cache')
+        $this->command('moduark:cache')
             ->expectsOutputToContain('Module cache created successfully: 3 Modules cached.')
             ->assertSuccessful();
 
@@ -56,10 +56,10 @@ final class ModuleCacheCommandTest extends TestCase
         self::assertIsArray($payload['descriptors']);
         self::assertCount(3, $payload['descriptors']);
 
-        $this->command('module:check')->assertSuccessful();
+        $this->command('moduark:check')->assertSuccessful();
         self::assertFileExists($this->sourceStore()->path());
 
-        $this->command('module:clear')
+        $this->command('moduark:clear')
             ->expectsOutputToContain('Module cache cleared successfully.')
             ->assertSuccessful();
 
@@ -69,13 +69,13 @@ final class ModuleCacheCommandTest extends TestCase
 
     public function test_runtime_uses_the_manifest_until_it_is_cleared(): void
     {
-        $this->command('module:cache')->assertSuccessful();
+        $this->command('moduark:cache')->assertSuccessful();
         $this->createProbe();
         $this->refreshApplication();
 
         self::assertNotContains('CacheProbe', $this->moduleNames());
 
-        $this->command('module:clear')->assertSuccessful();
+        $this->command('moduark:clear')->assertSuccessful();
         $this->refreshApplication();
 
         self::assertContains('CacheProbe', $this->moduleNames());
@@ -83,13 +83,13 @@ final class ModuleCacheCommandTest extends TestCase
 
     public function test_rebuilding_never_reuses_the_loaded_manifest(): void
     {
-        $this->command('module:cache')->assertSuccessful();
+        $this->command('moduark:cache')->assertSuccessful();
         $this->createProbe();
         $this->refreshApplication();
 
         self::assertNotContains('CacheProbe', $this->moduleNames());
 
-        $this->command('module:cache')->assertSuccessful();
+        $this->command('moduark:cache')->assertSuccessful();
         $this->refreshApplication();
 
         self::assertContains('CacheProbe', $this->moduleNames());
@@ -99,7 +99,7 @@ final class ModuleCacheCommandTest extends TestCase
     {
         $this->command('optimize')->assertSuccessful();
         self::assertFileExists($this->store()->path());
-        $this->command('module:check')->assertSuccessful();
+        $this->command('moduark:check')->assertSuccessful();
         self::assertFileExists($this->sourceStore()->path());
 
         $this->command('optimize:clear')->assertSuccessful();

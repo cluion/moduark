@@ -15,7 +15,7 @@ use RuntimeException;
 final class ModuleCacheCommand extends Command
 {
     /** @var string */
-    protected $signature = 'module:cache';
+    protected $signature = 'moduark:cache';
 
     /** @var string */
     protected $description = 'Cache discovered Modules and their architecture metadata';

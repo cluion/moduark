@@ -87,6 +87,9 @@ Before committing the release preparation:
 - remove the unpublished warning from `UPGRADING.md` only for the stable
   release, and keep the beta-to-1.0 migration procedure accurate;
 - confirm Levels 0 through 2 are Stable and Level 3 is Preview everywhere;
+- verify that optional companion-package instructions match its published
+  Composer constraint and configuration default; otherwise document the
+  incompatibility instead of recommending an impossible installation;
 - prepare reviewed GitHub Release notes with requirements, upgrade notes,
   limitations, and a full changelog link.
 
@@ -120,6 +123,7 @@ composer test:dependencies
 composer test:distribution
 composer test:installation
 composer test:installation -- --boost
+composer test:interop
 ```
 
 `composer test:dependencies` resolves all four Laravel 12 / 13 lowest and
@@ -127,6 +131,11 @@ highest dependency cases. It does not execute those four runtime combinations;
 the blocking GitHub Actions matrix does. The two installation commands run the
 current checkout on Laravel 12 and 13, first without and then with Laravel
 Boost Skill synchronization.
+
+`composer test:interop` creates a fresh Laravel 13 application with
+`nwidart/laravel-modules`, installs the current checkout, and verifies that the
+two packages retain independent command/configuration namespaces while sharing
+the nwidart Module root safely.
 
 The full suite must include passing documentation-link, public-contract,
 repository-policy, upgrade-policy, Boost Skill, and Level 3 go/no-go tests. Run
@@ -231,13 +240,16 @@ path repository or `dev-main`:
 ```bash
 composer test:installation -- --package="${MODUARK_RELEASE_VERSION}"
 composer test:installation -- --package="${MODUARK_RELEASE_VERSION}" --boost
+composer test:interop -- --package="${MODUARK_RELEASE_VERSION}"
 ```
 
-Both Laravel 12 and 13 must pass package discovery, command behavior, archive
-layout, configuration and Module caches, machine output, baseline/suppression
-audit, and Laravel Boost Skill synchronization. Confirm the installed archive
-contains public policy and Skill files while excluding repository-only tests,
-tools, workbench files, and automation.
+Laravel 12 and 13 must pass the clean installation matrix, and Laravel 13 with
+`nwidart/laravel-modules` must pass the interoperability fixture. Together they
+cover package discovery, command behavior and ownership, archive layout,
+configuration and Module caches, machine output, baseline/suppression audit,
+optimization behavior, and Laravel Boost Skill synchronization. Confirm the
+installed archive contains public policy and Skill files while excluding
+repository-only tests, tools, workbench files, and automation.
 
 Only after this stage may the release be described as publicly verified.
 

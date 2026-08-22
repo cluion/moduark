@@ -53,8 +53,8 @@ final class CleanApplicationRunnerTest extends TestCase
             CleanApplicationRunner::parsePackageVersion('0.2.0-beta.2'),
         );
         self::assertSame(
-            '1.0.0-rc.1',
-            CleanApplicationRunner::parsePackageVersion('1.0.0-rc.1'),
+            '1.0.0-rc.2',
+            CleanApplicationRunner::parsePackageVersion('1.0.0-rc.2'),
         );
         self::assertSame('1.0.0', CleanApplicationRunner::parsePackageVersion('1.0.0'));
     }
