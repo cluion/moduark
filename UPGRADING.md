@@ -6,8 +6,8 @@ as the section below for the target release.
 
 > **Current status:** `1.0.0-rc.2` is the current 1.0 release candidate. It
 > changes the RC.1 command and configuration namespaces to support
-> `nwidart/laravel-modules` interoperability. The `1.0.0` stable release has
-> not been published.
+> `nwidart/laravel-modules` interoperability.
+> The `1.0.0` stable release has not been published.
 
 Install the RC with an exact pre-release constraint:
 

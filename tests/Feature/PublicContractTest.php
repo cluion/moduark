@@ -12,6 +12,7 @@ use Cluion\Moduark\Architecture\RuleId;
 use Cluion\Moduark\Architecture\RulePresets;
 use Cluion\Moduark\Capability;
 use Cluion\Moduark\CapabilityRequirement;
+use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Module;
 use Cluion\Moduark\ModuarkServiceProvider;
 use Illuminate\Contracts\Console\Kernel;
@@ -109,9 +110,8 @@ final class PublicContractTest extends TestCase
 
     public function test_configuration_and_versioned_machine_contracts_remain_stable(): void
     {
-        $configuration = config('moduark');
+        $configuration = $this->application()->make(ModulesConfig::class)->all();
 
-        self::assertIsArray($configuration);
         self::assertSame(['path', 'architecture'], array_keys($configuration));
         self::assertIsArray($configuration['architecture']);
         self::assertSame(

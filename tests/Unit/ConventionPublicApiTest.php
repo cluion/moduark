@@ -76,6 +76,9 @@ final class ConventionPublicApiTest extends TestCase
     public function test_nwidart_app_contracts_and_events_are_public_without_broadening_other_directories(): void
     {
         $root = dirname(__DIR__).'/Fixtures/Nwidart/Modules/User/app';
+
+        require_once $root.'/UserModule.php';
+
         $module = new DiscoveredModule(
             'User',
             'Tests\\Fixtures\\Nwidart\\Modules\\User\\UserModule',
