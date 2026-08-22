@@ -26,17 +26,17 @@ application's stability constraints. A clean application must declare the
 Moduark beta as a root requirement before installing the extension:
 
 ```bash
-composer require cluion/moduark:^0.4@beta
+composer require cluion/moduark:^0.5@beta
 composer require --dev cluion/moduark-phpstan:^0.1@beta
 ```
 
-If the application already requires `cluion/moduark:^0.4@beta`, only the second
+If the application already requires `cluion/moduark:^0.5@beta`, only the second
 command is needed. Pin exact beta versions when repeatable pre-release upgrades
 matter.
 
-The `v0.1.0-beta.1` extension release is verified with PHP 8.2 through 8.5,
-Moduark `^0.4@beta`, PHPStan `^2.2`, Laravel 12 and 13, and optional Larastan
-3.10 integration.
+The `v0.1.0-beta.2` extension release is verified with PHP 8.2 through 8.5,
+Moduark `^0.4@beta || ^0.5@beta`, PHPStan `^2.2`, Laravel 12 and 13, and optional
+Larastan 3.10 integration.
 
 ## Load the Extension
 
@@ -200,7 +200,7 @@ JSON reports as tool failures rather than successful architecture checks.
 - If services or diagnostics appear twice, remove either automatic or manual
   loading for the duplicate extension.
 - If a clean install cannot resolve `cluion/moduark`, declare
-  `cluion/moduark:^0.4@beta` in the application root before requiring the
+  `cluion/moduark:^0.5@beta` in the application root before requiring the
   extension.
 - If custom Modules are not analysed, align `modulesPath`, `rootNamespace`, and
   PHPStan `paths`.

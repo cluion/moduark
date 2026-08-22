@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0-beta.1] - 2026-08-22
+
+This beta completes the Ecosystem and Documentation release line with optional
+PHPStan integration guidance, staged migration recipes, interactive graph
+examples, and real-project analyzer hardening.
+
 ### Added
 
 - Added a public PHPStan and Larastan integration guide for the optional
@@ -238,7 +244,8 @@ incomplete and are not part of this release contract.
 - Clean installation acceptance from release-tag checkouts by explicitly
   mapping the local path repository to `dev-main`.
 
-[Unreleased]: https://github.com/cluion/moduark/compare/v0.4.0-beta.1...HEAD
+[Unreleased]: https://github.com/cluion/moduark/compare/v0.5.0-beta.1...HEAD
+[0.5.0-beta.1]: https://github.com/cluion/moduark/compare/v0.4.0-beta.1...v0.5.0-beta.1
 [0.4.0-beta.1]: https://github.com/cluion/moduark/compare/v0.3.0-beta.5...v0.4.0-beta.1
 [0.3.0-beta.5]: https://github.com/cluion/moduark/compare/v0.3.0-beta.4...v0.3.0-beta.5
 [0.3.0-beta.4]: https://github.com/cluion/moduark/compare/v0.3.0-beta.3...v0.3.0-beta.4

@@ -41,7 +41,7 @@ preset leaves the rule disabled.
 | `cross_module_transactions` | — | — | — | W | Yes |
 | `explicit_public_exports` | — | — | — | E | Yes |
 
-Disabling an enabled rule weakens that preset's guarantee. The published `0.4`
+Disabling an enabled rule weakens that preset's guarantee. The published `0.5`
 beta supports complete Level 0 through Level 3 presets. Level 3 remains opt-in;
 the package default is Level 1.
 

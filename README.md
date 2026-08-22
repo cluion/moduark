@@ -4,10 +4,10 @@ Moduark is a Laravel-native modular architecture toolkit. It keeps Modules in a
 normal Laravel application while making their dependencies, lifecycle order,
 resources, and architecture boundaries executable and inspectable.
 
-> **Pre-release status:** `0.4.0-beta.1` guarantees complete Level 0 through
-> Level 3 presets. Level 3 adds all six persistence-isolation rules, including
-> explicit table ownership, migration, foreign-key, transaction, and Public API
-> export boundaries. The zero-configuration default remains Level 1.
+> **Pre-release status:** `0.5.0-beta.1` guarantees complete Level 0 through
+> Level 3 presets and adds PHPStan/Larastan adoption guidance, brownfield
+> migration recipes, interactive graph examples, and real-project analyzer
+> hardening. The zero-configuration default remains Level 1.
 
 ## Requirements
 
@@ -20,7 +20,7 @@ resources, and architecture boundaries executable and inspectable.
 Install the current beta from Packagist:
 
 ```bash
-composer require cluion/moduark:^0.4@beta
+composer require cluion/moduark:^0.5@beta
 ```
 
 The package is pre-release software. Pin an exact beta version when an
@@ -620,7 +620,7 @@ acceptance against the Packagist dist instead of the local path repository. This
 mode also verifies the installed archive layout:
 
 ```bash
-composer test:installation -- --package=0.4.0-beta.1
+composer test:installation -- --package=0.5.0-beta.1
 ```
 
 The GitHub Actions compatibility workflow runs PHPUnit on all four
@@ -642,7 +642,7 @@ contract.
 
 ## Current Scope
 
-The `v0.4.0-beta.1` release guarantees foundation plus complete Level 0 through
+The `v0.5.0-beta.1` release guarantees foundation plus complete Level 0 through
 Level 3 presets. Level 2 includes typed Capability metadata, descriptor-only
 provider resolution, lifecycle preflight, consumer-owned Port wiring,
 Capability contract validation, source-enforced Adapter boundaries,
@@ -663,9 +663,10 @@ covers literal Facade queries, Schema mutations, Blueprint constraints, and
 direct Query Builder writes inside transaction callbacks, while unresolved
 expressions remain reviewable warnings. Explicit `exports()` metadata narrows the
 convention-based Public API. The complete fourteen-rule Level 3 preset can now
-produce a complete pass. The optional `cluion/moduark-phpstan` companion beta
-integrates `internal_api_access` with PHPStan and Larastan; suppression expiry
-and extension coverage for the remaining rules remain later work. See
+produce a complete pass. The optional `cluion/moduark-phpstan`
+`v0.1.0-beta.2` companion beta integrates `internal_api_access` with PHPStan and
+Larastan; suppression expiry and extension coverage for the remaining rules
+remain later work. See
 [ADR-0035](docs/adr/0035-cross-module-model-access.md),
 [ADR-0036](docs/adr/0036-table-ownership-index.md),
 [ADR-0037](docs/adr/0037-database-ownership-rule.md),
@@ -675,11 +676,12 @@ and extension coverage for the remaining rules remain later work. See
 [ADR-0041](docs/adr/0041-explicit-public-exports-rule.md). The optional
 integration boundary is defined by
 [ADR-0042](docs/adr/0042-phpstan-extension-integration-boundary.md). The final
-`0.5.x` slice adopts two complete existing Laravel applications as static
-corpora: 1,511 PHP files produced 807 table accesses, 413 Schema mutations, and
-156 foreign-key references. Independent token-based oracles reached zero
-resolved-line misses, zero table-evidence anchoring collisions, and complete
-recall across 1,077 literal Facade and fluent table operations after hardening.
+`v0.5.0-beta.1` release adopts two complete existing Laravel applications as
+static corpora: 1,511 PHP files produced 807 table accesses, 413 Schema
+mutations, and 156 foreign-key references. Independent token-based oracles
+reached zero resolved-line misses, zero table-evidence anchoring collisions, and
+complete recall across 1,077 literal Facade and fluent table operations after
+hardening.
 Command discovery now permits co-located interfaces, traits, enums, and abstract
 classes, query evidence points at the literal table argument, and undeclared
 dependencies report once per ordered Module pair. See

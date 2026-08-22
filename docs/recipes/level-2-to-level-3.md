@@ -56,7 +56,7 @@ Before starting, preserve behavior with tests for:
 Use the current beta and retain Level 2 as the shared default:
 
 ```bash
-composer require cluion/moduark:^0.4@beta
+composer require cluion/moduark:^0.5@beta
 ```
 
 ```php

@@ -45,7 +45,7 @@ that the affected code currently relies on.
 Install the current Moduark beta and publish configuration:
 
 ```bash
-composer require cluion/moduark:^0.4@beta
+composer require cluion/moduark:^0.5@beta
 php artisan vendor:publish --tag=moduark-config
 ```
 

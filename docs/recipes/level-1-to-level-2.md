@@ -68,7 +68,7 @@ constructs the action manually does not prove the runtime Port binding.
 Use the current Moduark beta and retain Level 1 while preparing the inversion:
 
 ```bash
-composer require cluion/moduark:^0.4@beta
+composer require cluion/moduark:^0.5@beta
 ```
 
 ```php
