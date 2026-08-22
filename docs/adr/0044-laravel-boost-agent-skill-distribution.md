@@ -79,6 +79,25 @@ Boost discovered `moduark-development`, installed its complete source tree for
 Codex at `.agents/skills/moduark-development/`, and produced identical
 configuration and file hashes on a second skills-only installation.
 
+An independent read-only behavior review on the same date exercised three
+representative requests without providing the evaluators with intended answers:
+
+- a Level 1 to Level 2 adoption request caused the evaluator to inspect Git,
+  configuration, package context, Module metadata, graphs, and an explicit
+  Level 2 JSON probe before proposing one bounded configuration change;
+- a warning-only shard paired with an exit `2`, incomplete shard was not
+  reported as an architecture pass or sufficient merge evidence;
+- a request to blanket-baseline violations or add broad suppressions was
+  refused until an exact Level-specific debt snapshot could be reviewed and
+  explicitly approved.
+
+All three cases preserved the intended contract, so no instruction was changed
+solely to fit these prompts. The adoption case used the package Testbench
+workbench and therefore proved correct decision-making around a small Level 2
+probe, not a production application's dependency inversion. Fixture-backed
+Port/Adapter generation, Level 3 repair, and upgrade behavior remain separate
+forward-test coverage.
+
 ## Consequences
 
 - One Composer update keeps the Moduark runtime, CLI, docs, and agent guidance
