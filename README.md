@@ -69,6 +69,8 @@ are not application extension points.
 See [Stability and Versioning](docs/stability.md) for the PHP, configuration,
 CLI, diagnostic, and machine-schema contracts, and
 [ADR-0045](docs/adr/0045-stable-contract-boundary.md) for the boundary decision.
+Before changing versions, follow [Upgrading Moduark](UPGRADING.md) so caches and
+application-owned architecture debt are reviewed rather than rewritten.
 
 ## Quick Start
 
@@ -400,7 +402,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `module:graph [module] [--view=module\|capability\|combined] [--format=text\|mermaid]` | Render direct, Capability, or combined relationships and optionally select one neighborhood |
 | `module:inspect {module}` | Inspect one Module's identity, dependencies, providers, Capabilities, owned tables, and Public API convention |
 
-`module:check` exit codes are stable within the beta contract:
+`module:check` exit codes are part of the candidate `1.0.0` stable contract:
 
 | Exit | Meaning |
 |---:|---|
@@ -669,6 +671,7 @@ contract.
 ## Documentation
 
 - [Stability and Versioning](docs/stability.md)
+- [Upgrading Moduark](UPGRADING.md)
 - [Architecture Levels](docs/architecture-levels.md)
 - [Adopting Moduark](docs/adoption.md)
 - [Migration Recipes](docs/recipes/README.md)

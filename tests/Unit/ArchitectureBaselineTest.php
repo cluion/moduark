@@ -103,6 +103,56 @@ final class ArchitectureBaselineTest extends TestCase
         ], $entry->toArray());
     }
 
+    public function test_beta_symbol_identity_becomes_stale_without_hiding_the_current_pair(): void
+    {
+        $baseline = ArchitectureBaseline::fromArray([
+            'schema_version' => 1,
+            'generated_level' => 1,
+            'violations' => [[
+                'rule' => 'undeclared_dependencies',
+                'code' => 'MOD-DEPENDENCY-002',
+                'severity' => 'error',
+                'file' => 'app/Modules/Order/Actions/PlaceOrder.php',
+                'consumer' => 'Order',
+                'target' => 'User',
+                'symbol' => 'App\\Modules\\User\\Internal\\UserRepository',
+                'count' => 4,
+            ]],
+        ]);
+        $current = new Violation(
+            RuleId::UndeclaredDependencies,
+            'MOD-DEPENDENCY-002',
+            Severity::Error,
+            'Module [Order] uses [User] without declaring the dependency.',
+            '/workspace/app/Modules/Order/Actions/PlaceOrder.php',
+            24,
+            'Order',
+            'User',
+            'App\\Modules\\User\\Internal\\UserRepository',
+        );
+        $report = new CheckReport(
+            new EffectiveArchitecture(
+                Level::Modular,
+                Level::Modular,
+                new EffectiveRules([
+                    new EffectiveRule(RuleId::UndeclaredDependencies, true, Severity::Error),
+                ]),
+            ),
+            [new RuleResult(RuleId::UndeclaredDependencies, [$current])],
+            [],
+        );
+
+        $filtered = $baseline->apply($report, '/workspace/moduark-baseline.json', '/workspace');
+        $status = $filtered->baseline();
+
+        self::assertSame([$current], $filtered->violations());
+        self::assertNotNull($status);
+        self::assertSame(0, $status->matched());
+        self::assertSame(4, $status->stale());
+        self::assertSame(0, $status->exceeded());
+        self::assertSame([], $baseline->prune($report, '/workspace')->toArray()['violations']);
+    }
+
     public function test_prune_only_removes_stale_debt_and_never_adds_new_violations(): void
     {
         $oldOrder = $this->violation('/workspace/app/Modules/Order/OrderModule.php', 12);

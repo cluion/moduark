@@ -11,6 +11,7 @@ final class PackageArchiveContract
         'CHANGELOG.md',
         'LICENSE',
         'README.md',
+        'UPGRADING.md',
         'composer.json',
         'config/modules.php',
         'docs/stability.md',

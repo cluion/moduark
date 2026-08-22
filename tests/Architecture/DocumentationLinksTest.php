@@ -14,7 +14,10 @@ final class DocumentationLinksTest extends TestCase
     public function test_local_markdown_links_resolve_to_repository_files(): void
     {
         $root = dirname(__DIR__, 2);
-        $files = [$root.'/README.md'];
+        $files = [
+            $root.'/README.md',
+            $root.'/UPGRADING.md',
+        ];
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($root.'/docs'),
         );

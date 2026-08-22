@@ -135,6 +135,36 @@ Module metadata and source-analysis caches are explicitly excluded from this
 contract. They are rebuildable and may receive a new internal schema or be
 invalidated by any release. Do not edit or consume them as application data.
 
+## Deprecation Policy
+
+This policy applies to Stable surfaces. A replacement must ship in at least one
+released `1.x` minor before the old surface can be removed in the next major
+release. Every deprecation must:
+
+- name the supported replacement and its first available version;
+- be recorded in the changelog and [Upgrading Moduark](../UPGRADING.md);
+- keep the old and replacement paths under compatibility tests during the
+  deprecation window;
+- avoid silently changing application configuration, architecture debt, or
+  machine-readable files.
+
+Deprecated PHP APIs receive an `@deprecated` annotation with a replacement
+reference. A runtime `E_USER_DEPRECATED` warning is optional because boot and
+analysis hot paths must not gain uncontrolled CI noise. Config keys and CLI
+inputs keep their documented behavior throughout `1.x`; a warning cannot alter
+the established exit-code semantics.
+
+An incompatible persistent-schema change requires an explicit new schema
+version. The old form remains readable for at least one released minor when a
+safe dual reader is possible, and no migration may silently rewrite a baseline
+or suppression file. Diagnostic codes are never repurposed: a replacement uses
+a new identity plus an upgrade mapping.
+
+Internal APIs do not receive this window. Preview Level 3 detection breadth may
+expand under its minor-release policy, but its existing machine identities are
+not repurposed. An urgent security response may shorten a compatibility window;
+the release must document the reason, impact, and safe replacement.
+
 ## Release Compatibility
 
 The package's `composer.json` and CI matrix are the source of truth for
