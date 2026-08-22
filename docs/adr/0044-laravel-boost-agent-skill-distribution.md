@@ -98,6 +98,26 @@ probe, not a production application's dependency inversion. Fixture-backed
 Port/Adapter generation, Level 3 repair, and upgrade behavior remain separate
 forward-test coverage.
 
+A second independent read-only review then closed those remaining behavior
+gaps:
+
+- a fraud-risk addition against the Large Level 2 fixture preserved the
+  consumer-owned Checkout Port and provider-scoped Customer Adapter, reused the
+  existing Capability only with an explicit cohesion trade-off, and did not
+  expose Customer internals;
+- a Level 3 repair request recognized that the supplied source was an
+  intentionally violating analyzer fixture, proposed a production Port repair
+  instead of rewriting test evidence, kept a resolved foreign-key warning
+  visible, and refused to guess dynamic table ownership;
+- an upgrade request did not treat `dev-main` as a published `0.6.x` release,
+  invent a debt schema migration, or regenerate baselines and suppressions
+  without an exact target version and changelog evidence.
+
+These cases also required no prompt-specific instruction change. Together with
+the installation matrix and repository contract tests, they satisfy the
+`0.6.x` package-native Skill acceptance. No discovery or installation gap was
+observed that would justify a separate Codex plugin at this stage.
+
 ## Consequences
 
 - One Composer update keeps the Moduark runtime, CLI, docs, and agent guidance
