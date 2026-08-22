@@ -41,6 +41,23 @@ See [PHPStan and Larastan Integration](docs/phpstan-integration.md). The
 companion extension currently covers `internal_api_access`; `module:check`
 remains authoritative for the complete rule set.
 
+## Laravel Boost Agent Skill
+
+The `0.6.x` development line includes a Laravel Boost-compatible
+`moduark-development` Skill in this Composer package. Applications using Boost
+can run its installation flow after adding or updating Moduark:
+
+```bash
+php artisan boost:install
+```
+
+Boost discovers the packaged Skill and installs it for the coding agents chosen
+by the application. No separate Moduark Codex plugin is required. The installed
+Moduark CLI and package documentation remain authoritative; the Skill guides an
+agent through inventory, staged Level adoption, diagnostics, reviewed debt, and
+upgrade verification. See
+[ADR-0044](docs/adr/0044-laravel-boost-agent-skill-distribution.md).
+
 ## Quick Start
 
 Create the smallest valid Module:

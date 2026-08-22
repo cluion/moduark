@@ -101,7 +101,7 @@ final class ArchiveContractTest extends TestCase
                 '--format=tar',
                 '--worktree-attributes',
                 '--output='.$this->archivePath,
-                'HEAD',
+                $this->archiveReference(),
             ],
             [
                 1 => ['pipe', 'w'],
@@ -131,6 +131,21 @@ final class ArchiveContractTest extends TestCase
                 trim($error === false ? '' : $error),
             ));
         }
+    }
+
+    private function archiveReference(): string
+    {
+        $tree = getenv('MODUARK_ARCHIVE_TREE');
+
+        if ($tree === false || $tree === '') {
+            return 'HEAD';
+        }
+
+        if (preg_match('/\A[0-9a-f]{40,64}\z/D', $tree) !== 1) {
+            throw new RuntimeException('MODUARK_ARCHIVE_TREE must be a Git tree object ID.');
+        }
+
+        return $tree;
     }
 
     /** @param list<string> $entries */

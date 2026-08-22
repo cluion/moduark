@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added a Laravel Boost-compatible `moduark-development` Agent Skill with
+  focused adoption, diagnostics, debt, inspection, and upgrade guidance; the
+  Skill ships with the Composer package and preserves Moduark's machine-readable
+  exit, warning, incomplete-analysis, baseline, and suppression contracts.
+
 ## [0.5.0-beta.1] - 2026-08-22
 
 This beta completes the Ecosystem and Documentation release line with optional
