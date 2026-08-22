@@ -33,6 +33,13 @@ Level 3 remains opt-in. A patch release will not silently add blocking preset
 scope, and unsupported dynamic behavior remains unknown instead of being
 guessed.
 
+The `1.0.0` go/no-go review keeps Level 3 in Preview. A complete public fixture
+now exercises Capability wiring, owned migrations, resolved and unresolved
+foreign keys, inline transactions, and all fourteen rules without blocking
+false positives, but a curated fixture is not independent brownfield adoption
+evidence. See [ADR-0046](adr/0046-level-three-preview-go-no-go.md) for the
+remaining promotion gate.
+
 ### Internal
 
 Anything not listed as Stable or Preview is Internal even when PHP visibility

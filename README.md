@@ -69,6 +69,8 @@ are not application extension points.
 See [Stability and Versioning](docs/stability.md) for the PHP, configuration,
 CLI, diagnostic, and machine-schema contracts, and
 [ADR-0045](docs/adr/0045-stable-contract-boundary.md) for the boundary decision.
+The Level 3 promotion review remains a documented no-go for `1.0.0`; see
+[ADR-0046](docs/adr/0046-level-three-preview-go-no-go.md).
 Before changing versions, follow [Upgrading Moduark](UPGRADING.md) so caches and
 application-owned architecture debt are reviewed rather than rewritten.
 

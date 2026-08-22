@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added executable security support and contribution policies with a verified
   private vulnerability reporting channel, current beta support matrix, real
   repository commands, ADR thresholds, and corpus privacy safeguards.
+- Added a complete Level 3 adoption fixture covering Capability wiring, owned
+  migrations, resolved and unresolved foreign keys, inline transactions, and
+  all fourteen rules; the 1.0 go/no-go review keeps Level 3 in Preview pending
+  independent brownfield evidence.
 - Added a Laravel Boost-compatible `moduark-development` Agent Skill with
   focused adoption, diagnostics, debt, inspection, and upgrade guidance; the
   Skill ships with the Composer package and preserves Moduark's machine-readable
