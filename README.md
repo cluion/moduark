@@ -672,6 +672,8 @@ contract.
 
 - [Stability and Versioning](docs/stability.md)
 - [Upgrading Moduark](UPGRADING.md)
+- [Security Policy](SECURITY.md)
+- [Contributing to Moduark](CONTRIBUTING.md)
 - [Architecture Levels](docs/architecture-levels.md)
 - [Adopting Moduark](docs/adoption.md)
 - [Migration Recipes](docs/recipes/README.md)

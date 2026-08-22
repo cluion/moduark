@@ -15,7 +15,9 @@ final class DocumentationLinksTest extends TestCase
     {
         $root = dirname(__DIR__, 2);
         $files = [
+            $root.'/CONTRIBUTING.md',
             $root.'/README.md',
+            $root.'/SECURITY.md',
             $root.'/UPGRADING.md',
         ];
         $iterator = new RecursiveIteratorIterator(

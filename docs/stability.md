@@ -177,5 +177,9 @@ without expanding a preset silently. Minor releases may add optional APIs,
 commands, disabled rules, and additive schema fields. Preview Level 3 detection
 coverage may also expand in a minor release when documented in the changelog.
 
+Published security support and the verified private reporting channel are
+defined in the [Security Policy](../SECURITY.md). The policy distinguishes
+security-impacting boundary bypasses from ordinary analyzer false positives.
+
 See [ADR-0045](adr/0045-stable-contract-boundary.md) for the decision and
 acceptance criteria behind this boundary.

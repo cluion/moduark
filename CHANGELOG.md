@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the candidate beta-to-1.0 upgrade guide and testable deprecation policy,
   including reviewed `MOD-DEPENDENCY-002` pair-identity migration, cache rebuild,
   and baseline / suppression safety gates.
+- Added executable security support and contribution policies with a verified
+  private vulnerability reporting channel, current beta support matrix, real
+  repository commands, ADR thresholds, and corpus privacy safeguards.
 - Added a Laravel Boost-compatible `moduark-development` Agent Skill with
   focused adoption, diagnostics, debt, inspection, and upgrade guidance; the
   Skill ships with the Composer package and preserves Moduark's machine-readable

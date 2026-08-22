@@ -9,8 +9,10 @@ final class PackageArchiveContract
     /** @var list<string> */
     public const REQUIRED_FILES = [
         'CHANGELOG.md',
+        'CONTRIBUTING.md',
         'LICENSE',
         'README.md',
+        'SECURITY.md',
         'UPGRADING.md',
         'composer.json',
         'config/modules.php',
