@@ -7,7 +7,7 @@ return [
     'path' => null,
 
     'architecture' => [
-        // Levels 0 through 2 are candidate 1.0 Stable presets; Level 3 is Preview.
+        // Levels 0 through 2 are Stable presets; Level 3 is Preview.
         'level' => 1,
 
         // Existing violations can be adopted explicitly with moduark:baseline.

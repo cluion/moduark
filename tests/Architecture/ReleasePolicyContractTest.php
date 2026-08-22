@@ -92,7 +92,7 @@ final class ReleasePolicyContractTest extends TestCase
         }
     }
 
-    public function test_current_rc_preparation_documents_are_version_aligned(): void
+    public function test_current_stable_preparation_documents_are_version_aligned(): void
     {
         foreach ([
             'CHANGELOG.md',
@@ -102,16 +102,21 @@ final class ReleasePolicyContractTest extends TestCase
             'docs/adoption.md',
             'docs/stability.md',
         ] as $path) {
-            self::assertStringContainsString('1.0.0-rc.2', $this->contents($path));
+            self::assertStringContainsString('1.0.0', $this->contents($path));
         }
 
         $changelog = $this->contents('CHANGELOG.md');
         self::assertStringContainsString('## [Unreleased]', $changelog);
         self::assertStringContainsString('Laravel 13 + `nwidart/laravel-modules`', $changelog);
+        self::assertStringContainsString('## [1.0.0]', $changelog);
         self::assertStringContainsString('## [1.0.0-rc.2]', $changelog);
         self::assertStringContainsString('## [1.0.0-rc.1]', $changelog);
         self::assertStringContainsString(
-            '[Unreleased]: https://github.com/cluion/moduark/compare/v1.0.0-rc.2...HEAD',
+            '[Unreleased]: https://github.com/cluion/moduark/compare/v1.0.0...HEAD',
+            $changelog,
+        );
+        self::assertStringContainsString(
+            '[1.0.0]: https://github.com/cluion/moduark/compare/v1.0.0-rc.2...v1.0.0',
             $changelog,
         );
         self::assertStringContainsString(
@@ -125,10 +130,15 @@ final class ReleasePolicyContractTest extends TestCase
             $installationDocs .= $contents;
 
             self::assertStringContainsString(
-                'composer require cluion/moduark:1.0.0-rc.2',
+                'composer require cluion/moduark:^1.0',
                 $contents,
             );
         }
+
+        self::assertStringNotContainsString(
+            'composer require cluion/moduark:1.0.0-rc.2',
+            $installationDocs,
+        );
 
         self::assertStringNotContainsString(
             'composer require cluion/moduark:^0.5@beta',

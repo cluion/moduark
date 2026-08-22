@@ -2,19 +2,17 @@
 
 ## Supported Versions
 
-Moduark is still pre-release software. Security support currently follows the
-latest published pre-release only:
+Security support follows the latest stable `1.x` release line:
 
 | Version | Security support |
 |---|---|
-| Latest `1.0` RC (`v1.0.0-rc.2`) | Supported |
-| `v0.5.0-beta.1` and earlier | Not supported |
+| `1.x` (`v1.0.0` and later) | Supported |
+| `v1.0.0-rc.2` and earlier pre-releases | Not supported |
 | Unreleased `main` and future versions | Not a published support line |
 
-`1.0.0` stable has not been published. This table must be updated again as part
-of the stable release gate before a stable `1.x` support window is claimed. The
-package's published Composer constraints and compatibility matrix remain the
-source of truth for supported PHP and Laravel versions.
+The package's published Composer constraints and compatibility matrix remain
+the source of truth for supported PHP and Laravel versions. Security fixes are
+released on the supported stable line rather than backported to an RC or beta.
 
 ## Report a Vulnerability Privately
 

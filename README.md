@@ -4,10 +4,10 @@ Moduark is a Laravel-native modular architecture toolkit. It keeps Modules in a
 normal Laravel application while making their dependencies, lifecycle order,
 resources, and architecture boundaries executable and inspectable.
 
-> **Pre-release status:** `1.0.0-rc.2` is the current release candidate. It
-> revises the RC.1 command and configuration identities for nwidart
-> interoperability before stable. Levels 0 through 2 remain candidate Stable,
-> Level 3 remains Preview, and the zero-configuration default remains Level 1.
+> **Stable status:** `1.0.0` is the current stable release. Levels 0 through 2
+> are Stable, Level 3 remains Preview, and the zero-configuration default
+> remains Level 1. The reviewed RC.2 command, configuration, and nwidart
+> interoperability boundaries are unchanged in stable.
 
 ## Requirements
 
@@ -17,14 +17,11 @@ resources, and architecture boundaries executable and inspectable.
 
 ## Installation
 
-Install the current release candidate from Packagist:
+Install the stable line from Packagist:
 
 ```bash
-composer require cluion/moduark:1.0.0-rc.2
+composer require cluion/moduark:^1.0
 ```
-
-The package remains pre-release software. Keep the exact RC constraint so
-installations do not move to a later candidate without review.
 
 Laravel package discovery registers `Cluion\Moduark\ModuarkServiceProvider`.
 Configuration publishing is optional because package defaults are merged even
@@ -71,7 +68,7 @@ authoritative for the complete rule set.
 
 ## Laravel Boost Agent Skill
 
-The `1.0.0-rc.2` release candidate includes a Laravel Boost-compatible
+The `1.0.0` release includes a Laravel Boost-compatible
 `moduark-development` Skill in this Composer package. Applications using Boost
 can run its installation flow after adding or updating Moduark:
 
@@ -88,11 +85,11 @@ upgrade verification. See
 
 ## Stability and Versioning
 
-The release line remains pre-stable. A real-package interoperability defect in
-RC.1 requires reviewed command and configuration namespace changes in another
-RC before stable. Levels 0 through 2 are classified as candidate Stable, Level
-3 remains an opt-in Preview, and lifecycle internals such as capability
-resolver and cache objects are not application extension points.
+The `1.x` release line is Stable for Levels 0 through 2. Level 3 remains an
+opt-in Preview, and lifecycle internals such as capability resolver and cache
+objects are not application extension points. RC.2 validated the revised
+command and configuration namespaces in a real nwidart application before the
+same boundary was promoted to stable.
 
 See [Stability and Versioning](docs/stability.md) for the PHP, configuration,
 CLI, diagnostic, and machine-schema contracts, and
@@ -432,8 +429,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `moduark:graph [module] [--view=module\|capability\|combined] [--format=text\|mermaid]` | Render direct, Capability, or combined relationships and optionally select one neighborhood |
 | `moduark:inspect {module}` | Inspect one Module's identity, dependencies, providers, Capabilities, owned tables, and Public API convention |
 
-`moduark:check` exit codes are part of the candidate `1.0.0` Stable
-contract:
+`moduark:check` exit codes are part of the Stable `1.x` contract:
 
 | Exit | Meaning |
 |---:|---|
@@ -689,7 +685,7 @@ acceptance against the Packagist dist instead of the local path repository. This
 mode also verifies the installed archive layout:
 
 ```bash
-composer test:installation -- --package=1.0.0-rc.2
+composer test:installation -- --package=1.0.0
 ```
 
 The GitHub Actions compatibility workflow runs PHPUnit on all four
@@ -716,10 +712,10 @@ contract.
 
 ## Current Scope
 
-The RC.2 release candidate revises the RC.1 command and configuration
-namespaces for nwidart interoperability while retaining Levels 0 through 2 as
-candidate Stable and the complete Level 3 preset as Preview. Level 2
-includes typed Capability metadata, descriptor-only
+The `1.0.0` stable release promotes the RC.2 command, configuration, and
+nwidart interoperability boundaries without changing their runtime behavior.
+Levels 0 through 2 are Stable and the complete Level 3 preset remains Preview.
+Level 2 includes typed Capability metadata, descriptor-only
 provider resolution, lifecycle preflight, consumer-owned Port wiring,
 Capability contract validation, source-enforced Adapter boundaries,
 deterministic Capability and combined graphs, `moduark:inspect`, and the large
@@ -741,7 +737,7 @@ expressions remain reviewable warnings. Explicit `exports()` metadata narrows th
 convention-based Public API. The complete fourteen-rule Level 3 preset can now
 produce a complete pass. The optional `cluion/moduark-phpstan`
 `v0.2.0-beta.1` companion beta integrates `internal_api_access` with PHPStan and
-Larastan across the Moduark 1.0 RC and nwidart-compatible source layouts;
+Larastan across the Moduark 1.0 line and nwidart-compatible source layouts;
 suppression expiry and extension coverage for the remaining rules remain later
 work. See
 [ADR-0035](docs/adr/0035-cross-module-model-access.md),

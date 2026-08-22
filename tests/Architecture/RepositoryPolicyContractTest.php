@@ -14,9 +14,9 @@ final class RepositoryPolicyContractTest extends TestCase
         $policy = $this->contents('SECURITY.md');
 
         foreach ([
-            'Latest `1.0` RC (`v1.0.0-rc.2`)',
-            '`v0.5.0-beta.1` and earlier',
-            '`1.0.0` stable has not been published',
+            '`1.x` (`v1.0.0` and later)',
+            '`v1.0.0-rc.2` and earlier pre-releases',
+            'rather than backported to an RC or beta',
             'https://github.com/cluion/moduark/security/advisories/new',
             'Do not open a public GitHub issue',
             'numeric response or remediation SLA',

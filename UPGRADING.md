@@ -4,15 +4,14 @@ This guide covers application-owned changes required when upgrading Moduark.
 Read the complete changelog between the installed and target versions as well
 as the section below for the target release.
 
-> **Current status:** `1.0.0-rc.2` is the current 1.0 release candidate. It
-> changes the RC.1 command and configuration namespaces to support
-> `nwidart/laravel-modules` interoperability.
-> The `1.0.0` stable release has not been published.
+> **Current status:** `1.0.0` is the current stable release. It promotes the
+> reviewed RC.2 command, configuration, and `nwidart/laravel-modules`
+> interoperability boundaries without another runtime or schema change.
 
-Install the RC with an exact pre-release constraint:
+Install or upgrade to the stable line:
 
 ```bash
-composer require cluion/moduark:1.0.0-rc.2
+composer require cluion/moduark:^1.0
 ```
 
 ## Upgrade Safety Checklist
@@ -29,18 +28,47 @@ Before changing the Composer constraint:
    result for comparison:
 
    ```bash
-   php artisan module:check --format=json
-   php artisan module:check --show-suppressions
+   php artisan moduark:check --format=json
+   php artisan moduark:check --show-suppressions
    ```
 
 5. Treat exit `2`, `complete: false`, or `status: incomplete` as a failed
    analysis. It is not valid before/after evidence.
 
-The two commands above deliberately use the old command namespace and must run
-before Composer replaces the installed version. The debt-file commands below
-use Moduark's default filenames. Substitute the paths configured in
-`moduark.architecture.baseline` and `moduark.architecture.suppressions` after
-the namespace migration when the application overrides them.
+The commands above use the RC.2 and stable namespace. When upgrading directly
+from RC.1 or an earlier beta, run that installed version's `module:check`
+commands before Composer replaces it, then use the `moduark:*` commands after
+the namespace migration. The debt-file commands below use Moduark's default
+filenames. Substitute the paths configured in
+`moduark.architecture.baseline` and `moduark.architecture.suppressions` when the
+application overrides them.
+
+## Upgrading from `1.0.0-rc.2` to `1.0.0`
+
+Stable promotes the reviewed RC.2 contract without changing PHP extension
+points, configuration keys, command names, architecture presets, diagnostic
+identities, or machine-readable schemas. Replace the exact RC constraint with
+the stable line and review the lock-file change:
+
+```bash
+composer require cluion/moduark:^1.0
+composer show cluion/moduark
+git diff -- composer.json composer.lock
+```
+
+Clear rebuildable metadata, compare a complete architecture result, and rebuild
+the production cache only after accepting it:
+
+```bash
+php artisan moduark:clear
+php artisan moduark:list
+php artisan moduark:check --format=json
+php artisan moduark:cache
+```
+
+Applications using Laravel Boost should rerun `php artisan boost:install` and
+review the installed Skill diff. No application-owned baseline or suppression
+file should be rewritten merely because the stability label changed.
 
 ## Upgrading from `1.0.0-rc.1` to `1.0.0-rc.2`
 
@@ -110,8 +138,8 @@ php artisan boost:install
 
 ### Stable and Preview boundaries
 
-The candidate `1.0.0` contract makes Levels 0 through 2 Stable and keeps Level
-3 Preview. Level 3 remains opt-in: existing rule, severity, diagnostic, and
+The `1.0.0` contract makes Levels 0 through 2 Stable and keeps Level 3 Preview.
+Level 3 remains opt-in: existing rule, severity, diagnostic, and
 machine-schema identities are versioned, while documented detection breadth
 may expand in a later `1.x` minor release.
 
@@ -122,7 +150,7 @@ Ports through Laravel's container. Remove direct application construction of
 types are Internal. See [Stability and Versioning](docs/stability.md) and
 [ADR-0045](docs/adr/0045-stable-contract-boundary.md).
 
-The candidate keeps `moduark:check` JSON schema version `1`, architecture
+The stable release keeps `moduark:check` JSON schema version `1`, architecture
 baseline schema version `1`, and suppression manifest schema version `1`.
 There is no general schema rewrite for beta applications. The targeted
 `MOD-DEPENDENCY-002` identity migration below still requires review.

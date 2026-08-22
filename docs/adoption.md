@@ -339,14 +339,15 @@ files unchanged. See
 
 ## Adopt Level 2
 
-Level 2 became complete in `v0.2.0-beta.2`; the 1.0 release candidates validate
-its candidate Stable eight-rule preset: typed Capability metadata, provider
+Level 2 became complete in `v0.2.0-beta.2`; `1.0.0` makes its eight-rule preset
+Stable: typed Capability metadata, provider
 preflight, runtime Port-to-Adapter wiring, Capability contracts, source-backed
 Adapter boundaries, Capability and combined graphs, and focused Module
-inspection. Install the exact RC from Packagist before adopting this contract:
+inspection. Install the stable line from Packagist before adopting this
+contract:
 
 ```bash
-composer require cluion/moduark:1.0.0-rc.2
+composer require cluion/moduark:^1.0
 ```
 
 For a concrete continuation of the `User` / `Order` example, including runtime
@@ -378,14 +379,14 @@ selected Module's resolved Capability provider, Port, Adapter, ServiceProviders,
 dependency status, explicit owned tables, current convention-based Public API,
 and explicit exports as separate reviewable rows.
 
-## Adopt Level 3 with the `1.0` RC
+## Adopt Level 3 with `1.0`
 
-`v1.0.0-rc.2` retains the complete fourteen-rule Level 3 preset while its
-stability classification remains Preview. Install the exact RC from Packagist
-before adopting this contract:
+`v1.0.0` retains the complete fourteen-rule Level 3 preset while its stability
+classification remains Preview. Install the stable line from Packagist before
+adopting this contract:
 
 ```bash
-composer require cluion/moduark:1.0.0-rc.2
+composer require cluion/moduark:^1.0
 ```
 
 For a staged `User` / `Order` migration with explicit rollback boundaries and

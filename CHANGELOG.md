@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-08-23
+
+This first stable release promotes the publicly reviewed RC.2 contract without
+another runtime or machine-schema change. Levels 0 through 2 are Stable, Level
+3 remains Preview, and the zero-configuration default remains Level 1.
+
+### Changed
+
+- Promoted the RC.2 PHP extension points, `moduark.*` configuration,
+  `moduark:*` commands, architecture presets, diagnostics, and versioned machine
+  formats to the documented Stable `1.x` contract.
+- Clarified nwidart adoption prerequisites: load each generated Module's
+  Composer PSR-4 mapping, use nwidart-owned Makers for its external `Modules/`
+  root, and keep the Moduark entry below `Modules/<Name>/app`.
+- Updated installation, upgrade, security-support, PHPStan companion, and
+  stability guidance for the stable `^1.0` line while retaining Level 3's
+  Preview limits.
+
 ## [1.0.0-rc.2] - 2026-08-22
 
 ### Added
@@ -306,7 +324,8 @@ incomplete and are not part of this release contract.
 - Clean installation acceptance from release-tag checkouts by explicitly
   mapping the local path repository to `dev-main`.
 
-[Unreleased]: https://github.com/cluion/moduark/compare/v1.0.0-rc.2...HEAD
+[Unreleased]: https://github.com/cluion/moduark/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/cluion/moduark/compare/v1.0.0-rc.2...v1.0.0
 [1.0.0-rc.2]: https://github.com/cluion/moduark/compare/v1.0.0-rc.1...v1.0.0-rc.2
 [1.0.0-rc.1]: https://github.com/cluion/moduark/compare/v0.5.0-beta.1...v1.0.0-rc.1
 [0.5.0-beta.1]: https://github.com/cluion/moduark/compare/v0.4.0-beta.1...v0.5.0-beta.1

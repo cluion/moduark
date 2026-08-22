@@ -13,10 +13,10 @@ final class UpgradePolicyContractTest extends TestCase
         $guide = $this->contents('UPGRADING.md');
 
         foreach ([
-            '`1.0.0-rc.2` is the current 1.0 release candidate',
-            'changes the RC.1 command and configuration namespaces',
-            '`1.0.0` stable release has not been published',
-            'composer require cluion/moduark:1.0.0-rc.2',
+            '`1.0.0` is the current stable release',
+            'reviewed RC.2 command, configuration',
+            'composer require cluion/moduark:^1.0',
+            'Upgrading from `1.0.0-rc.2` to `1.0.0`',
             'Upgrading from `1.0.0-rc.1` to `1.0.0-rc.2`',
             'php artisan moduark:check --format=json',
             'php artisan moduark:check --show-suppressions',
@@ -30,6 +30,7 @@ final class UpgradePolicyContractTest extends TestCase
             '`module:clear` | `moduark:clear`',
             '`config/modules.php` belongs to `nwidart/laravel-modules`',
             '`moduark.architecture.baseline`',
+            'No application-owned baseline or suppression',
         ] as $contract) {
             self::assertStringContainsString($contract, $guide);
         }

@@ -1,10 +1,10 @@
 # Stability and Versioning
 
-This document defines the candidate compatibility contract for Moduark 1.0.
+This document defines the stable compatibility contract for Moduark 1.0.
 `1.0.0-rc.1` exposed an interoperability defect in its command and
 configuration identities; `1.0.0-rc.2` adopts the revised boundary documented
-by ADR-0047. It becomes the stable-release policy only when `1.0.0` is
-published.
+by ADR-0047. `1.0.0` promotes that reviewed boundary without another runtime or
+machine-schema change.
 
 ## Contract Categories
 
