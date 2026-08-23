@@ -623,6 +623,7 @@ PHP;
             'Moduark resource maker lost its middleware type.',
         );
         $this->assertContains('factory', $moduark, 'Moduark resource maker lost its factory type.');
+        $this->assertContains('observer', $moduark, 'Moduark resource maker lost its observer type.');
         $this->assertContains('policy', $moduark, 'Moduark resource maker lost its policy type.');
         $this->assertContains('rule', $moduark, 'Moduark resource maker lost its rule type.');
         $this->assertContains('seeder', $moduark, 'Moduark resource maker lost its seeder type.');

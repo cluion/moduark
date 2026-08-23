@@ -121,6 +121,9 @@ native rule stub and does not create related HTTP artifacts.
 Standalone factories and seeders are generated below `Database/Factories/` and
 `Database/Seeders/`. Factory `--model` is Module-relative; both types reject
 `--force` and never mutate application-level database resources.
+Observers are generated below `Observers/`. Observer `--model` values are
+Module-relative below `Models/`; generation supports `--force` but never creates
+a model, provider registration, or event listener.
 
 Architecture checks use these process exit codes:
 

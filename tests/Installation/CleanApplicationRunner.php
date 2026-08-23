@@ -305,6 +305,7 @@ final class CleanApplicationRunner
             ['factory', 'Billing/InvoiceFactory', '--model=Profile', 'Database/Factories/Billing/InvoiceFactory.php'],
             ['interface', 'Lookup/UserLookup', null, 'Contracts/Lookup/UserLookup.php'],
             ['middleware', 'Admin/EnsureProfileIsComplete', null, 'Http/Middleware/Admin/EnsureProfileIsComplete.php'],
+            ['observer', 'Profile/ProfileObserver', '--model=Profile', 'Observers/Profile/ProfileObserver.php'],
             ['policy', 'Profile/ProfilePolicy', '--model=Profile', 'Policies/Profile/ProfilePolicy.php'],
             ['request', 'Profile/StoreProfileRequest', null, 'Http/Requests/Profile/StoreProfileRequest.php'],
             ['resource', 'Profile/ProfileResource', null, 'Http/Resources/Profile/ProfileResource.php'],

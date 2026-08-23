@@ -147,6 +147,91 @@ final class DataModuleMakerTest extends TestCase
         self::assertDirectoryDoesNotExist($this->temporaryBasePath.'/database');
     }
 
+    public function test_it_generates_plain_and_model_bound_module_owned_observers(): void
+    {
+        $this->command('moduark:make User observer Audit/ProfileObserver')->assertSuccessful();
+        $this->command(
+            'moduark:make User observer Profile/ProfileObserver --model=Account/Profile',
+        )->assertSuccessful();
+
+        $plainPath = $this->temporaryBasePath
+            .'/app/Modules/User/Observers/Audit/ProfileObserver.php';
+        $modelPath = $this->temporaryBasePath
+            .'/app/Modules/User/Observers/Profile/ProfileObserver.php';
+        $plain = (string) file_get_contents($plainPath);
+        $model = (string) file_get_contents($modelPath);
+
+        self::assertStringContainsString(
+            'namespace MakerFixture\\Modules\\User\\Observers\\Audit;',
+            $plain,
+        );
+        self::assertStringContainsString('class ProfileObserver', $plain);
+        self::assertStringNotContainsString('function created(', $plain);
+        self::assertStringContainsString(
+            'namespace MakerFixture\\Modules\\User\\Observers\\Profile;',
+            $model,
+        );
+        self::assertStringContainsString(
+            'use MakerFixture\\Modules\\User\\Models\\Account\\Profile;',
+            $model,
+        );
+        self::assertStringContainsString('public function created(Profile $profile): void', $model);
+        self::assertStringContainsString('public function forceDeleted(Profile $profile): void', $model);
+        self::assertSame([
+            $plainPath,
+            $modelPath,
+            $this->temporaryBasePath.'/app/Modules/User/UserModule.php',
+        ], $this->files());
+        self::assertDirectoryDoesNotExist($this->temporaryBasePath.'/app/Observers');
+    }
+
+    public function test_observer_preserves_native_collision_and_force_behavior(): void
+    {
+        $path = $this->temporaryBasePath
+            .'/app/Modules/User/Observers/ProfileObserver.php';
+
+        $this->command('moduark:make User observer ProfileObserver')->assertSuccessful();
+        self::assertIsInt(file_put_contents($path, 'existing observer'));
+
+        $this->command('moduark:make User observer ProfileObserver')
+            ->expectsOutputToContain('Observer already exists.')
+            ->assertFailed();
+        self::assertSame('existing observer', file_get_contents($path));
+
+        $this->command('moduark:make User observer ProfileObserver --force')->assertSuccessful();
+        self::assertNotSame('existing observer', file_get_contents($path));
+    }
+
+    public function test_observer_rejects_foreign_or_invalid_options_without_mutation(): void
+    {
+        $this->command('moduark:make User observer ProfileObserver --guard=web')
+            ->expectsOutputToContain(
+                'Module Maker failed: The --guard option is not supported for Maker type [observer].',
+            )
+            ->assertExitCode(2);
+        $this->command('moduark:make User observer ProfileObserver --model=profile')
+            ->expectsOutputToContain(
+                'Module Maker failed: Observer model [profile] must contain one or more StudlyCase class segments relative to the Module Models namespace.',
+            )
+            ->assertExitCode(2);
+        $this->command('moduark:make User observer ProfileObserver --model=/App/Models/Profile')
+            ->expectsOutputToContain(
+                'must contain one or more StudlyCase class segments relative to the Module Models namespace.',
+            )
+            ->assertExitCode(2);
+        $this->command('moduark:make User observer ProfileObserver --model=')
+            ->expectsOutputToContain(
+                'Module Maker failed: The --model option must be a non-empty string when provided.',
+            )
+            ->assertExitCode(2);
+
+        self::assertSame(
+            [$this->temporaryBasePath.'/app/Modules/User/UserModule.php'],
+            $this->files(),
+        );
+        self::assertDirectoryDoesNotExist($this->temporaryBasePath.'/app/Observers');
+    }
+
     public function test_factory_and_seeder_preserve_collision_and_native_force_contracts(): void
     {
         $factoryPath = $this->temporaryBasePath

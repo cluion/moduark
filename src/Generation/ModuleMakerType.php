@@ -19,6 +19,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     case Factory = 'factory';
     case PhpInterface = 'interface';
     case HttpMiddleware = 'middleware';
+    case Observer = 'observer';
     case Policy = 'policy';
     case HttpRequest = 'request';
     case HttpResource = 'resource';
@@ -39,6 +40,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Factory->value => self::Factory,
             self::PhpInterface->value => self::PhpInterface,
             self::HttpMiddleware->value => self::HttpMiddleware,
+            self::Observer->value => self::Observer,
             self::Policy->value => self::Policy,
             self::HttpRequest->value => self::HttpRequest,
             self::HttpResource->value => self::HttpResource,
@@ -72,6 +74,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Factory => 'Database\\Factories',
             self::PhpInterface => 'Contracts',
             self::HttpMiddleware => 'Http\\Middleware',
+            self::Observer => 'Observers',
             self::Policy => 'Policies',
             self::HttpRequest => 'Http\\Requests',
             self::HttpResource => 'Http\\Resources',
@@ -100,6 +103,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpException,
             self::PhpInterface,
             self::HttpMiddleware,
+            self::Observer,
             self::Policy,
             self::HttpRequest,
             self::HttpResource,
@@ -267,6 +271,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpEnum => ['int', 'string'],
             self::PhpException => ['render', 'report'],
             self::HttpResource => ['collection', 'json-api'],
+            self::Observer => ['model'],
             self::Policy => ['model', 'guard'],
             self::ValidationRule => ['implicit'],
             self::PhpInterface,
@@ -305,6 +310,10 @@ enum ModuleMakerType: string implements GeneratorDescriptor
         } elseif ($this === self::HttpResource) {
             $parameters['--collection'] = $options->collection;
             $parameters['--json-api'] = $options->jsonApi;
+        } elseif ($this === self::Observer) {
+            if ($options->model !== null) {
+                $parameters['--model'] = $this->observerModel($target, $options->model);
+            }
         } elseif ($this === self::Policy) {
             if ($options->model !== null) {
                 $parameters['--model'] = $this->policyModel($target, $options->model);
@@ -365,6 +374,15 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             $target,
             $model,
             ModuleMakerFailed::invalidPolicyModel($model),
+        );
+    }
+
+    private function observerModel(ModuleMakerTarget $target, string $model): string
+    {
+        return $this->moduleModel(
+            $target,
+            $model,
+            ModuleMakerFailed::invalidObserverModel($model),
         );
     }
 

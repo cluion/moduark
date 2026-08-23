@@ -43,6 +43,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added standalone Module-owned `factory` and `seeder` Makers below
   `Database/Factories/` and `Database/Seeders/`, including Module-relative
   factory model inference without writes to Laravel's root `database/` tree.
+- Added the Module-owned `observer` Maker below `Observers/` with Laravel-native
+  plain and model-aware stubs, Module-relative model qualification, native
+  collision/force behavior, and no implicit registration side effects.
 
 ## [1.0.1] - 2026-08-23
 

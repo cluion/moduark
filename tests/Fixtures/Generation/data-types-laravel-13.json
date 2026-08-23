@@ -15,6 +15,18 @@
             "target": "Database/Factories/Profile/AccountProfileFactory.php"
         },
         {
+            "type": "observer",
+            "name": "Audit/ProfileObserver",
+            "options": "",
+            "target": "Observers/Audit/ProfileObserver.php"
+        },
+        {
+            "type": "observer",
+            "name": "Profile/ProfileObserver",
+            "options": "--model=Account/Profile",
+            "target": "Observers/Profile/ProfileObserver.php"
+        },
+        {
             "type": "seeder",
             "name": "Demo/ProfileSeeder",
             "options": "",

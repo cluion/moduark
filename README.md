@@ -146,6 +146,8 @@ php artisan moduark:make User exception Billing/PaymentFailed --render --report
 php artisan moduark:make User factory Billing/InvoiceFactory --model=Profile
 php artisan moduark:make User interface Lookup/UserLookup
 php artisan moduark:make User middleware Admin/EnsureProfileIsComplete
+php artisan moduark:make User observer Audit/ProfileObserver
+php artisan moduark:make User observer Profile/ProfileObserver --model=Profile
 php artisan moduark:make User policy Admin/ManageProfiles
 php artisan moduark:make User policy Profile/ProfilePolicy --model=Profile --guard=web
 php artisan moduark:make User request Profile/StoreProfileRequest
@@ -217,6 +219,12 @@ application-level `database/` path. Factory names receive the conventional
 different Module-relative model. Neither Maker supports `--force`, matching its
 Laravel 12 / 13 native option contract, and neither changes a model or root
 `DatabaseSeeder`.
+
+Observers use the Module-owned `Observers/` path and Laravel's native plain or
+model-aware stub. A relative `--model=Profile` resolves only inside the selected
+Module's `Models\Profile`; external fully qualified model names are rejected.
+Observers support nested names, `--force`, and `--dry-run`, but do not create a
+model or register themselves with a provider or event listener.
 
 The target Module must already exist and its configured path must be inside the
 Laravel application source root. Other composite Laravel Maker options that
