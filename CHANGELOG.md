@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added a large Generation performance regression gate covering 100 full
+  scaffold Modules and 1,400 production-template targets. A fixed PHP 8.5 CI
+  job now enforces a generous median-total budget while the standalone
+  benchmark retains text and JSON evidence modes.
 - Added the Stable third-party generator registration API. Composer packages
   can contribute template-backed Module generators through Laravel discovery
   while shared option validation, JSON/text plans, collision preflight,

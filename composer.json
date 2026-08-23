@@ -63,8 +63,10 @@
         "test:distribution": "@php vendor/bin/phpunit tests/Distribution",
         "test:installation": "@php tests/Installation/run.php",
         "test:interop": "@php tests/Interop/run.php",
+        "test:performance": "@php benchmarks/generation.php --enforce",
         "benchmark": "@benchmark:architecture",
         "benchmark:architecture": "@php benchmarks/run.php",
+        "benchmark:generation": "@php benchmarks/generation.php",
         "analyse": "@php vendor/bin/phpstan analyse --ansi --memory-limit=1G",
         "verify": [
             "@test",

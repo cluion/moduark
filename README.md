@@ -864,6 +864,8 @@ composer test:distribution
 composer test:installation
 composer test:installation -- --boost
 composer benchmark
+composer benchmark:generation
+composer test:performance
 ```
 
 `composer verify` runs PHPUnit and PHPStan level max. The generated performance
@@ -874,6 +876,15 @@ into Git. See
 and initial evidence, and
 [ADR-0033](docs/adr/0033-incremental-source-analysis.md) for the incremental
 comparison.
+
+`composer benchmark:generation` builds 100 disposable `full` scaffold Modules
+and measures 1,400 real production-template targets through planning, collision
+preflight, and execution. It reports evidence without enforcing a portable SLA.
+`composer test:performance` runs the same fixture with a 5,000 ms median-total
+budget in the fixed PHP 8.5 Ubuntu CI job. The deliberately generous threshold
+blocks major regressions while tolerating shared-runner and filesystem variance;
+it is not a cross-machine performance promise. See
+[ADR-0054](docs/adr/0054-generation-performance-regression-gate.md).
 
 The Level 2 acceptance fixture models eight business Modules, five shared
 Capabilities, and twelve consumer-owned Port/Adapter bindings. It proves all
