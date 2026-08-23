@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added shared human-readable and schema-versioned JSON Generation Plan output
+  for `moduark:make` and `moduark:make-module`. JSON dry runs expose portable
+  target operations, generator ownership, overwrite intent, collisions, status,
+  and exit codes without filesystem mutation or mixed Laravel command output.
 - Added the reviewed `1.1` Generator Registry contract and deterministic
   Laravel 12 / 13 native Maker inventory fixtures. The fixtures cover all 37
   framework `make:*` commands and detect command, alias, argument, or option

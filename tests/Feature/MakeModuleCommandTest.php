@@ -10,9 +10,11 @@ use Cluion\Moduark\Discovery\ModuleDiscoverer;
 use Cluion\Moduark\Generation\GenerationExecutor;
 use Cluion\Moduark\Module;
 use Composer\Autoload\ClassLoader;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Filesystem\Filesystem;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Tests\TestCase;
 
 final class MakeModuleCommandTest extends TestCase
@@ -129,6 +131,77 @@ final class MakeModuleCommandTest extends TestCase
 
         $pending->assertSuccessful();
         self::assertDirectoryDoesNotExist($this->modulePath);
+    }
+
+    public function test_full_json_dry_run_matches_the_permanent_plan_output_fixture(): void
+    {
+        [$exitCode, $payload, $json] = $this->jsonPlan([
+            'name' => 'Blog',
+            '--preset' => 'full',
+            '--dry-run' => true,
+            '--format' => 'json',
+        ]);
+
+        self::assertSame(0, $exitCode);
+        self::assertSame($this->planOutputFixture('scaffold'), $payload);
+        self::assertStringNotContainsString("\e", $json);
+        self::assertDirectoryDoesNotExist($this->modulePath);
+    }
+
+    public function test_scaffold_json_reports_collisions_without_partial_files(): void
+    {
+        $collision = $this->modulePath.'/Blog/routes/api.php';
+        self::assertTrue(mkdir(dirname($collision), 0755, true));
+        self::assertIsInt(file_put_contents($collision, 'existing route'));
+
+        [$exitCode, $payload] = $this->jsonPlan([
+            'name' => 'Blog',
+            '--preset' => 'full',
+            '--dry-run' => true,
+            '--format' => 'json',
+        ]);
+
+        self::assertSame(1, $exitCode);
+        self::assertSame('collisions_found', $payload['status'] ?? null);
+        $summary = $payload['summary'] ?? null;
+        self::assertIsArray($summary);
+        self::assertSame(1, $summary['collisions'] ?? null);
+        self::assertSame(14, $summary['targets'] ?? null);
+        self::assertSame('existing route', file_get_contents($collision));
+        self::assertSame([$collision], $this->generatedFilesRecursively());
+    }
+
+    public function test_scaffold_json_requires_dry_run_and_reports_invalid_presets(): void
+    {
+        [$formatExit, $formatFailure] = $this->jsonPlan([
+            'name' => 'Blog',
+            '--preset' => 'full',
+            '--format' => 'json',
+        ]);
+        self::assertSame(ExitPolicy::TOOL_ERROR, $formatExit);
+        $formatError = $formatFailure['error'] ?? null;
+        self::assertIsArray($formatError);
+        self::assertSame('MOD-SCAFFOLD-OPTION-001', $formatError['code'] ?? null);
+
+        [$presetExit, $presetFailure] = $this->jsonPlan([
+            'name' => 'Blog',
+            '--preset' => 'frontend',
+            '--dry-run' => true,
+            '--format' => 'json',
+        ]);
+        self::assertSame(1, $presetExit);
+        self::assertSame('incomplete', $presetFailure['status'] ?? null);
+        $presetError = $presetFailure['error'] ?? null;
+        self::assertIsArray($presetError);
+        self::assertSame('MOD-SCAFFOLD-PLAN-001', $presetError['code'] ?? null);
+        self::assertDirectoryDoesNotExist($this->modulePath);
+    }
+
+    public function test_scaffold_rejects_an_unknown_plan_output_format(): void
+    {
+        $this->command('moduark:make-module Blog --dry-run --format=yaml')
+            ->expectsOutputToContain('The --format option must be text or json.')
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }
 
     public function test_preset_collision_preflight_leaves_no_partial_module(): void
@@ -265,6 +338,45 @@ final class MakeModuleCommandTest extends TestCase
             ModulesConfig::class,
             ModulesConfig::from($defaults, ['path' => $path]),
         );
+    }
+
+    /**
+     * @param array<string, bool|string> $parameters
+     * @return array{int, array<mixed>, string}
+     */
+    private function jsonPlan(array $parameters): array
+    {
+        $output = new BufferedOutput;
+        $exitCode = $this->application()->make(Kernel::class)->call(
+            'moduark:make-module',
+            $parameters,
+            $output,
+        );
+        $json = trim($output->fetch());
+        $payload = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertIsArray($payload);
+        self::assertStringNotContainsString($this->temporaryBasePath, $json);
+
+        return [$exitCode, $payload, $json];
+    }
+
+    /** @return array<mixed> */
+    private function planOutputFixture(string $key): array
+    {
+        $fixture = json_decode(
+            (string) file_get_contents(
+                dirname(__DIR__).'/Fixtures/Generation/plan-output.json',
+            ),
+            true,
+            512,
+            JSON_THROW_ON_ERROR,
+        );
+
+        self::assertIsArray($fixture);
+        self::assertIsArray($fixture[$key] ?? null);
+
+        return $fixture[$key];
     }
 
     private function expectedModuleSource(): string

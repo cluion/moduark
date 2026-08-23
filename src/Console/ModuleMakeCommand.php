@@ -9,11 +9,15 @@ use Cluion\Moduark\Exceptions\ModuleMakerFailed;
 use Cluion\Moduark\Generation\GenerationOptions;
 use Cluion\Moduark\Generation\GenerationExecutor;
 use Cluion\Moduark\Generation\GenerationPlan;
+use Cluion\Moduark\Generation\GenerationPlanExporter;
+use Cluion\Moduark\Generation\GenerationPlanFormat;
+use Cluion\Moduark\Generation\GenerationPlanOutputContext;
 use Cluion\Moduark\Generation\GenerationPlanner;
 use Cluion\Moduark\Generation\GenerationPreflight;
 use Cluion\Moduark\Generation\GenerationTarget;
 use Illuminate\Console\Command;
 use RuntimeException;
+use Symfony\Component\Console\Output\OutputInterface;
 
 final class ModuleMakeCommand extends Command
 {
@@ -23,6 +27,7 @@ final class ModuleMakeCommand extends Command
         {type : Maker type: cast, channel, class, component, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, test, trait, or view}
         {name : StudlyCase class name, optionally with nested segments}
         {--dry-run : Display the complete generation plan without writing files}
+        {--format=text : Plan output format (text or json; json requires --dry-run)}
         {--force : Overwrite an existing generated class}
         {--factory : Generate a Module-owned factory for a model}
         {--migration : Generate a Module-owned create-table migration for a model}
@@ -62,6 +67,7 @@ final class ModuleMakeCommand extends Command
         private readonly GenerationPlanner $planner,
         private readonly GenerationPreflight $preflight,
         private readonly GenerationExecutor $executor,
+        private readonly GenerationPlanExporter $exporter,
     ) {
         parent::__construct();
     }
@@ -74,6 +80,29 @@ final class ModuleMakeCommand extends Command
 
         if (! is_string($module) || ! is_string($type) || ! is_string($name)) {
             $this->components->error('The module, type, and name arguments must be strings.');
+
+            return ExitPolicy::TOOL_ERROR;
+        }
+
+        $format = $this->format();
+
+        if ($format === null) {
+            return ExitPolicy::TOOL_ERROR;
+        }
+
+        $context = new GenerationPlanOutputContext(
+            'moduark:make',
+            $module,
+            strtolower($type),
+        );
+
+        if ($format === GenerationPlanFormat::Json && $this->option('dry-run') !== true) {
+            $this->renderRaw($this->exporter->jsonFailure(
+                $context,
+                ExitPolicy::TOOL_ERROR,
+                'MOD-GEN-OPTION-001',
+                'The --format=json option is only available with --dry-run.',
+            ));
 
             return ExitPolicy::TOOL_ERROR;
         }
@@ -124,7 +153,18 @@ final class ModuleMakeCommand extends Command
                 phpunit: $explicitPhpunit,
             ));
         } catch (ModuleMakerFailed $exception) {
-            $this->components->error('Module Maker failed: '.$exception->getMessage());
+            $message = 'Module Maker failed: '.$exception->getMessage();
+
+            if ($format === GenerationPlanFormat::Json) {
+                $this->renderRaw($this->exporter->jsonFailure(
+                    $context,
+                    ExitPolicy::TOOL_ERROR,
+                    'MOD-GEN-PLAN-001',
+                    $message,
+                ));
+            } else {
+                $this->components->error($message);
+            }
 
             return ExitPolicy::TOOL_ERROR;
         }
@@ -132,15 +172,19 @@ final class ModuleMakeCommand extends Command
         $collisions = $this->preflight->collisions($plan);
 
         if ($collisions !== []) {
-            foreach ($collisions as $collision) {
-                $this->components->error(ucfirst($collision->generatorId()).' already exists.');
+            if ($format === GenerationPlanFormat::Json) {
+                $this->renderRaw($this->exporter->json($context, $plan, $collisions));
+            } else {
+                foreach ($collisions as $collision) {
+                    $this->components->error(ucfirst($collision->generatorId()).' already exists.');
+                }
             }
 
             return self::FAILURE;
         }
 
         if ($this->option('dry-run') === true) {
-            $this->renderPlan($plan);
+            $this->renderPlan($format, $context, $plan);
 
             return self::SUCCESS;
         }
@@ -189,21 +233,44 @@ final class ModuleMakeCommand extends Command
         return self::SUCCESS;
     }
 
-    private function renderPlan(GenerationPlan $plan): void
-    {
+    private function renderPlan(
+        GenerationPlanFormat $format,
+        GenerationPlanOutputContext $context,
+        GenerationPlan $plan,
+    ): void {
+        if ($format === GenerationPlanFormat::Json) {
+            $this->renderRaw($this->exporter->json($context, $plan));
+
+            return;
+        }
+
         $this->components->info('Generation plan (dry run):');
 
-        foreach ($plan->targets() as $target) {
-            $action = $this->action($target);
-            $this->line("  {$action} {$target->moduleRelativePath()}");
+        foreach ($this->exporter->textLines($plan) as $line) {
+            $this->line('  '.$line);
         }
     }
 
-    private function action(GenerationTarget $target): string
+    private function format(): ?GenerationPlanFormat
     {
-        return $target->overwrite() && (file_exists($target->filePath()) || is_link($target->filePath()))
-            ? 'OVERWRITE'
-            : 'CREATE';
+        $format = $this->option('format');
+
+        if (is_string($format)) {
+            $resolved = GenerationPlanFormat::tryFrom($format);
+
+            if ($resolved !== null) {
+                return $resolved;
+            }
+        }
+
+        $this->components->error('The --format option must be text or json.');
+
+        return null;
+    }
+
+    private function renderRaw(string $output): void
+    {
+        $this->output->writeln($output, OutputInterface::OUTPUT_RAW);
     }
 
     private function optionalStringOption(string $name): ?string

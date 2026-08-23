@@ -213,6 +213,7 @@ final class PublicContractTest extends TestCase
 
         $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:make'), [
             'dry-run' => false,
+            'format' => 'text',
             'force' => false,
             'factory' => false,
             'migration' => false,
@@ -239,6 +240,7 @@ final class PublicContractTest extends TestCase
         $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:make-module'), [
             'preset' => null,
             'dry-run' => false,
+            'format' => 'text',
         ]);
         $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:graph'), [
             'view' => 'module',

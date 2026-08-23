@@ -139,6 +139,7 @@ php artisan moduark:make-module Blog --preset=api
 php artisan moduark:make-module Blog --preset=domain
 php artisan moduark:make-module Blog --preset=full
 php artisan moduark:make-module Blog --preset=full --dry-run
+php artisan moduark:make-module Blog --preset=full --dry-run --format=json
 ```
 
 `web` adds Module-owned routes, an invokable controller, view, English
@@ -159,6 +160,7 @@ php artisan moduark:make User controller ProfileController
 php artisan moduark:make User controller ProfileController --invokable
 php artisan moduark:make User controller ProfileController --resource --api
 php artisan moduark:make User model Profile --dry-run
+php artisan moduark:make User model Profile --dry-run --format=json
 php artisan moduark:make User model Profile --factory --migration
 php artisan moduark:make User class Support/InvokableTask --invokable
 php artisan moduark:make User cast Money/AmountCast --inbound
@@ -341,7 +343,13 @@ Laravel 12/13 Maker inventory and executable `1.1` registry boundary are recorde
 in [ADR-0049](docs/adr/0049-generator-registry-contract.md). Composite ownership
 and rollback semantics are recorded in
 [ADR-0050](docs/adr/0050-composite-generation-atomicity.md); they do not add a
-new top-level Maker type.
+new top-level Maker type. Human-readable and JSON plan output share the same
+immutable plan. JSON schema version `1` reports `planned`, `collisions_found`,
+or `incomplete`, the compatible exit code, ordered Module-relative targets,
+generator IDs, create/overwrite operations, overwrite intent, and collision
+state. JSON is available only with `--dry-run`, so normal Laravel delegate output
+cannot corrupt the machine document. See
+[ADR-0052](docs/adr/0052-generation-plan-output.md).
 
 Inspect the discovered architecture:
 
@@ -615,8 +623,8 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 
 | Command | Current contract |
 |---|---|
-| `moduark:make-module {name} [--preset=minimal\|web\|api\|domain\|full] [--dry-run]` | Plan or create a deterministic, non-overwriting, rollback-safe Module scaffold; omitted preset remains minimal |
-| `moduark:make {module} {type} {name} [--dry-run]` | Plan or generate supported Module-owned artifacts and tests, with descriptor-specific options and atomic related targets |
+| `moduark:make-module {name} [--preset=minimal\|web\|api\|domain\|full] [--dry-run] [--format=text\|json]` | Plan or create a deterministic, non-overwriting, rollback-safe Module scaffold; JSON is dry-run only and omitted preset remains minimal |
+| `moduark:make {module} {type} {name} [--dry-run] [--format=text\|json]` | Plan or generate supported Module-owned artifacts and tests, with descriptor-specific options, atomic related targets, and dry-run JSON output |
 | `moduark:baseline [--level=0..3] [--force] [--prune]` | Adopt current violations explicitly or safely remove stale baseline debt |
 | `moduark:cache` | Cache deterministic Module discovery and typed metadata |
 | `moduark:clear` | Remove cached Module metadata and incremental source analysis |

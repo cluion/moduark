@@ -98,8 +98,8 @@ rule semantics.
 The following commands and their documented arguments and options are Stable:
 
 ```text
-moduark:make-module {name} [--preset=minimal|web|api|domain|full] [--dry-run]
-moduark:make {module} {type} {name} [--dry-run] [--force] [--factory] [--migration] [--create=] [--table=] [--int] [--string] [--inbound] [--render] [--report] [--collection] [--json-api] [--model=] [--guard=] [--implicit] [--event=] [--queued] [--sync] [--batched] [--markdown=] [--view=] [--inline] [--path=] [--extension=] [--unit] [--test] [--pest] [--phpunit] [--invokable] [--resource] [--api]
+moduark:make-module {name} [--preset=minimal|web|api|domain|full] [--dry-run] [--format=text|json]
+moduark:make {module} {type} {name} [--dry-run] [--format=text|json] [--force] [--factory] [--migration] [--create=] [--table=] [--int] [--string] [--inbound] [--render] [--report] [--collection] [--json-api] [--model=] [--guard=] [--implicit] [--event=] [--queued] [--sync] [--batched] [--markdown=] [--view=] [--inline] [--path=] [--extension=] [--unit] [--test] [--pest] [--phpunit] [--invokable] [--resource] [--api]
 moduark:list
 moduark:inspect {module}
 moduark:graph [{module}] [--view=module] [--format=text]
@@ -120,6 +120,14 @@ same complete plan used for execution without mutation. Scaffold execution
 preflights every collision, never overwrites an existing target, and rolls back
 all targets after a write failure. Presets do not execute package managers or
 create application-global frontend resources.
+
+Generation Plan JSON schema version `1` is Stable. It contains `status`,
+`complete`, `exit_code`, `command`, `module`, `generator_id`, nullable `preset`,
+summary counts, ordered `targets`, and nullable `error`. Every target contains
+`operation`, `generator_id`, Module-relative `path`, `overwrite`, and
+`collision`. Status is `planned`, `collisions_found`, or `incomplete`.
+`--format=json` requires `--dry-run` and fails before mutation otherwise;
+absolute paths and Laravel delegate output are never included.
 
 Policy `--model` values are Module-relative class names below `Models/`;
 `--guard` retains Laravel's application auth-provider semantics. Neither option

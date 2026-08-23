@@ -11,12 +11,14 @@ use Cluion\Moduark\Generation\ModuleMakerTargetResolver;
 use Cluion\Moduark\Module;
 use Cluion\Moduark\Registry\ModuleRegistry;
 use FilesystemIterator;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Filesystem\Filesystem;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
 use SplFileInfo;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Tests\TestCase;
 
 final class ModuleMakeCommandTest extends TestCase
@@ -164,6 +166,104 @@ final class ModuleMakeCommandTest extends TestCase
             ->expectsOutputToContain('OVERWRITE Models/Profile.php')
             ->assertSuccessful();
         self::assertSame($source, file_get_contents($path));
+    }
+
+    public function test_json_dry_run_matches_the_permanent_plan_output_fixture(): void
+    {
+        [$exitCode, $payload, $json] = $this->jsonPlan([
+            'module' => 'User',
+            'type' => 'model',
+            'name' => 'Profile',
+            '--dry-run' => true,
+            '--format' => 'json',
+        ]);
+
+        self::assertSame(0, $exitCode);
+        self::assertSame($this->planOutputFixture('maker'), $payload);
+        self::assertStringNotContainsString("\e", $json);
+        self::assertFileDoesNotExist(
+            $this->temporaryBasePath.'/app/Modules/User/Models/Profile.php',
+        );
+    }
+
+    public function test_json_dry_run_reports_collision_and_overwrite_intent(): void
+    {
+        $path = $this->temporaryBasePath.'/app/Modules/User/Models/Profile.php';
+        $this->command('moduark:make User model Profile')->assertSuccessful();
+        $source = (string) file_get_contents($path);
+
+        [$collisionExit, $collision] = $this->jsonPlan([
+            'module' => 'User',
+            'type' => 'model',
+            'name' => 'Profile',
+            '--dry-run' => true,
+            '--format' => 'json',
+        ]);
+        self::assertSame(1, $collisionExit);
+        self::assertSame('collisions_found', $collision['status'] ?? null);
+        $collisionSummary = $collision['summary'] ?? null;
+        $collisionTargets = $collision['targets'] ?? null;
+        self::assertIsArray($collisionSummary);
+        self::assertIsArray($collisionTargets);
+        self::assertIsArray($collisionTargets[0] ?? null);
+        self::assertSame(1, $collisionSummary['collisions'] ?? null);
+        self::assertTrue($collisionTargets[0]['collision'] ?? false);
+        self::assertFalse($collisionTargets[0]['overwrite'] ?? true);
+
+        [$overwriteExit, $overwrite] = $this->jsonPlan([
+            'module' => 'User',
+            'type' => 'model',
+            'name' => 'Profile',
+            '--force' => true,
+            '--dry-run' => true,
+            '--format' => 'json',
+        ]);
+        self::assertSame(0, $overwriteExit);
+        $overwriteTargets = $overwrite['targets'] ?? null;
+        self::assertIsArray($overwriteTargets);
+        self::assertIsArray($overwriteTargets[0] ?? null);
+        self::assertSame('overwrite', $overwriteTargets[0]['operation'] ?? null);
+        self::assertTrue($overwriteTargets[0]['overwrite'] ?? false);
+        self::assertFalse($overwriteTargets[0]['collision'] ?? true);
+        self::assertSame($source, file_get_contents($path));
+    }
+
+    public function test_json_format_requires_dry_run_and_returns_machine_readable_plan_errors(): void
+    {
+        [$formatExit, $formatFailure] = $this->jsonPlan([
+            'module' => 'User',
+            'type' => 'model',
+            'name' => 'Profile',
+            '--format' => 'json',
+        ]);
+        self::assertSame(ExitPolicy::TOOL_ERROR, $formatExit);
+        self::assertSame('incomplete', $formatFailure['status'] ?? null);
+        $formatError = $formatFailure['error'] ?? null;
+        self::assertIsArray($formatError);
+        self::assertSame('MOD-GEN-OPTION-001', $formatError['code'] ?? null);
+
+        [$planExit, $planFailure] = $this->jsonPlan([
+            'module' => 'User',
+            'type' => 'unsupported',
+            'name' => 'Profile',
+            '--dry-run' => true,
+            '--format' => 'json',
+        ]);
+        self::assertSame(ExitPolicy::TOOL_ERROR, $planExit);
+        self::assertFalse($planFailure['complete'] ?? true);
+        $planError = $planFailure['error'] ?? null;
+        self::assertIsArray($planError);
+        self::assertSame('MOD-GEN-PLAN-001', $planError['code'] ?? null);
+        self::assertFileDoesNotExist(
+            $this->temporaryBasePath.'/app/Modules/User/Models/Profile.php',
+        );
+    }
+
+    public function test_it_rejects_an_unknown_plan_output_format(): void
+    {
+        $this->command('moduark:make User model Profile --dry-run --format=yaml')
+            ->expectsOutputToContain('The --format option must be text or json.')
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }
 
     public function test_it_dry_runs_a_complete_model_factory_and_migration_plan_without_writes(): void
@@ -424,6 +524,45 @@ final class ModuleMakeCommandTest extends TestCase
             ModuleMakerTargetResolver::class,
             new ModuleMakerTargetResolver($this->application(), $registry),
         );
+    }
+
+    /**
+     * @param array<string, bool|string> $parameters
+     * @return array{int, array<mixed>, string}
+     */
+    private function jsonPlan(array $parameters): array
+    {
+        $output = new BufferedOutput;
+        $exitCode = $this->application()->make(Kernel::class)->call(
+            'moduark:make',
+            $parameters,
+            $output,
+        );
+        $json = trim($output->fetch());
+        $payload = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertIsArray($payload);
+        self::assertStringNotContainsString($this->temporaryBasePath, $json);
+
+        return [$exitCode, $payload, $json];
+    }
+
+    /** @return array<mixed> */
+    private function planOutputFixture(string $key): array
+    {
+        $fixture = json_decode(
+            (string) file_get_contents(
+                dirname(__DIR__).'/Fixtures/Generation/plan-output.json',
+            ),
+            true,
+            512,
+            JSON_THROW_ON_ERROR,
+        );
+
+        self::assertIsArray($fixture);
+        self::assertIsArray($fixture[$key] ?? null);
+
+        return $fixture[$key];
     }
 
     /** @return list<string> */

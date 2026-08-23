@@ -265,6 +265,33 @@ final class CleanApplicationRunner
             );
         }
 
+        $scaffoldJson = $this->artisan(
+            $application,
+            [
+                'moduark:make-module',
+                'Catalog',
+                '--preset=full',
+                '--dry-run',
+                '--format=json',
+            ],
+            $environment,
+        );
+        $scaffoldPayload = json_decode($scaffoldJson, true, 512, JSON_THROW_ON_ERROR);
+
+        if (
+            ! is_array($scaffoldPayload)
+            || ($scaffoldPayload['schema_version'] ?? null) !== 1
+            || ($scaffoldPayload['status'] ?? null) !== 'planned'
+            || ($scaffoldPayload['command'] ?? null) !== 'moduark:make-module'
+            || ($scaffoldPayload['preset'] ?? null) !== 'full'
+            || ! is_array($scaffoldPayload['targets'] ?? null)
+            || count($scaffoldPayload['targets']) !== 14
+        ) {
+            throw new RuntimeException(
+                'moduark:make-module JSON dry-run did not emit the complete scaffold plan.',
+            );
+        }
+
         $this->assertFileMissing(
             $application.'/app/Modules/Catalog/CatalogModule.php',
             'moduark:make-module full dry-run mutated the application.',
@@ -339,6 +366,35 @@ final class CleanApplicationRunner
             $dryRun,
             'moduark:make --dry-run omitted the Module-owned migration target.',
         );
+        $makerJson = $this->artisan(
+            $application,
+            [
+                'moduark:make',
+                'User',
+                'model',
+                'Profile',
+                '--factory',
+                '--migration',
+                '--dry-run',
+                '--format=json',
+            ],
+            $environment,
+        );
+        $makerPayload = json_decode($makerJson, true, 512, JSON_THROW_ON_ERROR);
+
+        if (
+            ! is_array($makerPayload)
+            || ($makerPayload['schema_version'] ?? null) !== 1
+            || ($makerPayload['status'] ?? null) !== 'planned'
+            || ($makerPayload['command'] ?? null) !== 'moduark:make'
+            || ($makerPayload['generator_id'] ?? null) !== 'model'
+            || ! is_array($makerPayload['targets'] ?? null)
+            || count($makerPayload['targets']) !== 3
+        ) {
+            throw new RuntimeException(
+                'moduark:make JSON dry-run did not emit the complete composite plan.',
+            );
+        }
         $this->assertFileMissing(
             $application.'/app/Modules/User/Models/Profile.php',
             'moduark:make --dry-run must not create the planned model.',

@@ -1,0 +1,146 @@
+{
+    "schema_version": 1,
+    "maker": {
+        "schema_version": 1,
+        "status": "planned",
+        "complete": true,
+        "exit_code": 0,
+        "command": "moduark:make",
+        "module": "User",
+        "generator_id": "model",
+        "preset": null,
+        "summary": {
+            "targets": 1,
+            "creates": 1,
+            "overwrites": 0,
+            "collisions": 0
+        },
+        "targets": [
+            {
+                "operation": "create",
+                "generator_id": "model",
+                "path": "Models/Profile.php",
+                "overwrite": false,
+                "collision": false
+            }
+        ],
+        "error": null
+    },
+    "scaffold": {
+        "schema_version": 1,
+        "status": "planned",
+        "complete": true,
+        "exit_code": 0,
+        "command": "moduark:make-module",
+        "module": "Blog",
+        "generator_id": "module",
+        "preset": "full",
+        "summary": {
+            "targets": 14,
+            "creates": 14,
+            "overwrites": 0,
+            "collisions": 0
+        },
+        "targets": [
+            {
+                "operation": "create",
+                "generator_id": "module",
+                "path": "BlogModule.php",
+                "overwrite": false,
+                "collision": false
+            },
+            {
+                "operation": "create",
+                "generator_id": "web-route",
+                "path": "routes/web.php",
+                "overwrite": false,
+                "collision": false
+            },
+            {
+                "operation": "create",
+                "generator_id": "web-controller",
+                "path": "Http/Controllers/Web/BlogController.php",
+                "overwrite": false,
+                "collision": false
+            },
+            {
+                "operation": "create",
+                "generator_id": "web-view",
+                "path": "resources/views/index.blade.php",
+                "overwrite": false,
+                "collision": false
+            },
+            {
+                "operation": "create",
+                "generator_id": "english-translations",
+                "path": "resources/lang/en/messages.php",
+                "overwrite": false,
+                "collision": false
+            },
+            {
+                "operation": "create",
+                "generator_id": "web-test",
+                "path": "Tests/Feature/Web/BlogWebTest.php",
+                "overwrite": false,
+                "collision": false
+            },
+            {
+                "operation": "create",
+                "generator_id": "api-route",
+                "path": "routes/api.php",
+                "overwrite": false,
+                "collision": false
+            },
+            {
+                "operation": "create",
+                "generator_id": "api-controller",
+                "path": "Http/Controllers/Api/BlogController.php",
+                "overwrite": false,
+                "collision": false
+            },
+            {
+                "operation": "create",
+                "generator_id": "api-request",
+                "path": "Http/Requests/Api/BlogRequest.php",
+                "overwrite": false,
+                "collision": false
+            },
+            {
+                "operation": "create",
+                "generator_id": "api-resource",
+                "path": "Http/Resources/Api/BlogResource.php",
+                "overwrite": false,
+                "collision": false
+            },
+            {
+                "operation": "create",
+                "generator_id": "api-test",
+                "path": "Tests/Feature/Api/BlogApiTest.php",
+                "overwrite": false,
+                "collision": false
+            },
+            {
+                "operation": "create",
+                "generator_id": "domain-directory",
+                "path": "Domain/.gitkeep",
+                "overwrite": false,
+                "collision": false
+            },
+            {
+                "operation": "create",
+                "generator_id": "application-directory",
+                "path": "Application/.gitkeep",
+                "overwrite": false,
+                "collision": false
+            },
+            {
+                "operation": "create",
+                "generator_id": "infrastructure-directory",
+                "path": "Infrastructure/.gitkeep",
+                "overwrite": false,
+                "collision": false
+            }
+        ],
+        "error": null
+    }
+}

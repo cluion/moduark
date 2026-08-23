@@ -622,9 +622,19 @@ PHP;
             'Moduark scaffold maker lost its dry-run option.',
         );
         $this->assertContains(
+            '--format',
+            $moduarkModule,
+            'Moduark scaffold maker lost its plan output format option.',
+        );
+        $this->assertContains(
             '--dry-run',
             $moduark,
             'Moduark resource maker lost its generation-plan preview option.',
+        );
+        $this->assertContains(
+            '--format',
+            $moduark,
+            'Moduark resource maker lost its plan output format option.',
         );
         $this->assertContains('--factory', $moduark, 'Moduark resource maker lost its factory option.');
         $this->assertContains(
