@@ -49,6 +49,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the standalone Module-owned `migration` Maker below
   `Database/Migrations/` with Laravel 12 / 13 compatible plain, create, update,
   name inference, timestamp, collision, and no-force contracts.
+- Added the Module-owned `event` Maker below `Events/` with Laravel-native
+  stubs, versioned Laravel 12 / 13 fixtures, shared collision/force behavior,
+  and no implicit listener or provider side effects.
+- Added the Module-owned `listener` Maker below `Listeners/` with Laravel-native
+  plain, typed, queued, and typed-queued stubs. Relative `--event` values resolve
+  inside the selected Module without creating events or provider registrations.
 
 ## [1.0.1] - 2026-08-23
 

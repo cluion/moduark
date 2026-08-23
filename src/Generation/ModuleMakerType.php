@@ -15,9 +15,11 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     case Model = 'model';
     case Controller = 'controller';
     case PhpEnum = 'enum';
+    case Event = 'event';
     case PhpException = 'exception';
     case Factory = 'factory';
     case PhpInterface = 'interface';
+    case Listener = 'listener';
     case HttpMiddleware = 'middleware';
     case Migration = 'migration';
     case Observer = 'observer';
@@ -37,9 +39,11 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Model->value => self::Model,
             self::Controller->value => self::Controller,
             self::PhpEnum->value => self::PhpEnum,
+            self::Event->value => self::Event,
             self::PhpException->value => self::PhpException,
             self::Factory->value => self::Factory,
             self::PhpInterface->value => self::PhpInterface,
+            self::Listener->value => self::Listener,
             self::HttpMiddleware->value => self::HttpMiddleware,
             self::Migration->value => self::Migration,
             self::Observer->value => self::Observer,
@@ -72,9 +76,11 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Model => 'Models',
             self::Controller => 'Http\\Controllers',
             self::PhpEnum => 'Enums',
+            self::Event => 'Events',
             self::PhpException => 'Exceptions',
             self::Factory => 'Database\\Factories',
             self::PhpInterface => 'Contracts',
+            self::Listener => 'Listeners',
             self::HttpMiddleware => 'Http\\Middleware',
             self::Migration => 'Database\\Migrations',
             self::Observer => 'Observers',
@@ -104,8 +110,10 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpCast,
             self::PhpClass,
             self::PhpEnum,
+            self::Event,
             self::PhpException,
             self::PhpInterface,
+            self::Listener,
             self::HttpMiddleware,
             self::Observer,
             self::Policy,
@@ -304,6 +312,8 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Observer => ['model'],
             self::Policy => ['model', 'guard'],
             self::ValidationRule => ['implicit'],
+            self::Listener => ['event', 'queued'],
+            self::Event,
             self::PhpInterface,
             self::HttpMiddleware,
             self::HttpRequest,
@@ -354,6 +364,12 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             }
         } elseif ($this === self::ValidationRule) {
             $parameters['--implicit'] = $options->implicit;
+        } elseif ($this === self::Listener) {
+            if ($options->event !== null) {
+                $parameters['--event'] = $this->listenerEvent($target, $options->event);
+            }
+
+            $parameters['--queued'] = $options->queued;
         }
 
         return new GenerationPlan([
@@ -393,6 +409,8 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             'model' => $options->model !== null,
             'guard' => $options->guard !== null,
             'implicit' => $options->implicit,
+            'event' => $options->event !== null,
+            'queued' => $options->queued,
         ] as $option => $enabled) {
             if ($enabled && ! in_array($option, $allowed, true)) {
                 throw ModuleMakerFailed::unsupportedOption($option, $this->value);
@@ -418,12 +436,31 @@ enum ModuleMakerType: string implements GeneratorDescriptor
         );
     }
 
+    private function listenerEvent(ModuleMakerTarget $target, string $event): string
+    {
+        return $this->moduleClass(
+            $target,
+            $event,
+            'Events',
+            ModuleMakerFailed::invalidListenerEvent($event),
+        );
+    }
+
     private function moduleModel(
         ModuleMakerTarget $target,
         string $model,
         ModuleMakerFailed $failure,
     ): string {
-        $normalized = str_replace('\\', '/', $model);
+        return $this->moduleClass($target, $model, 'Models', $failure);
+    }
+
+    private function moduleClass(
+        ModuleMakerTarget $target,
+        string $name,
+        string $namespace,
+        ModuleMakerFailed $failure,
+    ): string {
+        $normalized = str_replace('\\', '/', $name);
 
         if (preg_match('/\A[A-Z][A-Za-z0-9]*(?:\/[A-Z][A-Za-z0-9]*)*\z/D', $normalized) !== 1) {
             throw $failure;
@@ -442,7 +479,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             throw $failure;
         }
 
-        return '\\'.$target->moduleNamespace().'\\Models\\'.str_replace('/', '\\', $normalized);
+        return '\\'.$target->moduleNamespace().'\\'.$namespace.'\\'.str_replace('/', '\\', $normalized);
     }
 
     private function modelTarget(

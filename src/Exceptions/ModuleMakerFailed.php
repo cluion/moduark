@@ -16,7 +16,7 @@ final class ModuleMakerFailed extends RuntimeException
     public static function unsupportedType(string $type): self
     {
         return new self(
-            "Maker type [{$type}] is not supported; expected cast, class, controller, enum, exception, factory, interface, middleware, migration, model, observer, policy, request, resource, rule, scope, seeder, or trait.",
+            "Maker type [{$type}] is not supported; expected cast, class, controller, enum, event, exception, factory, interface, listener, middleware, migration, model, observer, policy, request, resource, rule, scope, seeder, or trait.",
         );
     }
 
@@ -91,6 +91,13 @@ final class ModuleMakerFailed extends RuntimeException
     {
         return new self(
             "Observer model [{$model}] must contain one or more StudlyCase class segments relative to the Module Models namespace.",
+        );
+    }
+
+    public static function invalidListenerEvent(string $event): self
+    {
+        return new self(
+            "Listener event [{$event}] must contain one or more StudlyCase class segments relative to the Module Events namespace.",
         );
     }
 

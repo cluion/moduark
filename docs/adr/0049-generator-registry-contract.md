@@ -112,6 +112,13 @@ no implicit registration side effects.
   on one target. `--create` and `--table` are mutually exclusive, the name-based
   table guess follows Laravel 12 / 13 patterns, and standalone `--force` is
   rejected because neither native command exposes it.
+- G4-A fixes events below `Events/` and keeps native single-target delegation.
+  Laravel 12 and 13 expose the same name and `--force` contract; event generation
+  does not create a listener or mutate provider registration.
+- G4-B fixes listeners below `Listeners/` and keeps native single-target
+  delegation. Relative `--event` values are validated and qualified below the
+  selected Module's `Events/` namespace; `--queued` selects the native queued
+  variants without creating an event or mutating provider registration.
 
 The concrete PHP interfaces were introduced with executable contract tests in
 G0-B. They remain pre-`1.1` internal extension boundaries until their public API

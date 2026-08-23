@@ -1,0 +1,36 @@
+{
+    "schema": 1,
+    "laravel_major": 12,
+    "plans": [
+        {
+            "type": "event",
+            "name": "Billing/InvoicePaid",
+            "options": "",
+            "target": "Events/Billing/InvoicePaid.php"
+        },
+        {
+            "type": "listener",
+            "name": "Billing/RecordInvoicePayment",
+            "options": "",
+            "target": "Listeners/Billing/RecordInvoicePayment.php"
+        },
+        {
+            "type": "listener",
+            "name": "Billing/SendInvoiceReceipt",
+            "options": "--event=Billing/InvoicePaid",
+            "target": "Listeners/Billing/SendInvoiceReceipt.php"
+        },
+        {
+            "type": "listener",
+            "name": "Billing/QueueInvoiceReceipt",
+            "options": "--queued",
+            "target": "Listeners/Billing/QueueInvoiceReceipt.php"
+        },
+        {
+            "type": "listener",
+            "name": "Billing/NotifyAccounting",
+            "options": "--event=Billing/InvoicePaid --queued",
+            "target": "Listeners/Billing/NotifyAccounting.php"
+        }
+    ]
+}

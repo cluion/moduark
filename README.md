@@ -142,9 +142,11 @@ php artisan moduark:make User model Profile --factory --migration
 php artisan moduark:make User class Support/InvokableTask --invokable
 php artisan moduark:make User cast Money/AmountCast --inbound
 php artisan moduark:make User enum Workflow/Status --string
+php artisan moduark:make User event Billing/InvoicePaid
 php artisan moduark:make User exception Billing/PaymentFailed --render --report
 php artisan moduark:make User factory Billing/InvoiceFactory --model=Profile
 php artisan moduark:make User interface Lookup/UserLookup
+php artisan moduark:make User listener Billing/SendInvoiceReceipt --event=Billing/InvoicePaid --queued
 php artisan moduark:make User middleware Admin/EnsureProfileIsComplete
 php artisan moduark:make User migration CreateAuditLogsTable --create=audit_logs
 php artisan moduark:make User migration AddStatusToProfilesTable --table=profiles
@@ -236,6 +238,16 @@ without either option, Laravel-compatible name patterns infer the mode or fall
 back to the plain stub. The two options are mutually exclusive. Standalone
 migrations reject `--force`, duplicate logical names, nested names, and invalid
 table identifiers, and never write to the application-level `database/` tree.
+
+Events use the Module-owned `Events/` path and Laravel's native event stub.
+They support nested names, `--force`, and `--dry-run` through the shared
+single-target plan, and never create listeners or provider registrations.
+
+Listeners use the Module-owned `Listeners/` path and Laravel's native plain,
+typed, queued, or typed-queued stub. A relative `--event=Billing/InvoicePaid`
+is validated and qualified below the selected Module's `Events/` namespace;
+external event classes are rejected. Listener generation supports `--force`
+and `--dry-run`, but never creates the referenced event or provider registration.
 
 The target Module must already exist and its configured path must be inside the
 Laravel application source root. Other composite Laravel Maker options that

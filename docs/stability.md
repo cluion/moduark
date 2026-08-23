@@ -99,7 +99,7 @@ The following commands and their documented arguments and options are Stable:
 
 ```text
 moduark:make-module {name}
-moduark:make {module} {type} {name} [--dry-run] [--force] [--factory] [--migration] [--create=] [--table=] [--int] [--string] [--inbound] [--render] [--report] [--collection] [--json-api] [--model=] [--guard=] [--invokable] [--resource] [--api]
+moduark:make {module} {type} {name} [--dry-run] [--force] [--factory] [--migration] [--create=] [--table=] [--int] [--string] [--inbound] [--render] [--report] [--collection] [--json-api] [--model=] [--guard=] [--implicit] [--event=] [--queued] [--invokable] [--resource] [--api]
 moduark:list
 moduark:inspect {module}
 moduark:graph [{module}] [--view=module] [--format=text]
@@ -128,6 +128,12 @@ Standalone migrations are generated below `Database/Migrations/`. Their
 StudlyCase names become timestamped snake_case filenames; `--create=` and
 `--table=` select the create/update stubs and cannot be combined. They reject
 `--force`, duplicate logical names, nested names, and application-global paths.
+Events are generated below `Events/` with Laravel's native stub. They support
+nested names, `--force`, and `--dry-run`, but never create listeners or provider
+registrations.
+Listeners are generated below `Listeners/` with Laravel's native plain, typed,
+queued, or typed-queued stub. `--event=` accepts only a Module-relative event
+below `Events/`; generation never creates that event or provider registration.
 
 Architecture checks use these process exit codes:
 

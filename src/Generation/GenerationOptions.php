@@ -25,6 +25,8 @@ final readonly class GenerationOptions
         public ?string $model,
         public ?string $guard,
         public bool $implicit,
+        public ?string $event,
+        public bool $queued,
     ) {
     }
 }

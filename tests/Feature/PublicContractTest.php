@@ -226,6 +226,8 @@ final class PublicContractTest extends TestCase
             'model' => null,
             'guard' => null,
             'implicit' => false,
+            'event' => null,
+            'queued' => false,
             'invokable' => false,
             'resource' => false,
             'api' => false,
