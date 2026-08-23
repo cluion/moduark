@@ -21,6 +21,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     case PhpInterface = 'interface';
     case Job = 'job';
     case Listener = 'listener';
+    case Mail = 'mail';
     case HttpMiddleware = 'middleware';
     case Migration = 'migration';
     case Notification = 'notification';
@@ -47,6 +48,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpInterface->value => self::PhpInterface,
             self::Job->value => self::Job,
             self::Listener->value => self::Listener,
+            self::Mail->value => self::Mail,
             self::HttpMiddleware->value => self::HttpMiddleware,
             self::Migration->value => self::Migration,
             self::Notification->value => self::Notification,
@@ -86,6 +88,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpInterface => 'Contracts',
             self::Job => 'Jobs',
             self::Listener => 'Listeners',
+            self::Mail => 'Mail',
             self::HttpMiddleware => 'Http\\Middleware',
             self::Migration => 'Database\\Migrations',
             self::Notification => 'Notifications',
@@ -121,6 +124,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpInterface,
             self::Job,
             self::Listener,
+            self::Mail,
             self::Notification,
             self::HttpMiddleware,
             self::Observer,
@@ -323,6 +327,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Job => ['sync', 'batched'],
             self::Listener => ['event', 'queued'],
             self::Event,
+            self::Mail,
             self::Notification,
             self::PhpInterface,
             self::HttpMiddleware,
@@ -431,6 +436,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             'sync' => $options->sync,
             'batched' => $options->batched,
             'markdown' => $options->markdown !== null,
+            'view' => $options->view !== null,
         ] as $option => $enabled) {
             if ($enabled && ! in_array($option, $allowed, true)) {
                 throw ModuleMakerFailed::unsupportedOption($option, $this->value);

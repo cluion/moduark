@@ -55,6 +55,12 @@
             "name": "Billing/InvoicePaid",
             "options": "",
             "target": "Notifications/Billing/InvoicePaid.php"
+        },
+        {
+            "type": "mail",
+            "name": "Billing/InvoiceReceipt",
+            "options": "",
+            "target": "Mail/Billing/InvoiceReceipt.php"
         }
     ]
 }

@@ -61,6 +61,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the Module-owned plain `notification` Maker below `Notifications/`.
   Laravel's `--markdown` mode is explicitly rejected because it also writes an
   application-global view below `resources/views/`.
+- Added the Module-owned plain `mail` Maker below `Mail/`. Laravel's
+  `--markdown` and `--view` modes are explicitly rejected because both create
+  application-global views.
 
 ## [1.0.1] - 2026-08-23
 

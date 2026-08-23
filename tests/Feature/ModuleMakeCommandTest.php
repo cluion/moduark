@@ -328,7 +328,7 @@ final class ModuleMakeCommandTest extends TestCase
     {
         $this->command('moduark:make User view ProfileView')
             ->expectsOutputToContain(
-                'Module Maker failed: Maker type [view] is not supported; expected cast, class, controller, enum, event, exception, factory, interface, job, listener, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, or trait.',
+                'Module Maker failed: Maker type [view] is not supported; expected cast, class, controller, enum, event, exception, factory, interface, job, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, or trait.',
             )
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }

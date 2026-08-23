@@ -409,6 +409,81 @@ final class AsyncModuleMakerTest extends TestCase
         );
     }
 
+    public function test_it_generates_a_plain_module_owned_mailable_without_related_views(): void
+    {
+        $this->command('moduark:make User mail Billing/InvoiceReceipt')
+            ->assertSuccessful();
+
+        $path = $this->temporaryBasePath.'/app/Modules/User/Mail/Billing/InvoiceReceipt.php';
+        $mail = (string) file_get_contents($path);
+
+        self::assertStringContainsString(
+            'namespace MakerFixture\\Modules\\User\\Mail\\Billing;',
+            $mail,
+        );
+        self::assertStringContainsString('class InvoiceReceipt extends Mailable', $mail);
+        self::assertStringContainsString('use Queueable, SerializesModels;', $mail);
+        self::assertStringContainsString("subject: 'Invoice Receipt'", $mail);
+        self::assertStringContainsString("view: 'view.name'", $mail);
+        self::assertDirectoryDoesNotExist($this->temporaryBasePath.'/resources/views');
+        self::assertSame([
+            $path,
+            $this->temporaryBasePath.'/app/Modules/User/UserModule.php',
+        ], $this->files());
+    }
+
+    public function test_mail_shares_collision_force_and_dry_run_behavior(): void
+    {
+        $relativePath = 'Mail/Billing/InvoiceReceipt.php';
+        $path = $this->temporaryBasePath.'/app/Modules/User/'.$relativePath;
+        $command = 'moduark:make User mail Billing/InvoiceReceipt';
+
+        $this->command($command.' --dry-run')
+            ->expectsOutputToContain('CREATE '.$relativePath)
+            ->assertSuccessful();
+        self::assertFileDoesNotExist($path);
+
+        $this->command($command)->assertSuccessful();
+        self::assertIsInt(file_put_contents($path, 'existing source'));
+
+        $this->command($command)
+            ->expectsOutputToContain('Mail already exists.')
+            ->assertFailed();
+        self::assertSame('existing source', file_get_contents($path));
+
+        $this->command($command.' --force')->assertSuccessful();
+        self::assertNotSame('existing source', file_get_contents($path));
+    }
+
+    public function test_mail_rejects_related_views_and_foreign_options_without_mutation(): void
+    {
+        $this->command(
+            'moduark:make User mail Billing/InvoiceReceipt --markdown=mail.invoice-receipt',
+        )
+            ->expectsOutputToContain(
+                'Module Maker failed: The --markdown option is not supported for Maker type [mail].',
+            )
+            ->assertExitCode(2);
+        $this->command(
+            'moduark:make User mail Billing/InvoiceReceipt --view=mail.invoice-receipt',
+        )
+            ->expectsOutputToContain(
+                'Module Maker failed: The --view option is not supported for Maker type [mail].',
+            )
+            ->assertExitCode(2);
+        $this->command('moduark:make User mail Billing/InvoiceReceipt --queued')
+            ->expectsOutputToContain(
+                'Module Maker failed: The --queued option is not supported for Maker type [mail].',
+            )
+            ->assertExitCode(2);
+
+        self::assertDirectoryDoesNotExist($this->temporaryBasePath.'/resources/views');
+        self::assertSame(
+            [$this->temporaryBasePath.'/app/Modules/User/UserModule.php'],
+            $this->files(),
+        );
+    }
+
     /** @return list<string> */
     private function files(): array
     {

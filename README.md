@@ -150,6 +150,7 @@ php artisan moduark:make User job Billing/ProcessInvoice
 php artisan moduark:make User job Billing/SyncInvoice --sync
 php artisan moduark:make User job Billing/ReconcileInvoices --batched
 php artisan moduark:make User listener Billing/SendInvoiceReceipt --event=Billing/InvoicePaid --queued
+php artisan moduark:make User mail Billing/InvoiceReceipt
 php artisan moduark:make User middleware Admin/EnsureProfileIsComplete
 php artisan moduark:make User notification Billing/InvoicePaid
 php artisan moduark:make User migration CreateAuditLogsTable --create=audit_logs
@@ -263,6 +264,11 @@ Notifications use the Module-owned `Notifications/` path and Laravel's native
 plain notification stub. They support `--force` and `--dry-run`. Laravel's
 `--markdown` mode also writes an application-global view below `resources/views/`,
 so Moduark explicitly rejects it and never creates a related view.
+
+Mailables use the Module-owned `Mail/` path and Laravel's native plain mail
+stub. They support `--force` and `--dry-run`. Laravel's `--markdown` and
+`--view` modes also write application-global views below `resources/views/`,
+so Moduark rejects both before generation.
 
 The target Module must already exist and its configured path must be inside the
 Laravel application source root. Other composite Laravel Maker options that

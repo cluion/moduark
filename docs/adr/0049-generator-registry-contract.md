@@ -127,6 +127,10 @@ no implicit registration side effects.
   single-target delegation. Laravel 12 and 13 both write an additional
   application-global view for `--markdown`, so Moduark exposes that option only
   as an explicit planning-time rejection and never writes below `resources/views/`.
+- G4-E fixes plain mailables below `Mail/` and keeps native single-target
+  delegation. Laravel 12 and 13 both write application-global views for
+  `--markdown` and `--view`; Moduark rejects both modes before any target is
+  executed and retains the plain stub's explicit `view.name` placeholder.
 
 The concrete PHP interfaces were introduced with executable contract tests in
 G0-B. They remain pre-`1.1` internal extension boundaries until their public API

@@ -99,7 +99,7 @@ The following commands and their documented arguments and options are Stable:
 
 ```text
 moduark:make-module {name}
-moduark:make {module} {type} {name} [--dry-run] [--force] [--factory] [--migration] [--create=] [--table=] [--int] [--string] [--inbound] [--render] [--report] [--collection] [--json-api] [--model=] [--guard=] [--implicit] [--event=] [--queued] [--sync] [--batched] [--markdown=] [--invokable] [--resource] [--api]
+moduark:make {module} {type} {name} [--dry-run] [--force] [--factory] [--migration] [--create=] [--table=] [--int] [--string] [--inbound] [--render] [--report] [--collection] [--json-api] [--model=] [--guard=] [--implicit] [--event=] [--queued] [--sync] [--batched] [--markdown=] [--view=] [--invokable] [--resource] [--api]
 moduark:list
 moduark:inspect {module}
 moduark:graph [{module}] [--view=module] [--format=text]
@@ -140,6 +140,9 @@ never creates matching tests, queue infrastructure, or batch migrations.
 Notifications are generated below `Notifications/` with Laravel's native plain
 stub. Laravel's `--markdown` mode also creates an application-global view, so
 Moduark rejects it before generation and never writes below `resources/views/`.
+Mailables are generated below `Mail/` with Laravel's native plain stub.
+Laravel's `--markdown` and `--view` modes create application-global views, so
+both options are rejected before generation.
 
 Architecture checks use these process exit codes:
 
