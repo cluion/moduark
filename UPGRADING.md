@@ -4,14 +4,14 @@ This guide covers application-owned changes required when upgrading Moduark.
 Read the complete changelog between the installed and target versions as well
 as the section below for the target release.
 
-> **Current status:** `1.0.1` is the current stable release. It fixes nwidart
-> enabled-state interoperability without changing Moduark's public PHP,
-> configuration, command, diagnostic, or architecture-policy contracts.
+> **Current status:** `1.1.0` is the current stable release. It completes the
+> Generation Foundation without changing the existing architecture-policy,
+> diagnostic, configuration, or nwidart active-set contracts.
 
 Install or upgrade to the stable line:
 
 ```bash
-composer require cluion/moduark:^1.0
+composer require cluion/moduark:^1.1
 ```
 
 ## Upgrade Safety Checklist
@@ -42,6 +42,44 @@ the namespace migration. The debt-file commands below use Moduark's default
 filenames. Substitute the paths configured in
 `moduark.architecture.baseline` and `moduark.architecture.suppressions` when the
 application overrides them.
+
+## Upgrading from `1.0.1` to `1.1.0`
+
+This additive minor release introduces immutable Generation Plans, shared
+collision preflight and rollback, text and JSON dry runs, five Module scaffold
+presets, 31 Module-owned Maker types, and a Stable template-backed third-party
+generator registration API. Existing `model` and `controller` commands retain
+their documented behavior.
+
+No configuration migration, architecture baseline rewrite, suppression
+rewrite, or cache schema migration is required. Update the Composer constraint,
+clear rebuildable Laravel caches, and confirm the unchanged architecture result:
+
+```bash
+composer require cluion/moduark:^1.1
+php artisan optimize:clear
+php artisan moduark:list
+php artisan moduark:check --format=json
+```
+
+Before adopting a new Maker or scaffold preset, review its complete plan:
+
+```bash
+php artisan moduark:make User command SyncOrders --command=orders:sync --dry-run
+php artisan moduark:make-module Billing --preset=full --dry-run
+```
+
+Generation refuses every collision by default. Use `--force` only for a
+reviewed Maker that documents support for it; scaffold presets never overwrite
+existing targets. Config and provider Makers create Module-owned artifacts but
+do not activate runtime config, edit Module metadata, or mutate
+`bootstrap/providers.php`. Generated providers must be added explicitly to the
+Module's `providers()` metadata when activation is intended.
+
+Third-party generators may use the Stable registration and template value
+contracts listed in `docs/stability.md`. Arbitrary Artisan delegation, direct
+registry mutation, and filesystem writes outside the shared executor remain
+unsupported.
 
 ## Upgrading from `1.0.0` to `1.0.1`
 

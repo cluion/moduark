@@ -4,10 +4,10 @@ Moduark is a Laravel-native modular architecture toolkit. It keeps Modules in a
 normal Laravel application while making their dependencies, lifecycle order,
 resources, and architecture boundaries executable and inspectable.
 
-> **Stable status:** `1.0.1` is the current stable release. Levels 0 through 2
+> **Stable status:** `1.1.0` is the current stable release. Levels 0 through 2
 > are Stable, Level 3 remains Preview, and the zero-configuration default
-> remains Level 1. This patch makes nwidart's active Module set authoritative
-> across every Moduark runtime and analysis surface.
+> remains Level 1. This minor release completes plan-first Module generation
+> while retaining nwidart active-set interoperability.
 
 ## Requirements
 
@@ -20,7 +20,7 @@ resources, and architecture boundaries executable and inspectable.
 Install the stable line from Packagist:
 
 ```bash
-composer require cluion/moduark:^1.0
+composer require cluion/moduark:^1.1
 ```
 
 Laravel package discovery registers `Cluion\Moduark\ModuarkServiceProvider`.
@@ -939,7 +939,7 @@ acceptance against the Packagist dist instead of the local path repository. This
 mode also verifies the installed archive layout:
 
 ```bash
-composer test:installation -- --package=1.0.1
+composer test:installation -- --package=1.1.0
 ```
 
 The GitHub Actions compatibility workflow runs PHPUnit on all four
@@ -966,11 +966,15 @@ contract.
 
 ## Current Scope
 
-The `1.0.1` patch retains the Stable RC.2 command and configuration boundaries
-while correcting nwidart enabled-state interoperability across the registry,
-analysis, graphs, metadata cache, providers, Capability bindings, and native
-resources. Levels 0 through 2 are Stable and the complete Level 3 preset
-remains Preview.
+The `1.1.0` minor release retains the Stable command, configuration, diagnostic,
+and architecture boundaries while completing the Generation Foundation.
+Thirty-one Module-owned Maker types, additive scaffold presets, immutable
+Generation Plans, shared collision preflight, atomic rollback, text/JSON dry
+runs, Laravel 12 / 13 parity fixtures, and the Stable template-backed
+third-party registration API now form one verified generation surface. Config
+and provider Makers create Module-owned artifacts without silently activating
+runtime resources or mutating application bootstrap state. Levels 0 through 2
+remain Stable and the complete Level 3 preset remains Preview.
 Level 2 includes typed Capability metadata, descriptor-only
 provider resolution, lifecycle preflight, consumer-owned Port wiring,
 Capability contract validation, source-enforced Adapter boundaries,
@@ -981,9 +985,8 @@ with Laravel optimize integration. Brownfield adoption includes a reviewable
 architecture baseline with conservative count matching and safe pruning.
 Reviewed architecture exceptions use an auditable external suppression manifest
 with narrow selectors, mandatory reasons, and stale/inactive reporting.
-Module-aware Makers generate models and controllers inside existing application
-Modules, while content-hash caching reuses unchanged per-file source analysis
-without persisting cross-file ownership decisions.
+Content-hash caching reuses unchanged per-file source analysis without
+persisting cross-file ownership decisions.
 All six Level 3 rules audit direct cross-Module Eloquent Model, table, migration,
 foreign-key, inline transaction, and explicit export access. Explicit `tables()`
 metadata feeds a deterministic single-owner index; Laravel-aware AST evidence
@@ -993,7 +996,7 @@ expressions remain reviewable warnings. Explicit `exports()` metadata narrows th
 convention-based Public API. The complete fourteen-rule Level 3 preset can now
 produce a complete pass. The optional `cluion/moduark-phpstan` `v0.2.0` stable
 companion integrates `internal_api_access` with PHPStan and Larastan across the
-Moduark 1.0 line and nwidart-compatible source layouts;
+Moduark `1.x` line and nwidart-compatible source layouts;
 suppression expiry and extension coverage for the remaining rules remain later
 work. See
 [ADR-0035](docs/adr/0035-cross-module-model-access.md),

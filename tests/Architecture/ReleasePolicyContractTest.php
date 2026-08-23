@@ -92,7 +92,7 @@ final class ReleasePolicyContractTest extends TestCase
         }
     }
 
-    public function test_current_patch_preparation_documents_are_version_aligned(): void
+    public function test_current_minor_preparation_documents_are_version_aligned(): void
     {
         foreach ([
             'CHANGELOG.md',
@@ -108,12 +108,17 @@ final class ReleasePolicyContractTest extends TestCase
         $changelog = $this->contents('CHANGELOG.md');
         self::assertStringContainsString('## [Unreleased]', $changelog);
         self::assertStringContainsString('Laravel 13 + `nwidart/laravel-modules`', $changelog);
+        self::assertStringContainsString('## [1.1.0]', $changelog);
         self::assertStringContainsString('## [1.0.1]', $changelog);
         self::assertStringContainsString('## [1.0.0]', $changelog);
         self::assertStringContainsString('## [1.0.0-rc.2]', $changelog);
         self::assertStringContainsString('## [1.0.0-rc.1]', $changelog);
         self::assertStringContainsString(
-            '[Unreleased]: https://github.com/cluion/moduark/compare/v1.0.1...HEAD',
+            '[Unreleased]: https://github.com/cluion/moduark/compare/v1.1.0...HEAD',
+            $changelog,
+        );
+        self::assertStringContainsString(
+            '[1.1.0]: https://github.com/cluion/moduark/compare/v1.0.1...v1.1.0',
             $changelog,
         );
         self::assertStringContainsString(
@@ -135,7 +140,7 @@ final class ReleasePolicyContractTest extends TestCase
             $installationDocs .= $contents;
 
             self::assertStringContainsString(
-                'composer require cluion/moduark:^1.0',
+                'composer require cluion/moduark:^1.1',
                 $contents,
             );
         }

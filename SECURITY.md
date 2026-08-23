@@ -6,7 +6,7 @@ Security support follows the latest stable `1.x` release line:
 
 | Version | Security support |
 |---|---|
-| `1.x` (`v1.0.1` current) | Supported |
+| `1.x` (`v1.1.0` current) | Supported |
 | `v1.0.0-rc.2` and earlier pre-releases | Not supported |
 | Unreleased `main` and future versions | Not a published support line |
 

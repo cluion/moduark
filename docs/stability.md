@@ -1,10 +1,11 @@
 # Stability and Versioning
 
-This document defines the stable compatibility contract for Moduark 1.0.
+This document defines the stable compatibility contract for Moduark `1.x`.
 `1.0.0-rc.1` exposed an interoperability defect in its command and
 configuration identities; `1.0.0-rc.2` adopts the revised boundary documented
 by ADR-0047. `1.0.0` promotes that reviewed boundary without another runtime or
-machine-schema change.
+machine-schema change. `1.1.0` adds the Generation Foundation contracts below
+without changing the existing architecture or diagnostic identities.
 
 ## Contract Categories
 
@@ -111,7 +112,7 @@ The following commands and their documented arguments and options are Stable:
 
 ```text
 moduark:make-module {name} [--preset=minimal|web|api|domain|full] [--dry-run] [--format=text|json]
-moduark:make {module} {type} {name} [--dry-run] [--format=text|json] [--force] [--factory] [--migration] [--create=] [--table=] [--int] [--string] [--inbound] [--render] [--report] [--collection] [--json-api] [--model=] [--guard=] [--implicit] [--event=] [--queued] [--sync] [--batched] [--markdown=] [--view=] [--inline] [--path=] [--extension=] [--unit] [--test] [--pest] [--phpunit] [--invokable] [--resource] [--api]
+moduark:make {module} {type} {name} [--dry-run] [--format=text|json] [--force] [--command=] [--factory] [--migration] [--create=] [--table=] [--int] [--string] [--inbound] [--render] [--report] [--collection] [--json-api] [--model=] [--guard=] [--implicit] [--event=] [--queued] [--sync] [--batched] [--markdown=] [--view=] [--inline] [--path=] [--extension=] [--unit] [--test] [--pest] [--phpunit] [--invokable] [--resource] [--api]
 moduark:list
 moduark:inspect {module}
 moduark:graph [{module}] [--view=module] [--format=text]
@@ -189,6 +190,17 @@ Standalone verification targets use fixed Module-owned `Tests/Feature/` and
 that expose Laravel matching-test semantics add the test to the same complete
 collision preflight and rollback-safe plan. No verification target may be
 written below the application-global `tests/` root.
+Console commands are generated directly below `Console/Commands/` with
+Laravel's native stub and a validated lowercase `--command=` name. Command
+classes are deliberately non-recursive until the runtime resource contract
+supports recursive discovery.
+Config files are deterministic template targets below the selected Module's
+lowercase `config/` tree. Generation does not load, merge, publish, or write the
+application's config tree.
+Service providers are deterministic template targets below `Providers/`.
+Generation never invokes Laravel's application-mutating provider Maker and
+does not edit `bootstrap/providers.php`; activation remains explicit Module
+`providers()` metadata.
 
 Architecture checks use these process exit codes:
 

@@ -358,7 +358,7 @@ inspection. Install the stable line from Packagist before adopting this
 contract:
 
 ```bash
-composer require cluion/moduark:^1.0
+composer require cluion/moduark:^1.1
 ```
 
 For a concrete continuation of the `User` / `Order` example, including runtime
@@ -397,7 +397,7 @@ classification remains Preview. Install the stable line from Packagist before
 adopting this contract:
 
 ```bash
-composer require cluion/moduark:^1.0
+composer require cluion/moduark:^1.1
 ```
 
 For a staged `User` / `Order` migration with explicit rollback boundaries and

@@ -31,17 +31,17 @@ distribution acceptance resolves `v0.2.0` with Moduark `v1.0.0` on both Laravel
 Applications remaining on Moduark 0.4 or 0.5 beta must remain on the companion
 `^0.1@beta` line and its `config/modules.php` cache input.
 
-## Install Both Packages on the Stable 1.0 Line
+## Install Both Packages on the Stable 1.x Line
 
 Install stable Moduark as an application dependency and the stable companion as
 a development dependency:
 
 ```bash
-composer require cluion/moduark:^1.0
+composer require cluion/moduark:^1.1
 composer require --dev cluion/moduark-phpstan:^0.2
 ```
 
-If the application already requires Moduark `^1.0`, only the second command is
+If the application already requires Moduark `^1.1`, only the second command is
 needed. Pin the exact companion version when repeatable upgrades matter.
 
 ## Load the Extension
@@ -93,7 +93,7 @@ loaded.
 ## Configure the Application Boundary
 
 The extension does not boot Laravel and does not import values from the Laravel
-configuration file. The following values are the current 1.0-compatible
+configuration file. The following values are the current `1.x`-compatible
 companion defaults:
 
 ```neon
@@ -207,7 +207,7 @@ JSON reports as tool failures rather than successful architecture checks.
 - If services or diagnostics appear twice, remove either automatic or manual
   loading for the duplicate extension.
 - If a clean install cannot resolve `cluion/moduark`, declare
-  `cluion/moduark:^1.0` in the application root before requiring the extension.
+  `cluion/moduark:^1.1` in the application root before requiring the extension.
 - If custom Modules are not analysed, align `modulesPath`, `rootNamespace`, and
   PHPStan `paths`.
 - If CLI and PHPStan results differ, compare the effective Level, rule override,

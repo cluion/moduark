@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-08-23
+
+This minor release completes the Generation Foundation while preserving the
+Stable Level 0 through 2 architecture contract and Level 3 Preview boundary.
+It adds complete plan-first Module generation without changing existing
+application configuration, architecture debt files, or runtime activation.
+
 ### Added
 
 - Added a Generation Foundation completion contract that binds the exact
@@ -443,7 +450,8 @@ incomplete and are not part of this release contract.
 - Clean installation acceptance from release-tag checkouts by explicitly
   mapping the local path repository to `dev-main`.
 
-[Unreleased]: https://github.com/cluion/moduark/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/cluion/moduark/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/cluion/moduark/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/cluion/moduark/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/cluion/moduark/compare/v1.0.0-rc.2...v1.0.0
 [1.0.0-rc.2]: https://github.com/cluion/moduark/compare/v1.0.0-rc.1...v1.0.0-rc.2
