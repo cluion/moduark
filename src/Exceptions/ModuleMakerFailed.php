@@ -16,7 +16,7 @@ final class ModuleMakerFailed extends RuntimeException
     public static function unsupportedType(string $type): self
     {
         return new self(
-            "Maker type [{$type}] is not supported; expected cast, class, controller, enum, exception, factory, interface, middleware, model, observer, policy, request, resource, rule, scope, seeder, or trait.",
+            "Maker type [{$type}] is not supported; expected cast, class, controller, enum, exception, factory, interface, middleware, migration, model, observer, policy, request, resource, rule, scope, seeder, or trait.",
         );
     }
 
@@ -92,6 +92,25 @@ final class ModuleMakerFailed extends RuntimeException
         return new self(
             "Observer model [{$model}] must contain one or more StudlyCase class segments relative to the Module Models namespace.",
         );
+    }
+
+    public static function invalidMigrationName(string $name): self
+    {
+        return new self(
+            "Migration name [{$name}] must be one StudlyCase segment without a namespace.",
+        );
+    }
+
+    public static function invalidMigrationTable(string $table): self
+    {
+        return new self(
+            "Migration table [{$table}] must be a lowercase snake_case database identifier.",
+        );
+    }
+
+    public static function conflictingMigrationOptions(): self
+    {
+        return new self('The migration Maker options [--create, --table] cannot be combined.');
     }
 
     /** @param list<string> $options */

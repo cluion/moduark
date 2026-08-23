@@ -13,6 +13,8 @@ final readonly class GenerationOptions
         public bool $api,
         public bool $factory,
         public bool $migration,
+        public ?string $create,
+        public ?string $table,
         public bool $intBacked,
         public bool $stringBacked,
         public bool $inbound,

@@ -82,6 +82,14 @@ final class DataModuleMakerTest extends TestCase
                 $plan['options'],
             ));
 
+            if ($plan['target_suffix'] !== null) {
+                $this->command($command)
+                    ->expectsOutputToContain($plan['target_suffix'])
+                    ->assertSuccessful();
+
+                continue;
+            }
+
             $this->command($command)
                 ->expectsOutputToContain('CREATE '.$plan['target'])
                 ->assertSuccessful();
@@ -183,6 +191,89 @@ final class DataModuleMakerTest extends TestCase
             $this->temporaryBasePath.'/app/Modules/User/UserModule.php',
         ], $this->files());
         self::assertDirectoryDoesNotExist($this->temporaryBasePath.'/app/Observers');
+    }
+
+    public function test_it_generates_module_owned_create_update_and_plain_migrations(): void
+    {
+        $this->command('moduark:make User migration CreateProfilesTable')->assertSuccessful();
+        $this->command('moduark:make User migration AddStatusToProfilesTable')->assertSuccessful();
+        $this->command('moduark:make User migration RecalculateProfiles')->assertSuccessful();
+
+        $create = $this->oneMigration('*_create_profiles_table.php');
+        $update = $this->oneMigration('*_add_status_to_profiles_table.php');
+        $plain = $this->oneMigration('*_recalculate_profiles.php');
+
+        self::assertStringContainsString("Schema::create('profiles'", $create);
+        self::assertStringContainsString("Schema::dropIfExists('profiles')", $create);
+        self::assertStringContainsString("Schema::table('profiles'", $update);
+        self::assertStringNotContainsString('Schema::', $plain);
+        self::assertDirectoryDoesNotExist($this->temporaryBasePath.'/database');
+    }
+
+    public function test_migration_explicit_modes_override_name_inference(): void
+    {
+        $this->command(
+            'moduark:make User migration RebuildAuditLog --create=audit_logs',
+        )->assertSuccessful();
+        $this->command(
+            'moduark:make User migration CreateLegacyProfiles --table=profiles',
+        )->assertSuccessful();
+
+        self::assertStringContainsString(
+            "Schema::create('audit_logs'",
+            $this->oneMigration('*_rebuild_audit_log.php'),
+        );
+        self::assertStringContainsString(
+            "Schema::table('profiles'",
+            $this->oneMigration('*_create_legacy_profiles.php'),
+        );
+    }
+
+    public function test_migration_refuses_duplicate_name_and_force_without_mutation(): void
+    {
+        $this->command('moduark:make User migration CreateProfilesTable')->assertSuccessful();
+        $path = $this->oneMigrationPath('*_create_profiles_table.php');
+        self::assertIsInt(file_put_contents($path, 'existing migration'));
+
+        $this->command('moduark:make User migration CreateProfilesTable')
+            ->expectsOutputToContain('Migration already exists.')
+            ->assertFailed();
+        $this->command('moduark:make User migration CreateProfilesTable --force')
+            ->expectsOutputToContain(
+                'Module Maker failed: The --force option is not supported for Maker type [migration].',
+            )
+            ->assertExitCode(2);
+
+        self::assertSame('existing migration', file_get_contents($path));
+    }
+
+    public function test_migration_rejects_conflicting_invalid_or_foreign_options_without_mutation(): void
+    {
+        $this->command(
+            'moduark:make User migration CreateProfilesTable --create=profiles --table=profiles',
+        )->expectsOutputToContain(
+            'Module Maker failed: The migration Maker options [--create, --table] cannot be combined.',
+        )->assertExitCode(2);
+        $this->command('moduark:make User migration CreateProfilesTable --create=Profile-Items')
+            ->expectsOutputToContain(
+                'Module Maker failed: Migration table [Profile-Items] must be a lowercase snake_case database identifier.',
+            )
+            ->assertExitCode(2);
+        $this->command('moduark:make User migration Admin/CreateProfilesTable')
+            ->expectsOutputToContain(
+                'Module Maker failed: Migration name [Admin\\CreateProfilesTable] must be one StudlyCase segment without a namespace.',
+            )
+            ->assertExitCode(2);
+        $this->command('moduark:make User migration CreateProfilesTable --model=Profile')
+            ->expectsOutputToContain(
+                'Module Maker failed: The --model option is not supported for Maker type [migration].',
+            )
+            ->assertExitCode(2);
+
+        self::assertSame(
+            [$this->temporaryBasePath.'/app/Modules/User/UserModule.php'],
+            $this->files(),
+        );
     }
 
     public function test_observer_preserves_native_collision_and_force_behavior(): void
@@ -329,11 +420,28 @@ final class DataModuleMakerTest extends TestCase
         return $files;
     }
 
+    private function oneMigration(string $pattern): string
+    {
+        return (string) file_get_contents($this->oneMigrationPath($pattern));
+    }
+
+    private function oneMigrationPath(string $pattern): string
+    {
+        $matches = glob(
+            $this->temporaryBasePath.'/app/Modules/User/Database/Migrations/'.$pattern,
+        );
+
+        self::assertIsArray($matches);
+        self::assertCount(1, $matches);
+
+        return $matches[0];
+    }
+
     /**
      * @return array{
      *     schema: int,
      *     laravel_major: int,
-     *     plans: list<array{type: string, name: string, options: string, target: string}>
+     *     plans: list<array{type: string, name: string, options: string, target: string, target_suffix: ?string}>
      * }
      */
     private function planFixture(string $path): array
@@ -363,6 +471,7 @@ final class DataModuleMakerTest extends TestCase
                 || ! is_string($plan['name'] ?? null)
                 || ! is_string($plan['options'] ?? null)
                 || ! is_string($plan['target'] ?? null)
+                || (isset($plan['target_suffix']) && ! is_string($plan['target_suffix']))
             ) {
                 throw new RuntimeException("Data plan fixture [{$path}] has an invalid plan.");
             }
@@ -372,6 +481,7 @@ final class DataModuleMakerTest extends TestCase
                 'name' => $plan['name'],
                 'options' => $plan['options'],
                 'target' => $plan['target'],
+                'target_suffix' => $plan['target_suffix'] ?? null,
             ];
         }
 

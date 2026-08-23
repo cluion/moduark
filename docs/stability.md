@@ -99,7 +99,7 @@ The following commands and their documented arguments and options are Stable:
 
 ```text
 moduark:make-module {name}
-moduark:make {module} {type} {name} [--dry-run] [--force] [--factory] [--migration] [--int] [--string] [--inbound] [--render] [--report] [--collection] [--json-api] [--model=] [--guard=] [--invokable] [--resource] [--api]
+moduark:make {module} {type} {name} [--dry-run] [--force] [--factory] [--migration] [--create=] [--table=] [--int] [--string] [--inbound] [--render] [--report] [--collection] [--json-api] [--model=] [--guard=] [--invokable] [--resource] [--api]
 moduark:list
 moduark:inspect {module}
 moduark:graph [{module}] [--view=module] [--format=text]
@@ -124,6 +124,10 @@ Standalone factories and seeders are generated below `Database/Factories/` and
 Observers are generated below `Observers/`. Observer `--model` values are
 Module-relative below `Models/`; generation supports `--force` but never creates
 a model, provider registration, or event listener.
+Standalone migrations are generated below `Database/Migrations/`. Their
+StudlyCase names become timestamped snake_case filenames; `--create=` and
+`--table=` select the create/update stubs and cannot be combined. They reject
+`--force`, duplicate logical names, nested names, and application-global paths.
 
 Architecture checks use these process exit codes:
 

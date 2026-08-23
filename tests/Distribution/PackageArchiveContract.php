@@ -27,6 +27,8 @@ final class PackageArchiveContract
         'stubs/module.stub',
         'stubs/module-factory.stub',
         'stubs/module-migration.create.stub',
+        'stubs/module-migration.stub',
+        'stubs/module-migration.update.stub',
         'stubs/module-model.factory.stub',
     ];
 

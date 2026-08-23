@@ -27,6 +27,27 @@
             "target": "Observers/Profile/ProfileObserver.php"
         },
         {
+            "type": "migration",
+            "name": "CreateAuditLogsTable",
+            "options": "--create=audit_logs",
+            "target": "Database/Migrations/",
+            "target_suffix": "_create_audit_logs_table.php"
+        },
+        {
+            "type": "migration",
+            "name": "AddStatusToProfilesTable",
+            "options": "--table=profiles",
+            "target": "Database/Migrations/",
+            "target_suffix": "_add_status_to_profiles_table.php"
+        },
+        {
+            "type": "migration",
+            "name": "RecalculateProfiles",
+            "options": "",
+            "target": "Database/Migrations/",
+            "target_suffix": "_recalculate_profiles.php"
+        },
+        {
             "type": "seeder",
             "name": "Demo/ProfileSeeder",
             "options": "",

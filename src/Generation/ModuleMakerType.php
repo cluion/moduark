@@ -19,6 +19,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     case Factory = 'factory';
     case PhpInterface = 'interface';
     case HttpMiddleware = 'middleware';
+    case Migration = 'migration';
     case Observer = 'observer';
     case Policy = 'policy';
     case HttpRequest = 'request';
@@ -40,6 +41,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Factory->value => self::Factory,
             self::PhpInterface->value => self::PhpInterface,
             self::HttpMiddleware->value => self::HttpMiddleware,
+            self::Migration->value => self::Migration,
             self::Observer->value => self::Observer,
             self::Policy->value => self::Policy,
             self::HttpRequest->value => self::HttpRequest,
@@ -74,6 +76,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Factory => 'Database\\Factories',
             self::PhpInterface => 'Contracts',
             self::HttpMiddleware => 'Http\\Middleware',
+            self::Migration => 'Database\\Migrations',
             self::Observer => 'Observers',
             self::Policy => 'Policies',
             self::HttpRequest => 'Http\\Requests',
@@ -96,6 +99,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Model => $this->modelPlan($target, $options),
             self::Controller => $this->controllerPlan($target, $options),
             self::Factory => $this->standaloneFactoryPlan($target, $options),
+            self::Migration => $this->standaloneMigrationPlan($target, $options),
             self::Seeder => $this->seederPlan($target, $options),
             self::PhpCast,
             self::PhpClass,
@@ -261,6 +265,32 @@ enum ModuleMakerType: string implements GeneratorDescriptor
         ]);
     }
 
+    private function standaloneMigrationPlan(
+        ModuleMakerTarget $target,
+        GenerationOptions $options,
+    ): GenerationPlan {
+        $this->rejectUnsupportedOptions($options, ['create', 'table']);
+
+        if ($options->force) {
+            throw ModuleMakerFailed::unsupportedOption('force', $this->value);
+        }
+
+        if (str_contains($target->localName(), '\\')) {
+            throw ModuleMakerFailed::invalidMigrationName($target->localName());
+        }
+
+        if ($options->create !== null && $options->table !== null) {
+            throw ModuleMakerFailed::conflictingMigrationOptions();
+        }
+
+        $name = Str::snake($target->localName());
+        [$table, $create] = $this->migrationTableAndMode($name, $options);
+
+        return new GenerationPlan([
+            $this->standaloneMigrationTarget($target, $name, $table, $create),
+        ]);
+    }
+
     private function singleTargetPlan(
         ModuleMakerTarget $target,
         GenerationOptions $options,
@@ -351,6 +381,8 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             'api' => $options->api,
             'factory' => $options->factory,
             'migration' => $options->migration,
+            'create' => $options->create !== null,
+            'table' => $options->table !== null,
             'int' => $options->intBacked,
             'string' => $options->stringBacked,
             'inbound' => $options->inbound,
@@ -469,17 +501,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
         $table = Str::snake(Str::pluralStudly($model));
         $name = 'create_'.$table.'_table';
         $directory = $target->modulePath().'/Database/Migrations';
-        $existing = glob($directory.'/*_'.$name.'.php') ?: [];
-        sort($existing, SORT_STRING);
-
-        if (count($existing) > 1) {
-            throw ModuleMakerFailed::ambiguousMigration(
-                $name,
-                array_map('basename', $existing),
-            );
-        }
-
-        $path = $existing[0] ?? $this->newMigrationPath($directory, $name);
+        $path = $this->moduleMigrationPath($directory, $name);
 
         return new GenerationTarget(
             'migration',
@@ -493,6 +515,87 @@ enum ModuleMakerType: string implements GeneratorDescriptor
                 '{{ table }}' => $table,
             ]),
         );
+    }
+
+    /** @return array{?string, ?bool} */
+    private function migrationTableAndMode(
+        string $name,
+        GenerationOptions $options,
+    ): array {
+        if ($options->create !== null) {
+            return [$this->migrationTable($options->create), true];
+        }
+
+        if ($options->table !== null) {
+            return [$this->migrationTable($options->table), false];
+        }
+
+        foreach (['/^create_(\\w+)_table$/', '/^create_(\\w+)$/'] as $pattern) {
+            if (preg_match($pattern, $name, $matches) === 1) {
+                return [$matches[1], true];
+            }
+        }
+
+        foreach (['/.+_(?:to|from|in)_(\\w+)_table$/', '/.+_(?:to|from|in)_(\\w+)$/'] as $pattern) {
+            if (preg_match($pattern, $name, $matches) === 1) {
+                return [$matches[1], false];
+            }
+        }
+
+        return [null, null];
+    }
+
+    private function migrationTable(string $table): string
+    {
+        if (preg_match('/\A[a-z][a-z0-9]*(?:_[a-z0-9]+)*\z/D', $table) !== 1) {
+            throw ModuleMakerFailed::invalidMigrationTable($table);
+        }
+
+        return $table;
+    }
+
+    private function standaloneMigrationTarget(
+        ModuleMakerTarget $target,
+        string $name,
+        ?string $table,
+        ?bool $create,
+    ): GenerationTarget {
+        $directory = $target->modulePath().'/Database/Migrations';
+        $path = $this->moduleMigrationPath($directory, $name);
+        $stub = match ($create) {
+            true => 'module-migration.create.stub',
+            false => 'module-migration.update.stub',
+            null => 'module-migration.stub',
+        };
+
+        return new GenerationTarget(
+            $this->id(),
+            null,
+            $name,
+            $path,
+            'Database/Migrations/'.basename($path),
+            false,
+            [],
+            new GenerationFileTemplate(
+                $this->stubPath($stub),
+                $table === null ? [] : ['{{ table }}' => $table],
+            ),
+        );
+    }
+
+    private function moduleMigrationPath(string $directory, string $name): string
+    {
+        $existing = glob($directory.'/*_'.$name.'.php') ?: [];
+        sort($existing, SORT_STRING);
+
+        if (count($existing) > 1) {
+            throw ModuleMakerFailed::ambiguousMigration(
+                $name,
+                array_map('basename', $existing),
+            );
+        }
+
+        return $existing[0] ?? $this->newMigrationPath($directory, $name);
     }
 
     private function modelTemplate(ModuleMakerTarget $target): GenerationFileTemplate

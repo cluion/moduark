@@ -105,6 +105,13 @@ no implicit registration side effects.
   Module's `Models/` namespace, while external FQCNs are rejected. Observer
   generation supports native `--force` but does not create a model, provider
   registration, or event listener.
+- G3-C fixes standalone migrations below `Database/Migrations/`. Laravel's
+  command hard-codes the application migration path and chooses timestamped
+  output during execution, so this descriptor uses reviewed Module-owned plain,
+  create, and update templates to keep dry-run, collision preflight, and writes
+  on one target. `--create` and `--table` are mutually exclusive, the name-based
+  table guess follows Laravel 12 / 13 patterns, and standalone `--force` is
+  rejected because neither native command exposes it.
 
 The concrete PHP interfaces were introduced with executable contract tests in
 G0-B. They remain pre-`1.1` internal extension boundaries until their public API

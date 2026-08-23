@@ -20,12 +20,14 @@ final class ModuleMakeCommand extends Command
     /** @var string */
     protected $signature = 'moduark:make
         {module : Existing Module name}
-        {type : Maker type: cast, class, controller, enum, exception, factory, interface, middleware, model, observer, policy, request, resource, rule, scope, seeder, or trait}
+        {type : Maker type: cast, class, controller, enum, exception, factory, interface, middleware, migration, model, observer, policy, request, resource, rule, scope, seeder, or trait}
         {name : StudlyCase class name, optionally with nested segments}
         {--dry-run : Display the complete generation plan without writing files}
         {--force : Overwrite an existing generated class}
         {--factory : Generate a Module-owned factory for a model}
         {--migration : Generate a Module-owned create-table migration for a model}
+        {--create= : Generate a standalone migration that creates the named table}
+        {--table= : Generate a standalone migration that changes the named table}
         {--int : Generate an integer-backed enum}
         {--string : Generate a string-backed enum}
         {--inbound : Generate an inbound Eloquent cast}
@@ -71,6 +73,8 @@ final class ModuleMakeCommand extends Command
                 api: $this->option('api') === true,
                 factory: $this->option('factory') === true,
                 migration: $this->option('migration') === true,
+                create: $this->optionalStringOption('create'),
+                table: $this->optionalStringOption('table'),
                 intBacked: $this->option('int') === true,
                 stringBacked: $this->option('string') === true,
                 inbound: $this->option('inbound') === true,

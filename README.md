@@ -146,6 +146,8 @@ php artisan moduark:make User exception Billing/PaymentFailed --render --report
 php artisan moduark:make User factory Billing/InvoiceFactory --model=Profile
 php artisan moduark:make User interface Lookup/UserLookup
 php artisan moduark:make User middleware Admin/EnsureProfileIsComplete
+php artisan moduark:make User migration CreateAuditLogsTable --create=audit_logs
+php artisan moduark:make User migration AddStatusToProfilesTable --table=profiles
 php artisan moduark:make User observer Audit/ProfileObserver
 php artisan moduark:make User observer Profile/ProfileObserver --model=Profile
 php artisan moduark:make User policy Admin/ManageProfiles
@@ -225,6 +227,15 @@ model-aware stub. A relative `--model=Profile` resolves only inside the selected
 Module's `Models\Profile`; external fully qualified model names are rejected.
 Observers support nested names, `--force`, and `--dry-run`, but do not create a
 model or register themselves with a provider or event listener.
+
+Standalone migrations use the Module-owned `Database/Migrations/` path and
+Moduark-owned copies of Laravel's plain, create-table, and update-table stubs.
+The StudlyCase input name is normalized to Laravel's snake_case timestamped
+filename. `--create=table` and `--table=table` select the corresponding stub;
+without either option, Laravel-compatible name patterns infer the mode or fall
+back to the plain stub. The two options are mutually exclusive. Standalone
+migrations reject `--force`, duplicate logical names, nested names, and invalid
+table identifiers, and never write to the application-level `database/` tree.
 
 The target Module must already exist and its configured path must be inside the
 Laravel application source root. Other composite Laravel Maker options that

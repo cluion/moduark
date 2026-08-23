@@ -345,6 +345,45 @@ final class CleanApplicationRunner
             );
         }
 
+        $migrationArguments = [
+            'moduark:make',
+            'User',
+            'migration',
+            'CreateAuditLogsTable',
+            '--create=audit_logs',
+        ];
+        $migrationDryRun = $this->artisan(
+            $application,
+            [...$migrationArguments, '--dry-run'],
+            $environment,
+        );
+        $this->assertContains(
+            'CREATE Database/Migrations/',
+            $migrationDryRun,
+            'moduark:make migration --dry-run omitted its Module-owned directory.',
+        );
+        $this->assertContains(
+            '_create_audit_logs_table.php',
+            $migrationDryRun,
+            'moduark:make migration --dry-run omitted its normalized migration filename.',
+        );
+        $auditMigrations = glob(
+            $application.'/app/Modules/User/Database/Migrations/*_create_audit_logs_table.php',
+        );
+        if (! is_array($auditMigrations) || $auditMigrations !== []) {
+            throw new RuntimeException('moduark:make migration --dry-run wrote its planned target.');
+        }
+
+        $this->artisan($application, $migrationArguments, $environment);
+        $auditMigrations = glob(
+            $application.'/app/Modules/User/Database/Migrations/*_create_audit_logs_table.php',
+        );
+        if (! is_array($auditMigrations) || count($auditMigrations) !== 1) {
+            throw new RuntimeException(
+                'moduark:make must create exactly one standalone Module-owned migration.',
+            );
+        }
+
         $list = $this->artisan($application, ['moduark:list'], $environment);
         $this->assertContains('User', $list, 'moduark:list did not report the generated User Module.');
         $this->assertContains('| 1', $list, 'moduark:list did not use the default Level 1 configuration.');
