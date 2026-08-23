@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added the final Module-owned `command`, `config`, and `provider` Makers,
+  completing all 31 name-based Laravel 12 / 13 inventory candidates. Commands
+  retain native stubs and runtime discovery, while config/provider templates
+  avoid application-global config and bootstrap-provider mutations.
 - Added a large Generation performance regression gate covering 100 full
   scaffold Modules and 1,400 production-template targets. A fixed PHP 8.5 CI
   job now enforces a generous median-total budget while the standalone

@@ -1,6 +1,6 @@
 # ADR-0049: Generator Registry Contract and Laravel Maker Inventory
 
-- Status: Accepted and implemented through `1.1` Slice G8-A
+- Status: Accepted and implemented through `1.1` Slice G10-A
 - Date: 2026-08-23
 
 ## Context
@@ -38,6 +38,9 @@ G3-A begins the Data group with standalone Module-owned `factory` and `seeder`
 descriptors, separate from model composite generation.
 G3-B adds Module-owned `observer` generation with explicit model ownership and
 no implicit registration side effects.
+G10-A closes the audited inventory gap with Module-owned `command`, `config`,
+and `provider` descriptors, completing all 31 name-based candidates without
+application-global config or bootstrap-provider mutations.
 
 ## Decision
 
@@ -137,6 +140,13 @@ no implicit registration side effects.
 - G4-G fixes job middleware below `Jobs/Middleware/` and keeps native
   single-target delegation. Laravel 12 and 13 expose only `--force`; generation
   does not create a job, matching test, queue infrastructure, or registration.
+- G10-A fixes direct commands below `Console/Commands/`, config files below
+  `config/`, and service providers below `Providers/`. Commands retain native
+  delegation and safe `--command` / matching-test options. Config and provider
+  plans use Module-owned templates because Laravel's native Makers hard-code
+  application config or mutate `bootstrap/providers.php`. Provider activation
+  remains explicit Module metadata, and config runtime activation remains a
+  separate 1.2 Resource Plugin contract. See ADR-0055.
 
 The concrete PHP interfaces were introduced with executable contract tests in
 G0-B. G8-A promotes the template-backed subset to a Stable `1.x` extension
@@ -246,15 +256,20 @@ membership is evidence for planning, not a support claim.
   produces JSON dry-run and executable template plans through the same public
   API as built-ins, rejects unknown options and built-in ID replacement, proves
   collision/force behavior, and rolls back a failing composite template plan.
+- G10-A adds separate Laravel 12 / 13 Application/framework plan fixtures and
+  proves the exact 31-ID registry, direct command runtime discovery, safe
+  command names, non-recursive command refusal, Module-only config/provider
+  writes, collision/force parity, and unchanged application config/provider
+  state in clean-install and nwidart gates.
 
 ## Consequences
 
 - Laravel minor upgrades may now require a deliberate inventory review even
   when Composer resolution succeeds. That failure is expected compatibility
   evidence, not a reason to update fixtures blindly.
-- The 31 name-based commands are a bounded research surface for later Maker
-  groups; each still needs its own Module ownership, path, option, and composite
-  tests before registration.
+- The 31 name-based commands are now the complete built-in `1.1` Maker surface.
+  Laravel inventory drift remains a review gate and never becomes an automatic
+  support claim for newly introduced commands.
 - Further composite generators must use the same executor contract and prove
   every related target, collision, and rollback path independently.
 - Native `make:* --module` bridging remains outside this contract. Third-party

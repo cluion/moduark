@@ -14,6 +14,7 @@ final class GeneratorRegistry
         'api',
         'batched',
         'collection',
+        'command',
         'create',
         'event',
         'extension',

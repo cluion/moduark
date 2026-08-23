@@ -39,6 +39,7 @@ final readonly class GenerationOptions
         public bool $test,
         public bool $pest,
         public bool $phpunit,
+        public ?string $commandName = null,
     ) {
     }
 
@@ -79,6 +80,7 @@ final readonly class GenerationOptions
             'test' => $this->test,
             'pest' => $this->pest,
             'phpunit' => $this->phpunit,
+            'command' => $this->commandName !== null,
         ] as $option => $enabled) {
             if ($enabled) {
                 $provided[] = $option;

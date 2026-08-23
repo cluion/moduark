@@ -13,7 +13,9 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     case PhpCast = 'cast';
     case Channel = 'channel';
     case PhpClass = 'class';
+    case ConsoleCommand = 'command';
     case Component = 'component';
+    case Config = 'config';
     case Model = 'model';
     case Controller = 'controller';
     case PhpEnum = 'enum';
@@ -30,6 +32,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     case Notification = 'notification';
     case Observer = 'observer';
     case Policy = 'policy';
+    case ServiceProvider = 'provider';
     case HttpRequest = 'request';
     case HttpResource = 'resource';
     case ValidationRule = 'rule';
@@ -45,7 +48,9 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpCast->value => self::PhpCast,
             self::Channel->value => self::Channel,
             self::PhpClass->value => self::PhpClass,
+            self::ConsoleCommand->value => self::ConsoleCommand,
             self::Component->value => self::Component,
+            self::Config->value => self::Config,
             self::Model->value => self::Model,
             self::Controller->value => self::Controller,
             self::PhpEnum->value => self::PhpEnum,
@@ -62,6 +67,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Notification->value => self::Notification,
             self::Observer->value => self::Observer,
             self::Policy->value => self::Policy,
+            self::ServiceProvider->value => self::ServiceProvider,
             self::HttpRequest->value => self::HttpRequest,
             self::HttpResource->value => self::HttpResource,
             self::ValidationRule->value => self::ValidationRule,
@@ -90,7 +96,9 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpCast => 'Casts',
             self::Channel => 'Broadcasting',
             self::PhpClass => '',
+            self::ConsoleCommand => 'Console\\Commands',
             self::Component => 'View\\Components',
+            self::Config => '',
             self::Model => 'Models',
             self::Controller => 'Http\\Controllers',
             self::PhpEnum => 'Enums',
@@ -107,6 +115,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Notification => 'Notifications',
             self::Observer => 'Observers',
             self::Policy => 'Policies',
+            self::ServiceProvider => 'Providers',
             self::HttpRequest => 'Http\\Requests',
             self::HttpResource => 'Http\\Resources',
             self::ValidationRule => 'Rules',
@@ -135,7 +144,10 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpScope,
             self::PhpTrait => ['force'],
             self::PhpClass => ['force', 'invokable'],
+            self::ConsoleCommand => ['force', 'command', 'test', 'pest', 'phpunit'],
             self::Component => ['force', 'view', 'inline', 'path', 'test', 'pest', 'phpunit'],
+            self::Config,
+            self::ServiceProvider => ['force'],
             self::Model => ['force', 'factory', 'migration', 'test', 'pest', 'phpunit'],
             self::Controller => ['force', 'invokable', 'resource', 'api', 'test', 'pest', 'phpunit'],
             self::PhpEnum => ['force', 'int', 'string'],
@@ -164,9 +176,12 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Model => $this->modelPlan($target, $options),
             self::Controller => $this->controllerPlan($target, $options),
             self::Component => $this->componentPlan($target, $options),
+            self::ConsoleCommand => $this->commandPlan($target, $options),
+            self::Config => $this->configPlan($target, $options),
             self::Factory => $this->standaloneFactoryPlan($target, $options),
             self::Migration => $this->standaloneMigrationPlan($target, $options),
             self::Seeder => $this->seederPlan($target, $options),
+            self::ServiceProvider => $this->providerPlan($target, $options),
             self::Test => $this->testPlan($target, $options),
             self::View => $this->viewPlan($target, $options),
             self::PhpCast,
@@ -190,6 +205,97 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpScope,
             self::PhpTrait => $this->singleTargetPlan($target, $options),
         };
+    }
+
+    private function commandPlan(
+        ModuleMakerTarget $target,
+        GenerationOptions $options,
+    ): GenerationPlan {
+        $this->rejectUnsupportedOptions($options, ['command', 'test', 'pest', 'phpunit']);
+
+        if (str_contains($target->localName(), '\\')) {
+            throw ModuleMakerFailed::nestedCommandName($target->localName());
+        }
+
+        if (
+            $options->commandName !== null
+            && preg_match(
+                '/\A[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?::[a-z][a-z0-9]*(?:-[a-z0-9]+)*)*\z/D',
+                $options->commandName,
+            ) !== 1
+        ) {
+            throw ModuleMakerFailed::invalidCommandName($options->commandName);
+        }
+
+        $parameters = array_filter([
+            'name' => $target->className(),
+            '--force' => $options->force,
+            '--command' => $options->commandName,
+            '--no-interaction' => true,
+        ], static fn (bool|string|null $value): bool => $value !== false && $value !== null);
+        $targets = [
+            new GenerationTarget(
+                $this->id(),
+                $this->command(),
+                $target->className(),
+                $target->filePath(),
+                $target->moduleRelativePath(),
+                $options->force,
+                $parameters,
+            ),
+        ];
+
+        if ($this->matchingTestRequested($options)) {
+            $targets[] = $this->matchingTestTarget($target, $options);
+        }
+
+        return new GenerationPlan($targets);
+    }
+
+    private function configPlan(
+        ModuleMakerTarget $target,
+        GenerationOptions $options,
+    ): GenerationPlan {
+        $this->rejectUnsupportedOptions($options, []);
+        $relativePath = 'config/'.str_replace('\\', '/', $target->localName()).'.php';
+
+        return new GenerationPlan([
+            new GenerationTarget(
+                $this->id(),
+                null,
+                strtolower($target->moduleName()).'::'.str_replace('\\', '.', $target->localName()),
+                $target->modulePath().'/'.$relativePath,
+                $relativePath,
+                $options->force,
+                [],
+                new GenerationFileTemplate($this->stubPath('module-config.stub'), []),
+            ),
+        ]);
+    }
+
+    private function providerPlan(
+        ModuleMakerTarget $target,
+        GenerationOptions $options,
+    ): GenerationPlan {
+        $this->rejectUnsupportedOptions($options, []);
+        $segments = explode('\\', $target->className());
+        $class = array_pop($segments);
+
+        return new GenerationPlan([
+            new GenerationTarget(
+                $this->id(),
+                null,
+                $target->className(),
+                $target->filePath(),
+                $target->moduleRelativePath(),
+                $options->force,
+                [],
+                new GenerationFileTemplate($this->stubPath('module-provider.stub'), [
+                    '{{ namespace }}' => implode('\\', $segments),
+                    '{{ class }}' => $class,
+                ]),
+            ),
+        ]);
     }
 
     private function modelPlan(
@@ -736,6 +842,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             'test' => $options->test,
             'pest' => $options->pest,
             'phpunit' => $options->phpunit,
+            'command' => $options->commandName !== null,
         ] as $option => $enabled) {
             if ($enabled && ! in_array($option, $allowed, true)) {
                 throw ModuleMakerFailed::unsupportedOption($option, $this->value);

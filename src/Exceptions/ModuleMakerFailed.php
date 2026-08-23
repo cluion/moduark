@@ -16,7 +16,7 @@ final class ModuleMakerFailed extends RuntimeException
     public static function unsupportedType(string $type): self
     {
         return new self(
-            "Maker type [{$type}] is not supported; expected cast, channel, class, component, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, test, trait, or view.",
+            "Maker type [{$type}] is not supported; expected cast, channel, class, command, component, config, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, provider, request, resource, rule, scope, seeder, test, trait, or view.",
         );
     }
 
@@ -64,6 +64,27 @@ final class ModuleMakerFailed extends RuntimeException
     public static function invalidOptionValue(string $option): self
     {
         return new self("The --{$option} option must be a non-empty string when provided.");
+    }
+
+    public static function invalidCommandName(string $command): self
+    {
+        return new self(
+            "Command name [{$command}] must be lowercase segments separated by colons.",
+        );
+    }
+
+    public static function nestedCommandName(string $name): self
+    {
+        return new self(
+            "Command Maker name [{$name}] must be one StudlyCase segment because runtime discovery is not recursive.",
+        );
+    }
+
+    public static function invalidConfigName(string $name): self
+    {
+        return new self(
+            "Config name [{$name}] must contain lowercase alphanumeric path segments with optional dashes or underscores.",
+        );
     }
 
     public static function invalidPolicyModel(string $model): self

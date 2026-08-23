@@ -24,11 +24,12 @@ final class ModuleMakeCommand extends Command
     /** @var string */
     protected $signature = 'moduark:make
         {module : Existing Module name}
-        {type : Maker type: cast, channel, class, component, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, test, trait, or view}
-        {name : StudlyCase class name, optionally with nested segments}
+        {type : Maker type: cast, channel, class, command, component, config, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, provider, request, resource, rule, scope, seeder, test, trait, or view}
+        {name : StudlyCase class name or lowercase config path}
         {--dry-run : Display the complete generation plan without writing files}
         {--format=text : Plan output format (text or json; json requires --dry-run)}
         {--force : Overwrite an existing generated class}
+        {--command= : Terminal command name for a Module-owned command}
         {--factory : Generate a Module-owned factory for a model}
         {--migration : Generate a Module-owned create-table migration for a model}
         {--create= : Generate a standalone migration that creates the named table}
@@ -151,6 +152,7 @@ final class ModuleMakeCommand extends Command
                 test: $matchingTest,
                 pest: $pest,
                 phpunit: $explicitPhpunit,
+                commandName: $this->optionalStringOption('command'),
             ));
         } catch (ModuleMakerFailed $exception) {
             $message = 'Module Maker failed: '.$exception->getMessage();

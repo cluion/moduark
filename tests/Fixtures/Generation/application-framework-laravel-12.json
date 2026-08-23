@@ -1,0 +1,31 @@
+{
+    "schema": 1,
+    "laravel_major": 12,
+    "plans": [
+        {
+            "type": "command",
+            "name": "SyncOrders",
+            "options": "--command=orders:sync --test --phpunit",
+            "targets": [
+                "Console/Commands/SyncOrders.php",
+                "Tests/Feature/Console/Commands/SyncOrdersTest.php"
+            ]
+        },
+        {
+            "type": "config",
+            "name": "billing/services",
+            "options": "",
+            "targets": [
+                "config/billing/services.php"
+            ]
+        },
+        {
+            "type": "provider",
+            "name": "Billing/BillingServiceProvider",
+            "options": "",
+            "targets": [
+                "Providers/Billing/BillingServiceProvider.php"
+            ]
+        }
+    ]
+}

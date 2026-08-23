@@ -165,6 +165,8 @@ php artisan moduark:make User model Profile --factory --migration
 php artisan moduark:make User class Support/InvokableTask --invokable
 php artisan moduark:make User cast Money/AmountCast --inbound
 php artisan moduark:make User channel Billing/InvoiceChannel
+php artisan moduark:make User command SyncOrders --command=orders:sync
+php artisan moduark:make User config billing/services
 php artisan moduark:make User enum Workflow/Status --string
 php artisan moduark:make User event Billing/InvoicePaid
 php artisan moduark:make User exception Billing/PaymentFailed --render --report
@@ -184,6 +186,7 @@ php artisan moduark:make User observer Audit/ProfileObserver
 php artisan moduark:make User observer Profile/ProfileObserver --model=Profile
 php artisan moduark:make User policy Admin/ManageProfiles
 php artisan moduark:make User policy Profile/ProfilePolicy --model=Profile --guard=web
+php artisan moduark:make User provider Billing/BillingServiceProvider
 php artisan moduark:make User request Profile/StoreProfileRequest
 php artisan moduark:make User resource Profile/ProfileResource
 php artisan moduark:make User resource Profile/ProfileCollection --collection
@@ -223,6 +226,19 @@ and traits use `Concerns/`. Classes support `--invokable`; casts support
 `--inbound`; enums support `--int` and `--string`; exceptions support `--render`
 and `--report`. All seven PHP types support nested names, `--force`, and
 `--dry-run` through the same plan and collision preflight.
+
+Application/framework Makers complete the 31-name Laravel 12 / 13 inventory.
+Commands are direct classes below `Console/Commands/`, use Laravel's native
+stub, and accept `--command=`, `--force`, and Module-owned matching-test options.
+Nested command paths are rejected because current runtime discovery is
+intentionally non-recursive. Config files are template-backed targets below the
+Module's lowercase `config/` tree; generating one does not write to the
+application's `config/` directory or claim that the 1.2 config runtime plugin is
+already active. Providers are template-backed below `Providers/`; generation
+never invokes Laravel's native provider Maker because that command mutates
+`bootstrap/providers.php`. Add generated providers explicitly to the Module's
+`providers()` metadata. See
+[ADR-0055](docs/adr/0055-application-framework-maker-ownership.md).
 
 HTTP request and resource Makers also retain Laravel's native stubs while fixing
 ownership first. Requests use `Http/Requests/`; resources use

@@ -544,11 +544,16 @@ final class CleanApplicationRunner
             'moduark:make did not create the User ProfileController.',
         );
 
+        $applicationProvidersPath = $application.'/bootstrap/providers.php';
+        $applicationProviders = (string) file_get_contents($applicationProvidersPath);
+
         foreach ([
             ['class', 'Support/InvokableTask', '--invokable', 'Support/InvokableTask.php'],
             ['cast', 'Money/AmountCast', '--inbound', 'Casts/Money/AmountCast.php'],
             ['channel', 'Billing/InvoiceChannel', null, 'Broadcasting/Billing/InvoiceChannel.php'],
+            ['command', 'SyncOrders', '--command=orders:sync', 'Console/Commands/SyncOrders.php'],
             ['component', 'Billing/InvoiceCard', null, 'View/Components/Billing/InvoiceCard.php'],
+            ['config', 'billing/services', null, 'config/billing/services.php'],
             ['enum', 'Workflow/Status', '--string', 'Enums/Workflow/Status.php'],
             ['event', 'Billing/InvoicePaid', null, 'Events/Billing/InvoicePaid.php'],
             ['exception', 'Billing/PaymentFailed', '--render', 'Exceptions/Billing/PaymentFailed.php'],
@@ -564,6 +569,7 @@ final class CleanApplicationRunner
             ['notification', 'Billing/InvoicePaid', null, 'Notifications/Billing/InvoicePaid.php'],
             ['observer', 'Profile/ProfileObserver', '--model=Profile', 'Observers/Profile/ProfileObserver.php'],
             ['policy', 'Profile/ProfilePolicy', '--model=Profile', 'Policies/Profile/ProfilePolicy.php'],
+            ['provider', 'Billing/BillingServiceProvider', null, 'Providers/Billing/BillingServiceProvider.php'],
             ['request', 'Profile/StoreProfileRequest', null, 'Http/Requests/Profile/StoreProfileRequest.php'],
             ['resource', 'Profile/ProfileResource', null, 'Http/Resources/Profile/ProfileResource.php'],
             ['resource', 'Profile/ProfileCollection', '--collection', 'Http/Resources/Profile/ProfileCollection.php'],
@@ -622,6 +628,18 @@ final class CleanApplicationRunner
             $application.'/tests/Unit/Billing/ModuleUnitTest.php',
             'moduark:make test wrote an application-global unit test.',
         );
+        $this->assertFileMissing(
+            $application.'/config/billing/services.php',
+            'moduark:make config wrote an application-global config file.',
+        );
+
+        if (file_get_contents($applicationProvidersPath) !== $applicationProviders) {
+            throw new RuntimeException(
+                'moduark:make provider modified application bootstrap/providers.php.',
+            );
+        }
+
+        $this->artisan($application, ['orders:sync'], $environment);
 
         $matchingTestArguments = [
             'moduark:make',

@@ -637,6 +637,7 @@ PHP;
             'Moduark resource maker lost its plan output format option.',
         );
         $this->assertContains('--factory', $moduark, 'Moduark resource maker lost its factory option.');
+        $this->assertContains('--command', $moduark, 'Moduark Module Maker lost its command name option.');
         $this->assertContains(
             '--migration',
             $moduark,
@@ -672,6 +673,8 @@ PHP;
         );
         $this->assertContains('channel', $moduark, 'Moduark Module Maker lost its channel type.');
         $this->assertContains('component', $moduark, 'Moduark Module Maker lost its component type.');
+        $this->assertContains('command', $moduark, 'Moduark Module Maker lost its command type.');
+        $this->assertContains('config', $moduark, 'Moduark Module Maker lost its config type.');
         $this->assertContains('factory', $moduark, 'Moduark resource maker lost its factory type.');
         $this->assertContains('observer', $moduark, 'Moduark Module Maker lost its observer type.');
         $this->assertContains('event', $moduark, 'Moduark Module Maker lost its event type.');
@@ -681,6 +684,7 @@ PHP;
         $this->assertContains('mail', $moduark, 'Moduark Module Maker lost its mail type.');
         $this->assertContains('notification', $moduark, 'Moduark Module Maker lost its notification type.');
         $this->assertContains('policy', $moduark, 'Moduark resource maker lost its policy type.');
+        $this->assertContains('provider', $moduark, 'Moduark Module Maker lost its provider type.');
         $this->assertContains('rule', $moduark, 'Moduark resource maker lost its rule type.');
         $this->assertContains('seeder', $moduark, 'Moduark resource maker lost its seeder type.');
         $this->assertContains('test', $moduark, 'Moduark Module Maker lost its test type.');

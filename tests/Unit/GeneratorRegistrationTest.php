@@ -35,7 +35,7 @@ final class GeneratorRegistrationTest extends TestCase
 
         self::assertSame($this->ids($early), $this->ids($late));
         self::assertSame(
-            ['cast', 'channel', 'class', 'component', 'controller', 'enum', 'event', 'exception', 'factory', 'interface', 'job', 'job-middleware', 'listener', 'mail', 'middleware', 'migration', 'model', 'notification', 'observer', 'policy', 'request', 'resource', 'rule', 'scope', 'seeder', 'test', 'trait', 'verification', 'view', 'zeta'],
+            ['cast', 'channel', 'class', 'command', 'component', 'config', 'controller', 'enum', 'event', 'exception', 'factory', 'interface', 'job', 'job-middleware', 'listener', 'mail', 'middleware', 'migration', 'model', 'notification', 'observer', 'policy', 'provider', 'request', 'resource', 'rule', 'scope', 'seeder', 'test', 'trait', 'verification', 'view', 'zeta'],
             $this->ids($early),
         );
     }

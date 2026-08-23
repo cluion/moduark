@@ -25,9 +25,11 @@ final readonly class ModuleMakerTargetResolver
         string $name,
     ): ModuleMakerTarget
     {
-        $className = $descriptor->id() === ModuleMakerType::View->value
-            ? $this->viewName($name)
-            : $this->className($name);
+        $className = match ($descriptor->id()) {
+            ModuleMakerType::Config->value => $this->configName($name),
+            ModuleMakerType::View->value => $this->viewName($name),
+            default => $this->className($name),
+        };
         $discovered = $this->findModule($module);
         $applicationPath = $this->applicationPath();
         $modulePath = dirname($discovered->path());
@@ -119,6 +121,20 @@ final readonly class ModuleMakerTargetResolver
             $normalized,
         ) !== 1) {
             throw ModuleMakerFailed::invalidViewName($name);
+        }
+
+        return str_replace('/', '\\', $normalized);
+    }
+
+    private function configName(string $name): string
+    {
+        $normalized = str_replace('\\', '/', $name);
+
+        if (preg_match(
+            '/\A[a-z0-9]+(?:[-_][a-z0-9]+)*(?:\/[a-z0-9]+(?:[-_][a-z0-9]+)*)*\z/D',
+            $normalized,
+        ) !== 1) {
+            throw ModuleMakerFailed::invalidConfigName($name);
         }
 
         return str_replace('/', '\\', $normalized);
