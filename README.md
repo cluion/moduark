@@ -141,6 +141,7 @@ php artisan moduark:make User model Profile --dry-run
 php artisan moduark:make User model Profile --factory --migration
 php artisan moduark:make User class Support/InvokableTask --invokable
 php artisan moduark:make User cast Money/AmountCast --inbound
+php artisan moduark:make User channel Billing/InvoiceChannel
 php artisan moduark:make User enum Workflow/Status --string
 php artisan moduark:make User event Billing/InvoicePaid
 php artisan moduark:make User exception Billing/PaymentFailed --render --report
@@ -269,6 +270,11 @@ Mailables use the Module-owned `Mail/` path and Laravel's native plain mail
 stub. They support `--force` and `--dry-run`. Laravel's `--markdown` and
 `--view` modes also write application-global views below `resources/views/`,
 so Moduark rejects both before generation.
+
+Broadcast channels use the Module-owned `Broadcasting/` path and Laravel's
+native channel stub. The generated `join` method references the application's
+configured authentication-provider model, but generation does not create that
+model, matching tests, routes, providers, or channel registration.
 
 The target Module must already exist and its configured path must be inside the
 Laravel application source root. Other composite Laravel Maker options that

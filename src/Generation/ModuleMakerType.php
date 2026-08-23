@@ -11,6 +11,7 @@ use ParseError;
 enum ModuleMakerType: string implements GeneratorDescriptor
 {
     case PhpCast = 'cast';
+    case Channel = 'channel';
     case PhpClass = 'class';
     case Model = 'model';
     case Controller = 'controller';
@@ -38,6 +39,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     {
         return match (strtolower($type)) {
             self::PhpCast->value => self::PhpCast,
+            self::Channel->value => self::Channel,
             self::PhpClass->value => self::PhpClass,
             self::Model->value => self::Model,
             self::Controller->value => self::Controller,
@@ -78,6 +80,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     {
         return match ($this) {
             self::PhpCast => 'Casts',
+            self::Channel => 'Broadcasting',
             self::PhpClass => '',
             self::Model => 'Models',
             self::Controller => 'Http\\Controllers',
@@ -117,6 +120,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Migration => $this->standaloneMigrationPlan($target, $options),
             self::Seeder => $this->seederPlan($target, $options),
             self::PhpCast,
+            self::Channel,
             self::PhpClass,
             self::PhpEnum,
             self::Event,
@@ -327,6 +331,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Job => ['sync', 'batched'],
             self::Listener => ['event', 'queued'],
             self::Event,
+            self::Channel,
             self::Mail,
             self::Notification,
             self::PhpInterface,

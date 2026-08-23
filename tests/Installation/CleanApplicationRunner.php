@@ -300,6 +300,7 @@ final class CleanApplicationRunner
         foreach ([
             ['class', 'Support/InvokableTask', '--invokable', 'Support/InvokableTask.php'],
             ['cast', 'Money/AmountCast', '--inbound', 'Casts/Money/AmountCast.php'],
+            ['channel', 'Billing/InvoiceChannel', null, 'Broadcasting/Billing/InvoiceChannel.php'],
             ['enum', 'Workflow/Status', '--string', 'Enums/Workflow/Status.php'],
             ['event', 'Billing/InvoicePaid', null, 'Events/Billing/InvoicePaid.php'],
             ['exception', 'Billing/PaymentFailed', '--render', 'Exceptions/Billing/PaymentFailed.php'],

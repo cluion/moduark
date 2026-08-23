@@ -64,6 +64,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the Module-owned plain `mail` Maker below `Mail/`. Laravel's
   `--markdown` and `--view` modes are explicitly rejected because both create
   application-global views.
+- Added the Module-owned `channel` Maker below `Broadcasting/` with Laravel's
+  native auth-provider model reference and no implicit model, test, route,
+  provider, or registration side effects.
 
 ## [1.0.1] - 2026-08-23
 

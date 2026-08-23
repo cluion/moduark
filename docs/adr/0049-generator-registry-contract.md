@@ -131,6 +131,10 @@ no implicit registration side effects.
   delegation. Laravel 12 and 13 both write application-global views for
   `--markdown` and `--view`; Moduark rejects both modes before any target is
   executed and retains the plain stub's explicit `view.name` placeholder.
+- G4-F fixes broadcast channels below `Broadcasting/` and keeps native
+  single-target delegation. The stub retains Laravel's application auth-provider
+  model reference, while generation does not create models, tests, routes,
+  providers, or channel registration.
 
 The concrete PHP interfaces were introduced with executable contract tests in
 G0-B. They remain pre-`1.1` internal extension boundaries until their public API

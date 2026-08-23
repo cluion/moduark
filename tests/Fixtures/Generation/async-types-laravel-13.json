@@ -61,6 +61,12 @@
             "name": "Billing/InvoiceReceipt",
             "options": "",
             "target": "Mail/Billing/InvoiceReceipt.php"
+        },
+        {
+            "type": "channel",
+            "name": "Billing/InvoiceChannel",
+            "options": "",
+            "target": "Broadcasting/Billing/InvoiceChannel.php"
         }
     ]
 }

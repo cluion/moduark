@@ -628,6 +628,7 @@ PHP;
             $moduark,
             'Moduark resource maker lost its middleware type.',
         );
+        $this->assertContains('channel', $moduark, 'Moduark Module Maker lost its channel type.');
         $this->assertContains('factory', $moduark, 'Moduark resource maker lost its factory type.');
         $this->assertContains('observer', $moduark, 'Moduark Module Maker lost its observer type.');
         $this->assertContains('event', $moduark, 'Moduark Module Maker lost its event type.');

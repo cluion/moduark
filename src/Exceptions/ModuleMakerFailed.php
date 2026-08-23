@@ -16,7 +16,7 @@ final class ModuleMakerFailed extends RuntimeException
     public static function unsupportedType(string $type): self
     {
         return new self(
-            "Maker type [{$type}] is not supported; expected cast, class, controller, enum, event, exception, factory, interface, job, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, or trait.",
+            "Maker type [{$type}] is not supported; expected cast, channel, class, controller, enum, event, exception, factory, interface, job, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, or trait.",
         );
     }
 

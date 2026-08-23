@@ -143,6 +143,9 @@ Moduark rejects it before generation and never writes below `resources/views/`.
 Mailables are generated below `Mail/` with Laravel's native plain stub.
 Laravel's `--markdown` and `--view` modes create application-global views, so
 both options are rejected before generation.
+Broadcast channels are generated below `Broadcasting/` with Laravel's native
+stub and application auth-provider model reference. Generation never creates
+that model, matching tests, routes, providers, or channel registration.
 
 Architecture checks use these process exit codes:
 

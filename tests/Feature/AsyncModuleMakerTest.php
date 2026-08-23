@@ -9,6 +9,7 @@ use Cluion\Moduark\Generation\ModuleMakerTargetResolver;
 use Cluion\Moduark\Module;
 use Cluion\Moduark\Registry\ModuleRegistry;
 use FilesystemIterator;
+use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Foundation\Application;
 use Illuminate\Filesystem\Filesystem;
 use RecursiveDirectoryIterator;
@@ -478,6 +479,75 @@ final class AsyncModuleMakerTest extends TestCase
             ->assertExitCode(2);
 
         self::assertDirectoryDoesNotExist($this->temporaryBasePath.'/resources/views');
+        self::assertSame(
+            [$this->temporaryBasePath.'/app/Modules/User/UserModule.php'],
+            $this->files(),
+        );
+    }
+
+    public function test_it_generates_a_module_owned_channel_with_the_application_auth_model(): void
+    {
+        $this->application()->make(ConfigRepository::class)->set(
+            'auth.providers.users.model',
+            'MakerFixture\\Models\\User',
+        );
+
+        $this->command('moduark:make User channel Billing/InvoiceChannel')
+            ->assertSuccessful();
+
+        $path = $this->temporaryBasePath
+            .'/app/Modules/User/Broadcasting/Billing/InvoiceChannel.php';
+        $channel = (string) file_get_contents($path);
+
+        self::assertStringContainsString(
+            'namespace MakerFixture\\Modules\\User\\Broadcasting\\Billing;',
+            $channel,
+        );
+        self::assertStringContainsString('use MakerFixture\\Models\\User;', $channel);
+        self::assertStringContainsString('class InvoiceChannel', $channel);
+        self::assertStringContainsString(
+            'public function join(User $user): array|bool',
+            $channel,
+        );
+        self::assertDirectoryDoesNotExist($this->temporaryBasePath.'/routes');
+        self::assertDirectoryDoesNotExist($this->temporaryBasePath.'/app/Providers');
+        self::assertSame([
+            $path,
+            $this->temporaryBasePath.'/app/Modules/User/UserModule.php',
+        ], $this->files());
+    }
+
+    public function test_channel_shares_collision_force_and_dry_run_behavior(): void
+    {
+        $relativePath = 'Broadcasting/Billing/InvoiceChannel.php';
+        $path = $this->temporaryBasePath.'/app/Modules/User/'.$relativePath;
+        $command = 'moduark:make User channel Billing/InvoiceChannel';
+
+        $this->command($command.' --dry-run')
+            ->expectsOutputToContain('CREATE '.$relativePath)
+            ->assertSuccessful();
+        self::assertFileDoesNotExist($path);
+
+        $this->command($command)->assertSuccessful();
+        self::assertIsInt(file_put_contents($path, 'existing source'));
+
+        $this->command($command)
+            ->expectsOutputToContain('Channel already exists.')
+            ->assertFailed();
+        self::assertSame('existing source', file_get_contents($path));
+
+        $this->command($command.' --force')->assertSuccessful();
+        self::assertNotSame('existing source', file_get_contents($path));
+    }
+
+    public function test_channel_rejects_foreign_options_without_filesystem_mutation(): void
+    {
+        $this->command('moduark:make User channel Billing/InvoiceChannel --event=Billing/InvoicePaid')
+            ->expectsOutputToContain(
+                'Module Maker failed: The --event option is not supported for Maker type [channel].',
+            )
+            ->assertExitCode(2);
+
         self::assertSame(
             [$this->temporaryBasePath.'/app/Modules/User/UserModule.php'],
             $this->files(),
