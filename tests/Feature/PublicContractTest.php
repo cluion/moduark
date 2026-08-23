@@ -13,6 +13,13 @@ use Cluion\Moduark\Architecture\RulePresets;
 use Cluion\Moduark\Capability;
 use Cluion\Moduark\CapabilityRequirement;
 use Cluion\Moduark\Configuration\ModulesConfig;
+use Cluion\Moduark\Generation\GenerationFileTemplate;
+use Cluion\Moduark\Generation\GenerationOptions;
+use Cluion\Moduark\Generation\GenerationPlan;
+use Cluion\Moduark\Generation\GenerationTarget;
+use Cluion\Moduark\Generation\GeneratorDescriptor;
+use Cluion\Moduark\Generation\GeneratorRegistration;
+use Cluion\Moduark\Generation\ModuleMakerTarget;
 use Cluion\Moduark\Module;
 use Cluion\Moduark\ModuarkServiceProvider;
 use Illuminate\Contracts\Console\Kernel;
@@ -71,6 +78,34 @@ final class PublicContractTest extends TestCase
         self::assertTrue(
             (new ReflectionClass(ModuarkServiceProvider::class))->isSubclassOf(ServiceProvider::class),
         );
+
+        self::assertSame(
+            ['id', 'targetNamespace', 'supportedOptions', 'plan'],
+            array_map(
+                static fn (\ReflectionMethod $method): string => $method->getName(),
+                (new ReflectionClass(GeneratorDescriptor::class))->getMethods(),
+            ),
+        );
+        self::assertTrue((new ReflectionClass(GeneratorDescriptor::class))->isInterface());
+        self::assertTrue((new ReflectionClass(GeneratorRegistration::class))->isFinal());
+        self::assertTrue(
+            (new ReflectionClass(GeneratorRegistration::class))->getMethod('register')->isStatic(),
+        );
+
+        foreach ([
+            GenerationOptions::class,
+            GenerationPlan::class,
+            GenerationTarget::class,
+            GenerationFileTemplate::class,
+            ModuleMakerTarget::class,
+        ] as $valueObject) {
+            $reflection = new ReflectionClass($valueObject);
+
+            self::assertTrue($reflection->isFinal(), "{$valueObject} must remain final.");
+            self::assertTrue($reflection->isReadOnly(), "{$valueObject} must remain readonly.");
+            self::assertNotNull($reflection->getConstructor());
+            self::assertTrue($reflection->getConstructor()->isPublic());
+        }
     }
 
     public function test_level_rule_and_exit_identities_remain_stable(): void

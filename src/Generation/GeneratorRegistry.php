@@ -9,6 +9,41 @@ use InvalidArgumentException;
 
 final class GeneratorRegistry
 {
+    /** @var list<string> */
+    private const SUPPORTED_OPTIONS = [
+        'api',
+        'batched',
+        'collection',
+        'create',
+        'event',
+        'extension',
+        'factory',
+        'force',
+        'guard',
+        'implicit',
+        'inbound',
+        'inline',
+        'int',
+        'invokable',
+        'json-api',
+        'markdown',
+        'migration',
+        'model',
+        'path',
+        'pest',
+        'phpunit',
+        'queued',
+        'render',
+        'report',
+        'resource',
+        'string',
+        'sync',
+        'table',
+        'test',
+        'unit',
+        'view',
+    ];
+
     /** @var array<string, GeneratorDescriptor> */
     private array $descriptors = [];
 
@@ -28,6 +63,28 @@ final class GeneratorRegistry
             throw new InvalidArgumentException(
                 "Generator ID [{$id}] must be canonical lowercase kebab-case.",
             );
+        }
+
+        if (! $descriptor instanceof ModuleMakerType && ModuleMakerType::tryFrom($id) !== null) {
+            throw new InvalidArgumentException(
+                "Generator ID [{$id}] is reserved for a built-in descriptor.",
+            );
+        }
+
+        $options = $descriptor->supportedOptions();
+
+        if (count($options) !== count(array_unique($options))) {
+            throw new InvalidArgumentException(
+                "Generator [{$id}] must not declare duplicate supported options.",
+            );
+        }
+
+        foreach ($options as $option) {
+            if (! in_array($option, self::SUPPORTED_OPTIONS, true)) {
+                throw new InvalidArgumentException(
+                    "Generator [{$id}] declares unknown supported option [{$option}].",
+                );
+            }
         }
 
         if (isset($this->descriptors[$id])) {

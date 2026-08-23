@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added the Stable third-party generator registration API. Composer packages
+  can contribute template-backed Module generators through Laravel discovery
+  while shared option validation, JSON/text plans, collision preflight,
+  overwrite rules, and rollback remain enforced centrally.
 - Added shared human-readable and schema-versioned JSON Generation Plan output
   for `moduark:make` and `moduark:make-module`. JSON dry runs expose portable
   target operations, generator ownership, overwrite intent, collisions, status,

@@ -351,6 +351,28 @@ state. JSON is available only with `--dry-run`, so normal Laravel delegate outpu
 cannot corrupt the machine document. See
 [ADR-0052](docs/adr/0052-generation-plan-output.md).
 
+Third-party packages may add a template-backed Maker by implementing
+`GeneratorDescriptor` and registering its class from a Laravel service
+provider:
+
+```php
+use Cluion\Moduark\Generation\GeneratorRegistration;
+
+public function register(): void
+{
+    GeneratorRegistration::register($this->app, ValueObjectGenerator::class);
+}
+```
+
+The descriptor declares its canonical ID, target namespace, supported
+`moduark:make` options, and complete immutable plan. All targets must use
+`GenerationFileTemplate` and remain below the selected Module; the common
+planner owns JSON/text output, collision preflight, `--force`, execution, and
+rollback. Third-party Artisan delegation and direct filesystem writes are not
+part of this extension contract. See
+[ADR-0053](docs/adr/0053-third-party-generator-registration.md) and the
+[permanent package fixture](tests/Fixtures/Generation/ExtensionPackage).
+
 Inspect the discovered architecture:
 
 ```bash

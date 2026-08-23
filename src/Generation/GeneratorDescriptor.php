@@ -10,5 +10,8 @@ interface GeneratorDescriptor
 
     public function targetNamespace(): string;
 
+    /** @return list<string> */
+    public function supportedOptions(): array;
+
     public function plan(ModuleMakerTarget $target, GenerationOptions $options): GenerationPlan;
 }

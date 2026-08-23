@@ -33,6 +33,7 @@ use Cluion\Moduark\Graph\Export\TextCombinedGraphExporter;
 use Cluion\Moduark\Graph\Export\TextModuleGraphExporter;
 use Cluion\Moduark\Graph\ModuleGraphBuilder;
 use Cluion\Moduark\Generation\GenerationPlanner;
+use Cluion\Moduark\Generation\GenerationPlanValidator;
 use Cluion\Moduark\Generation\GenerationPreflight;
 use Cluion\Moduark\Generation\GenerationExecutor;
 use Cluion\Moduark\Generation\GeneratorRegistry;
@@ -90,6 +91,7 @@ final class PackageBaselineTest extends TestCase
         self::assertTrue($application->bound(ModuleInspectionBuilder::class));
         self::assertTrue($application->bound(GeneratorRegistry::class));
         self::assertTrue($application->bound(GenerationPlanner::class));
+        self::assertTrue($application->bound(GenerationPlanValidator::class));
         self::assertTrue($application->bound(GenerationPreflight::class));
         self::assertTrue($application->bound(GenerationExecutor::class));
         self::assertTrue($application->bound(ModuleMakerTargetResolver::class));

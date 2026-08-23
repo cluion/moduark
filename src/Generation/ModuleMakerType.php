@@ -123,6 +123,41 @@ enum ModuleMakerType: string implements GeneratorDescriptor
         return $this->namespace();
     }
 
+    /** @return list<string> */
+    public function supportedOptions(): array
+    {
+        return match ($this) {
+            self::PhpCast => ['force', 'inbound'],
+            self::Channel,
+            self::Event,
+            self::PhpInterface,
+            self::HttpRequest,
+            self::PhpScope,
+            self::PhpTrait => ['force'],
+            self::PhpClass => ['force', 'invokable'],
+            self::Component => ['force', 'view', 'inline', 'path', 'test', 'pest', 'phpunit'],
+            self::Model => ['force', 'factory', 'migration', 'test', 'pest', 'phpunit'],
+            self::Controller => ['force', 'invokable', 'resource', 'api', 'test', 'pest', 'phpunit'],
+            self::PhpEnum => ['force', 'int', 'string'],
+            self::PhpException => ['force', 'render', 'report'],
+            self::Factory => ['model'],
+            self::Job => ['force', 'sync', 'batched', 'test', 'pest', 'phpunit'],
+            self::JobMiddleware => ['force', 'test', 'pest', 'phpunit'],
+            self::Listener => ['force', 'event', 'queued', 'test', 'pest', 'phpunit'],
+            self::Mail,
+            self::Notification => ['force', 'test', 'pest', 'phpunit'],
+            self::HttpMiddleware => ['test', 'pest', 'phpunit'],
+            self::Migration => ['create', 'table'],
+            self::Observer => ['force', 'model'],
+            self::Policy => ['force', 'model', 'guard'],
+            self::HttpResource => ['force', 'collection', 'json-api'],
+            self::ValidationRule => ['force', 'implicit'],
+            self::Seeder => [],
+            self::Test => ['force', 'unit', 'pest', 'phpunit'],
+            self::View => ['force', 'extension', 'test', 'pest', 'phpunit'],
+        };
+    }
+
     public function plan(ModuleMakerTarget $target, GenerationOptions $options): GenerationPlan
     {
         return match ($this) {

@@ -187,6 +187,36 @@ final class CleanApplicationRunner
             'Installing Moduark must not publish config/moduark.php.',
         );
 
+        $extensionPackage = $this->packagePath.'/tests/Fixtures/Generation/ExtensionPackage';
+        $this->assertFileExists(
+            $extensionPackage.'/composer.json',
+            'The permanent generator extension package fixture is missing.',
+        );
+        $extensionRepository = json_encode([
+            'type' => 'path',
+            'url' => $extensionPackage,
+            'options' => [
+                'versions' => [
+                    'cluion/moduark-generator-extension-fixture' => 'dev-main',
+                ],
+            ],
+        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+        $this->command([
+            'composer',
+            'config',
+            '--json',
+            'repositories.moduark-generator-extension-fixture',
+            $extensionRepository,
+        ], $application, $environment);
+        $this->command([
+            'composer',
+            'require',
+            'cluion/moduark-generator-extension-fixture:dev-main',
+            '--no-interaction',
+            '--no-progress',
+            '--prefer-dist',
+        ], $application, $environment);
+
         if ($this->packageVersion !== null) {
             $this->assertPublishedDistribution($application.'/vendor/cluion/moduark');
         }
@@ -228,6 +258,85 @@ final class CleanApplicationRunner
         $modulePath = $application.'/app/Modules/User/UserModule.php';
         $this->assertFileExists($modulePath, 'moduark:make-module did not create UserModule.php.');
         $this->assertOnlyGeneratedModuleFile($application.'/app/Modules/User', $modulePath);
+
+        $extensionJson = $this->artisan(
+            $application,
+            [
+                'moduark:make',
+                'User',
+                'value-object',
+                'Money',
+                '--dry-run',
+                '--format=json',
+            ],
+            $environment,
+        );
+        $extensionPayload = json_decode($extensionJson, true, 512, JSON_THROW_ON_ERROR);
+        $extensionTargets = is_array($extensionPayload)
+            ? ($extensionPayload['targets'] ?? null)
+            : null;
+        $extensionFirstTarget = is_array($extensionTargets)
+            ? ($extensionTargets[0] ?? null)
+            : null;
+        $extensionTarget = $application.'/app/Modules/User/ValueObjects/Money.php';
+
+        if (
+            ! is_array($extensionPayload)
+            || ($extensionPayload['status'] ?? null) !== 'planned'
+            || ($extensionPayload['generator_id'] ?? null) !== 'value-object'
+            || ! is_array($extensionFirstTarget)
+            || ($extensionFirstTarget['path'] ?? null) !== 'ValueObjects/Money.php'
+        ) {
+            throw new RuntimeException(
+                'The package-discovered custom generator did not emit its complete JSON plan.',
+            );
+        }
+        $this->assertFileMissing(
+            $extensionTarget,
+            'The package-discovered custom generator JSON dry-run mutated the application.',
+        );
+        $this->artisan(
+            $application,
+            ['moduark:make', 'User', 'value-object', 'Money'],
+            $environment,
+        );
+        $this->assertFileExists(
+            $extensionTarget,
+            'The package-discovered custom generator did not create its Module-owned target.',
+        );
+        $this->command([PHP_BINARY, '-l', $extensionTarget], $application, $environment);
+
+        [$collisionExit, $collisionJson] = $this->artisanResult(
+            $application,
+            [
+                'moduark:make',
+                'User',
+                'value-object',
+                'Money',
+                '--dry-run',
+                '--format=json',
+            ],
+            $environment,
+        );
+        $collisionPayload = json_decode($collisionJson, true, 512, JSON_THROW_ON_ERROR);
+        $collisionTargets = is_array($collisionPayload)
+            ? ($collisionPayload['targets'] ?? null)
+            : null;
+        $collisionFirstTarget = is_array($collisionTargets)
+            ? ($collisionTargets[0] ?? null)
+            : null;
+
+        if (
+            $collisionExit !== 1
+            || ! is_array($collisionPayload)
+            || ($collisionPayload['status'] ?? null) !== 'collisions_found'
+            || ! is_array($collisionFirstTarget)
+            || ($collisionFirstTarget['collision'] ?? null) !== true
+        ) {
+            throw new RuntimeException(
+                'The package-discovered custom generator did not preserve collision preflight.',
+            );
+        }
 
         foreach ([
             'Storefront' => ['preset' => 'web', 'target' => 'Tests/Feature/Web/StorefrontWebTest.php'],
@@ -919,11 +1028,51 @@ final class CleanApplicationRunner
     }
 
     /**
+     * @param list<string> $arguments
+     * @param array<string, string> $environment
+     * @return array{int, string}
+     */
+    private function artisanResult(
+        string $application,
+        array $arguments,
+        array $environment,
+    ): array {
+        return $this->commandResult(
+            [PHP_BINARY, 'artisan', ...$arguments, '--no-ansi'],
+            $application,
+            $environment,
+        );
+    }
+
+    /**
      * @param list<string> $command
      * @param array<string, string> $environment
      */
     private function command(array $command, string $workingDirectory, array $environment): string
     {
+        [$exitCode, $output] = $this->commandResult($command, $workingDirectory, $environment);
+
+        if ($exitCode !== 0) {
+            throw new RuntimeException(sprintf(
+                'Installation command [%s] failed with exit code %d.',
+                $this->commandLabel($command),
+                $exitCode,
+            ));
+        }
+
+        return $output;
+    }
+
+    /**
+     * @param list<string> $command
+     * @param array<string, string> $environment
+     * @return array{int, string}
+     */
+    private function commandResult(
+        array $command,
+        string $workingDirectory,
+        array $environment,
+    ): array {
         echo '$ '.$this->commandLabel($command)."\n";
         $errorStream = fopen('php://temp', 'w+');
 
@@ -966,15 +1115,7 @@ final class CleanApplicationRunner
             $output .= $errorOutput;
         }
 
-        if ($exitCode !== 0) {
-            throw new RuntimeException(sprintf(
-                'Installation command [%s] failed with exit code %d.',
-                $this->commandLabel($command),
-                $exitCode,
-            ));
-        }
-
-        return $output;
+        return [$exitCode, $output];
     }
 
     /**

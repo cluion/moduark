@@ -182,4 +182,9 @@ final class ModuleMakerFailed extends RuntimeException
             implode(', ', $paths),
         ));
     }
+
+    public static function invalidGeneratorPlan(string $generator, string $reason): self
+    {
+        return new self("Generator [{$generator}] returned an invalid plan: {$reason}");
+    }
 }

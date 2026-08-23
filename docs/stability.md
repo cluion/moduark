@@ -63,7 +63,11 @@ The following PHP types are supported application-facing contracts:
 - `Cluion\Moduark\CapabilityRequirement`, including its constructor,
   `capability()`, `port()`, `adapter()`, `fromArray()`, and `toArray()`;
 - automatic Laravel discovery of
-  `Cluion\Moduark\ModuarkServiceProvider`.
+  `Cluion\Moduark\ModuarkServiceProvider`;
+- `Cluion\Moduark\Generation\GeneratorRegistration::register()` and the
+  template-backed generator value contracts: `GeneratorDescriptor`,
+  `GenerationOptions`, `ModuleMakerTarget`, `GenerationPlan`,
+  `GenerationTarget`, and `GenerationFileTemplate`.
 
 New optional metadata methods may be added in a minor release with a
 backward-compatible default. Existing method meaning, accepted metadata shape,
@@ -73,6 +77,14 @@ or required implementation behavior will not be changed incompatibly within
 Other namespaces are not application extension APIs unless this document or a
 later stability document names them explicitly. PHP `public` visibility alone
 does not promote an implementation type to Stable.
+
+Third-party generators register from a Laravel service provider and must return
+a complete template-backed plan. Descriptor IDs and declared options are
+validated centrally; targets must remain inside the selected Module and use the
+shared preflight, JSON/text output, and rollback executor. Direct registry
+mutation, the plan validator, arbitrary Artisan delegation, and filesystem
+writes from a descriptor are Internal or unsupported. See
+[ADR-0053](adr/0053-third-party-generator-registration.md).
 
 ## Configuration and Architecture Presets
 

@@ -1,6 +1,6 @@
 # ADR-0049: Generator Registry Contract and Laravel Maker Inventory
 
-- Status: Accepted and implemented through `1.1` Slice G5-C
+- Status: Accepted and implemented through `1.1` Slice G8-A
 - Date: 2026-08-23
 
 ## Context
@@ -139,8 +139,10 @@ no implicit registration side effects.
   does not create a job, matching test, queue infrastructure, or registration.
 
 The concrete PHP interfaces were introduced with executable contract tests in
-G0-B. They remain pre-`1.1` internal extension boundaries until their public API
-stability is explicitly declared.
+G0-B. G8-A promotes the template-backed subset to a Stable `1.x` extension
+contract through `GeneratorRegistration`; direct application mutation of the
+internal registry is not supported. See ADR-0053 for the promoted types,
+registration lifecycle, and safety boundary.
 
 ### Laravel Maker inventory
 
@@ -239,6 +241,11 @@ membership is evidence for planning, not a support claim.
   matching-test semantics add their test as an atomic related target; fixtures
   lock Laravel 12/13 paths, namespaces, runner selection, and the prohibition
   on application-global `tests/` writes.
+- G8-A installs a Composer package-discovery fixture in clean Laravel 12 and 13
+  applications. The fixture registers before or after registry resolution,
+  produces JSON dry-run and executable template plans through the same public
+  API as built-ins, rejects unknown options and built-in ID replacement, proves
+  collision/force behavior, and rolls back a failing composite template plan.
 
 ## Consequences
 
@@ -250,5 +257,6 @@ membership is evidence for planning, not a support claim.
   tests before registration.
 - Further composite generators must use the same executor contract and prove
   every related target, collision, and rollback path independently.
-- JSON plan output, all Maker groups, native `make:* --module` bridging, resource
-  plugins, and presets remain separate later slices.
+- Native `make:* --module` bridging remains outside this contract. Third-party
+  generators are template-backed and Module-owned; arbitrary Artisan command
+  delegation is deliberately rejected by centralized plan validation.

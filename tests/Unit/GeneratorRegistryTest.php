@@ -48,6 +48,36 @@ final class GeneratorRegistryTest extends TestCase
         new GeneratorRegistry([$this->descriptor('Bad_ID')]);
     }
 
+    public function test_third_party_descriptors_cannot_claim_built_in_ids(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            'Generator ID [model] is reserved for a built-in descriptor.',
+        );
+
+        new GeneratorRegistry([$this->descriptor('model')]);
+    }
+
+    public function test_it_rejects_unknown_supported_options(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            'Generator [value-object] declares unknown supported option [typo].',
+        );
+
+        new GeneratorRegistry([$this->descriptor('value-object', ['force', 'typo'])]);
+    }
+
+    public function test_it_rejects_duplicate_supported_options(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            'Generator [value-object] must not declare duplicate supported options.',
+        );
+
+        new GeneratorRegistry([$this->descriptor('value-object', ['force', 'force'])]);
+    }
+
     public function test_unknown_ids_preserve_the_public_maker_error(): void
     {
         $registry = new GeneratorRegistry(ModuleMakerType::cases());
@@ -60,13 +90,16 @@ final class GeneratorRegistryTest extends TestCase
         $registry->resolve('verification');
     }
 
-    private function descriptor(string $id): GeneratorDescriptor
+    /** @param list<string> $supportedOptions */
+    private function descriptor(string $id, array $supportedOptions = ['force']): GeneratorDescriptor
     {
-        return new readonly class($id) implements GeneratorDescriptor
+        return new readonly class($id, $supportedOptions) implements GeneratorDescriptor
         {
-            public function __construct(private string $id)
-            {
-            }
+            /** @param list<string> $supportedOptions */
+            public function __construct(
+                private string $id,
+                private array $supportedOptions,
+            ) {}
 
             public function id(): string
             {
@@ -76,6 +109,11 @@ final class GeneratorRegistryTest extends TestCase
             public function targetNamespace(): string
             {
                 return 'Tests';
+            }
+
+            public function supportedOptions(): array
+            {
+                return $this->supportedOptions;
             }
 
             public function plan(

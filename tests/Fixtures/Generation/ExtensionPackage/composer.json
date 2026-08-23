@@ -1,0 +1,23 @@
+{
+    "name": "cluion/moduark-generator-extension-fixture",
+    "description": "Permanent package-discovery fixture for Moduark generators.",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "cluion/moduark": "dev-main || ^1.1",
+        "illuminate/support": "^12.0 || ^13.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Moduark\\GeneratorExtensionFixture\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Moduark\\GeneratorExtensionFixture\\GeneratorExtensionServiceProvider"
+            ]
+        }
+    }
+}
