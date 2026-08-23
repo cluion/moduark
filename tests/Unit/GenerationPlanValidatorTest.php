@@ -135,7 +135,7 @@ final class GenerationPlanValidatorTest extends TestCase
 
     private function descriptor(): GeneratorDescriptor
     {
-        return new readonly class implements GeneratorDescriptor
+        return new class implements GeneratorDescriptor
         {
             public function id(): string
             {

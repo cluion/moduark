@@ -93,7 +93,7 @@ final class GeneratorRegistryTest extends TestCase
     /** @param list<string> $supportedOptions */
     private function descriptor(string $id, array $supportedOptions = ['force']): GeneratorDescriptor
     {
-        return new readonly class($id, $supportedOptions) implements GeneratorDescriptor
+        return new class($id, $supportedOptions) implements GeneratorDescriptor
         {
             /** @param list<string> $supportedOptions */
             public function __construct(
