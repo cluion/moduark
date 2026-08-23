@@ -83,9 +83,8 @@ no implicit registration side effects.
   collection precedence. Both descriptors remain single-target native delegates.
 - G2-B fixes middleware below `Http/Middleware/` and keeps native delegation.
   Laravel's Middleware Maker has no force option, so the descriptor rejects
-  `--force` before execution. Native `--test`, `--pest`, and `--phpunit` modes
-  remain unexposed because their related targets are not represented by the
-  single-target Module plan.
+  `--force` before execution. G5-C later adds `--test`, `--pest`, and `--phpunit`
+  as Module-owned related targets in the same atomic plan.
 - G2-C fixes policies below `Policies/` and keeps native plain/model-aware
   delegation. Relative `--model` values are validated as StudlyCase paths and
   qualified below the selected Module's `Models/` namespace; external FQCNs are
@@ -233,8 +232,13 @@ membership is evidence for planning, not a support claim.
   executor rollback instead of Laravel's application-global view path.
 - G5-B extends those fixtures with standalone views. Dot, slash, and backslash
   names normalize to deterministic Module-owned paths; safe custom extensions,
-  collision refusal, force, and dry-run remain single-target contracts while
-  matching-test options stay outside this slice.
+  collision refusal, force, and dry-run remain single-target contracts. G5-C
+  subsequently adds matching-test targets without changing standalone defaults.
+- G5-C adds standalone PHPUnit and Pest verification targets below fixed
+  Module-owned `Tests/Feature/` and `Tests/Unit/` roots. Laravel Makers with
+  matching-test semantics add their test as an atomic related target; fixtures
+  lock Laravel 12/13 paths, namespaces, runner selection, and the prohibition
+  on application-global `tests/` writes.
 
 ## Consequences
 

@@ -35,6 +35,10 @@ final readonly class GenerationOptions
         public bool $inline,
         public ?string $path,
         public ?string $extension,
+        public bool $unit,
+        public bool $test,
+        public bool $pest,
+        public bool $phpunit,
     ) {
     }
 }

@@ -35,6 +35,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     case ValidationRule = 'rule';
     case PhpScope = 'scope';
     case Seeder = 'seeder';
+    case Test = 'test';
     case PhpTrait = 'trait';
     case View = 'view';
 
@@ -66,6 +67,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::ValidationRule->value => self::ValidationRule,
             self::PhpScope->value => self::PhpScope,
             self::Seeder->value => self::Seeder,
+            self::Test->value => self::Test,
             self::PhpTrait->value => self::PhpTrait,
             self::View->value => self::View,
             default => throw ModuleMakerFailed::unsupportedType($type),
@@ -110,6 +112,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::ValidationRule => 'Rules',
             self::PhpScope => 'Models\\Scopes',
             self::Seeder => 'Database\\Seeders',
+            self::Test => 'Tests',
             self::PhpTrait => 'Concerns',
             self::View => '',
         };
@@ -129,6 +132,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Factory => $this->standaloneFactoryPlan($target, $options),
             self::Migration => $this->standaloneMigrationPlan($target, $options),
             self::Seeder => $this->seederPlan($target, $options),
+            self::Test => $this->testPlan($target, $options),
             self::View => $this->viewPlan($target, $options),
             self::PhpCast,
             self::Channel,
@@ -157,7 +161,10 @@ enum ModuleMakerType: string implements GeneratorDescriptor
         ModuleMakerTarget $target,
         GenerationOptions $options,
     ): GenerationPlan {
-        $this->rejectUnsupportedOptions($options, ['factory', 'migration']);
+        $this->rejectUnsupportedOptions(
+            $options,
+            ['factory', 'migration', 'test', 'pest', 'phpunit'],
+        );
         $targets = [$this->modelTarget($target, $options)];
 
         if ($options->factory) {
@@ -168,6 +175,10 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             $targets[] = $this->migrationTarget($target, $options);
         }
 
+        if ($this->matchingTestRequested($options)) {
+            $targets[] = $this->matchingTestTarget($target, $options);
+        }
+
         return new GenerationPlan($targets);
     }
 
@@ -175,7 +186,10 @@ enum ModuleMakerType: string implements GeneratorDescriptor
         ModuleMakerTarget $target,
         GenerationOptions $options,
     ): GenerationPlan {
-        $this->rejectUnsupportedOptions($options, ['invokable', 'resource', 'api']);
+        $this->rejectUnsupportedOptions(
+            $options,
+            ['invokable', 'resource', 'api', 'test', 'pest', 'phpunit'],
+        );
 
         if ($options->invokable && ($options->resource || $options->api)) {
             $conflicts = ['invokable'];
@@ -204,7 +218,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
 
         $parameters['--no-interaction'] = true;
 
-        return new GenerationPlan([
+        $targets = [
             new GenerationTarget(
                 $this->id(),
                 $this->command(),
@@ -217,14 +231,23 @@ enum ModuleMakerType: string implements GeneratorDescriptor
                     static fn (bool|string $value): bool => $value !== false,
                 ),
             ),
-        ]);
+        ];
+
+        if ($this->matchingTestRequested($options)) {
+            $targets[] = $this->matchingTestTarget($target, $options);
+        }
+
+        return new GenerationPlan($targets);
     }
 
     private function componentPlan(
         ModuleMakerTarget $target,
         GenerationOptions $options,
     ): GenerationPlan {
-        $this->rejectUnsupportedOptions($options, ['view', 'inline', 'path']);
+        $this->rejectUnsupportedOptions(
+            $options,
+            ['view', 'inline', 'path', 'test', 'pest', 'phpunit'],
+        );
 
         if ($options->inline && $options->viewOnly) {
             throw ModuleMakerFailed::conflictingComponentOptions(['inline', 'view']);
@@ -249,7 +272,13 @@ enum ModuleMakerType: string implements GeneratorDescriptor
         );
 
         if ($options->viewOnly) {
-            return new GenerationPlan([$viewTarget]);
+            $targets = [$viewTarget];
+
+            if ($this->matchingTestRequested($options)) {
+                $targets[] = $this->matchingTestTarget($target, $options);
+            }
+
+            return new GenerationPlan($targets);
         }
 
         $classSegments = explode('\\', $target->className());
@@ -274,16 +303,25 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             ),
         );
 
-        return new GenerationPlan($options->inline
+        $targets = $options->inline
             ? [$classTarget]
-            : [$classTarget, $viewTarget]);
+            : [$classTarget, $viewTarget];
+
+        if ($this->matchingTestRequested($options)) {
+            $targets[] = $this->matchingTestTarget($target, $options);
+        }
+
+        return new GenerationPlan($targets);
     }
 
     private function viewPlan(
         ModuleMakerTarget $target,
         GenerationOptions $options,
     ): GenerationPlan {
-        $this->rejectUnsupportedOptions($options, ['extension']);
+        $this->rejectUnsupportedOptions(
+            $options,
+            ['extension', 'test', 'pest', 'phpunit'],
+        );
         $extension = $options->extension ?? 'blade.php';
 
         if (preg_match('/\A[a-z0-9]+(?:\.[a-z0-9]+)*\z/D', $extension) !== 1) {
@@ -297,7 +335,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
         $relativePath = 'resources/views/'.implode('/', $segments).'.'.$extension;
         $viewName = strtolower($target->moduleName()).'::'.implode('.', $segments);
 
-        return new GenerationPlan([
+        $targets = [
             new GenerationTarget(
                 $this->id(),
                 null,
@@ -308,7 +346,111 @@ enum ModuleMakerType: string implements GeneratorDescriptor
                 [],
                 new GenerationFileTemplate($this->stubPath('module-component-view.stub'), []),
             ),
+        ];
+
+        if ($this->matchingTestRequested($options)) {
+            $targets[] = $this->viewTestTarget($target, $options, $segments);
+        }
+
+        return new GenerationPlan($targets);
+    }
+
+    private function testPlan(
+        ModuleMakerTarget $target,
+        GenerationOptions $options,
+    ): GenerationPlan {
+        $this->rejectUnsupportedOptions($options, ['unit', 'pest', 'phpunit']);
+
+        return new GenerationPlan([
+            $this->testTarget(
+                $target,
+                $options,
+                $target->localName(),
+                $options->unit,
+            ),
         ]);
+    }
+
+    private function matchingTestRequested(GenerationOptions $options): bool
+    {
+        return $options->test || $options->pest || $options->phpunit;
+    }
+
+    private function matchingTestTarget(
+        ModuleMakerTarget $target,
+        GenerationOptions $options,
+    ): GenerationTarget {
+        $relativeClass = trim($this->namespace().'\\'.$target->localName(), '\\').'Test';
+
+        return $this->testTarget($target, $options, $relativeClass, false);
+    }
+
+    /** @param list<string> $viewSegments */
+    private function viewTestTarget(
+        ModuleMakerTarget $target,
+        GenerationOptions $options,
+        array $viewSegments,
+    ): GenerationTarget {
+        $relativeClass = 'View\\'.implode('\\', array_map(
+            static fn (string $segment): string => Str::studly($segment),
+            $viewSegments,
+        )).'Test';
+        $viewName = strtolower($target->moduleName()).'::'.implode('.', $viewSegments);
+
+        return $this->testTarget(
+            $target,
+            $options,
+            $relativeClass,
+            false,
+            $viewName,
+        );
+    }
+
+    private function testTarget(
+        ModuleMakerTarget $target,
+        GenerationOptions $options,
+        string $relativeClass,
+        bool $unit,
+        ?string $viewName = null,
+    ): GenerationTarget {
+        $suite = $unit ? 'Unit' : 'Feature';
+        $segments = explode('\\', $relativeClass);
+        $class = array_pop($segments);
+        $namespace = $target->moduleNamespace().'\\Tests\\'.$suite;
+
+        if ($segments !== []) {
+            $namespace .= '\\'.implode('\\', $segments);
+        }
+
+        $relativePath = 'Tests/'.$suite.'/'.str_replace('\\', '/', $relativeClass).'.php';
+        $usingPest = $options->pest && ! $options->phpunit;
+        $stub = match (true) {
+            $viewName !== null && $usingPest => 'module-view-test.pest.stub',
+            $viewName !== null => 'module-view-test.phpunit.stub',
+            $unit && $usingPest => 'module-test.unit.pest.stub',
+            $unit => 'module-test.unit.phpunit.stub',
+            $usingPest => 'module-test.feature.pest.stub',
+            default => 'module-test.feature.phpunit.stub',
+        };
+        $replacements = [
+            '{{ namespace }}' => $namespace,
+            '{{ class }}' => $class,
+        ];
+
+        if ($viewName !== null) {
+            $replacements['{{ view }}'] = $viewName;
+        }
+
+        return new GenerationTarget(
+            self::Test->value,
+            null,
+            $namespace.'\\'.$class,
+            $target->modulePath().'/'.$relativePath,
+            $relativePath,
+            $options->force,
+            [],
+            new GenerationFileTemplate($this->stubPath($stub), $replacements),
+        );
     }
 
     private function standaloneFactoryPlan(
@@ -431,15 +573,15 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Observer => ['model'],
             self::Policy => ['model', 'guard'],
             self::ValidationRule => ['implicit'],
-            self::Job => ['sync', 'batched'],
-            self::Listener => ['event', 'queued'],
+            self::Job => ['sync', 'batched', 'test', 'pest', 'phpunit'],
+            self::JobMiddleware => ['test', 'pest', 'phpunit'],
+            self::Listener => ['event', 'queued', 'test', 'pest', 'phpunit'],
+            self::Mail,
+            self::Notification => ['test', 'pest', 'phpunit'],
+            self::HttpMiddleware => ['test', 'pest', 'phpunit'],
             self::Event,
             self::Channel,
-            self::JobMiddleware,
-            self::Mail,
-            self::Notification,
             self::PhpInterface,
-            self::HttpMiddleware,
             self::HttpRequest,
             self::PhpScope,
             self::PhpTrait => [],
@@ -503,7 +645,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             $parameters['--batched'] = $options->batched;
         }
 
-        return new GenerationPlan([
+        $targets = [
             new GenerationTarget(
                 $this->id(),
                 $this->command(),
@@ -516,7 +658,13 @@ enum ModuleMakerType: string implements GeneratorDescriptor
                     static fn (bool|string $value): bool => $value !== false,
                 ),
             ),
-        ]);
+        ];
+
+        if ($this->matchingTestRequested($options)) {
+            $targets[] = $this->matchingTestTarget($target, $options);
+        }
+
+        return new GenerationPlan($targets);
     }
 
     /** @param list<string> $allowed */
@@ -549,6 +697,10 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             'inline' => $options->inline,
             'path' => $options->path !== null,
             'extension' => $options->extension !== null,
+            'unit' => $options->unit,
+            'test' => $options->test,
+            'pest' => $options->pest,
+            'phpunit' => $options->phpunit,
         ] as $option => $enabled) {
             if ($enabled && ! in_array($option, $allowed, true)) {
                 throw ModuleMakerFailed::unsupportedOption($option, $this->value);

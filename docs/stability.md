@@ -99,7 +99,7 @@ The following commands and their documented arguments and options are Stable:
 
 ```text
 moduark:make-module {name}
-moduark:make {module} {type} {name} [--dry-run] [--force] [--factory] [--migration] [--create=] [--table=] [--int] [--string] [--inbound] [--render] [--report] [--collection] [--json-api] [--model=] [--guard=] [--implicit] [--event=] [--queued] [--sync] [--batched] [--markdown=] [--view=] [--invokable] [--resource] [--api]
+moduark:make {module} {type} {name} [--dry-run] [--force] [--factory] [--migration] [--create=] [--table=] [--int] [--string] [--inbound] [--render] [--report] [--collection] [--json-api] [--model=] [--guard=] [--implicit] [--event=] [--queued] [--sync] [--batched] [--markdown=] [--view=] [--inline] [--path=] [--extension=] [--unit] [--test] [--pest] [--phpunit] [--invokable] [--resource] [--api]
 moduark:list
 moduark:inspect {module}
 moduark:graph [{module}] [--view=module] [--format=text]
@@ -111,8 +111,8 @@ moduark:clear
 
 Maker options are descriptor-specific. In particular, `middleware` supports
 `--dry-run` but rejects `--force`; Laravel's native Middleware Maker has no
-force option. Its native matching-test options remain outside the Stable
-single-target Module ownership contract.
+force option. Its matching-test options add a Module-owned feature test to the
+same atomic Generation Plan.
 Policy `--model` values are Module-relative class names below `Models/`;
 `--guard` retains Laravel's application auth-provider semantics. Neither option
 creates a related model.
@@ -156,7 +156,11 @@ an anonymous view, and `--path=` remains constrained to the Module view tree.
 Standalone Blade views are deterministic single targets below Module-owned
 `resources/views/`. Dot, slash, and backslash names normalize to lowercase
 kebab-case paths; `--extension=` is constrained to safe dot-separated suffixes.
-Related test options are not part of this single-target contract.
+Standalone verification targets use fixed Module-owned `Tests/Feature/` and
+`Tests/Unit/` roots with Module namespaces and PHPUnit or Pest syntax. Makers
+that expose Laravel matching-test semantics add the test to the same complete
+collision preflight and rollback-safe plan. No verification target may be
+written below the application-global `tests/` root.
 
 Architecture checks use these process exit codes:
 

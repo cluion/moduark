@@ -20,7 +20,7 @@ final class ModuleMakeCommand extends Command
     /** @var string */
     protected $signature = 'moduark:make
         {module : Existing Module name}
-        {type : Maker type: cast, channel, class, component, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, trait, or view}
+        {type : Maker type: cast, channel, class, component, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, test, trait, or view}
         {name : StudlyCase class name, optionally with nested segments}
         {--dry-run : Display the complete generation plan without writing files}
         {--force : Overwrite an existing generated class}
@@ -47,6 +47,10 @@ final class ModuleMakeCommand extends Command
         {--inline : Generate a Blade component with an inline view}
         {--path= : Module-relative Blade component view directory}
         {--extension= : File extension for a Module-owned Blade view}
+        {--unit : Generate a Module-owned unit test}
+        {--test : Generate a Module-owned matching feature test}
+        {--pest : Generate a Module-owned Pest test}
+        {--phpunit : Generate a Module-owned PHPUnit test}
         {--invokable : Generate an invokable class or controller}
         {--resource : Generate a resource controller}
         {--api : Generate an API controller without create and edit methods}';
@@ -75,6 +79,15 @@ final class ModuleMakeCommand extends Command
         }
 
         try {
+            $explicitPest = $this->option('pest') === true;
+            $explicitPhpunit = $this->option('phpunit') === true;
+            $matchingTest = $this->option('test') === true;
+            $pest = $explicitPest || (
+                ! $explicitPhpunit
+                && ($type === 'test' || $matchingTest)
+                && $this->applicationUsesPest()
+            );
+
             $plan = $this->planner->plan($module, $type, $name, new GenerationOptions(
                 force: $this->option('force') === true,
                 invokable: $this->option('invokable') === true,
@@ -105,6 +118,10 @@ final class ModuleMakeCommand extends Command
                 inline: $this->option('inline') === true,
                 path: $this->optionalStringOption('path'),
                 extension: $this->optionalStringOption('extension'),
+                unit: $this->option('unit') === true,
+                test: $matchingTest,
+                pest: $pest,
+                phpunit: $explicitPhpunit,
             ));
         } catch (ModuleMakerFailed $exception) {
             $this->components->error('Module Maker failed: '.$exception->getMessage());
@@ -202,5 +219,11 @@ final class ModuleMakeCommand extends Command
         }
 
         return trim($value);
+    }
+
+    private function applicationUsesPest(): bool
+    {
+        return function_exists('Pest\\version')
+            && file_exists($this->laravel->basePath('tests/Pest.php'));
     }
 }

@@ -169,6 +169,10 @@ php artisan moduark:make User rule Profile/ValidDisplayName
 php artisan moduark:make User rule Profile/RequiredProfile --implicit
 php artisan moduark:make User scope Visibility/PublishedScope
 php artisan moduark:make User seeder Billing/ProfileSeeder
+php artisan moduark:make User test Billing/InvoiceFeatureTest
+php artisan moduark:make User test Billing/InvoiceUnitTest --unit
+php artisan moduark:make User test Billing/InvoicePestTest --pest
+php artisan moduark:make User job Billing/RebuildInvoiceIndex --test
 php artisan moduark:make User trait Serialization/SerializesAttributes
 ```
 
@@ -207,8 +211,8 @@ Both types support nested names, `--force`, and `--dry-run`.
 Middleware uses the Module-owned `Http/Middleware/` path and Laravel's native
 stub. It supports nested names and `--dry-run`. Laravel's Middleware Maker does
 not expose `--force`, so Moduark rejects that option instead of emulating an
-overwrite. Native `--test`, `--pest`, and `--phpunit` modes remain unexposed
-because their related targets are outside the Module-owned single-file plan.
+overwrite. `--test`, `--pest`, and `--phpunit` add a Module-owned matching test
+to the same preflighted, rollback-safe plan.
 
 Policies use the Module-owned `Policies/` path and Laravel's native plain or
 model-aware stubs. A relative `--model=Profile` is intentionally resolved as
@@ -292,14 +296,22 @@ Module-relative lowercase kebab-case directory segments.
 Standalone Blade views accept nested dot, slash, or backslash names and write a
 single deterministic target below the selected Module's `resources/views/`.
 Names normalize to lowercase kebab-case paths; `--extension=` defaults to
-`blade.php` and accepts only lowercase alphanumeric dot segments. Matching-test
-options remain unavailable until their Module-owned composite contract is
-implemented.
+`blade.php` and accepts only lowercase alphanumeric dot segments.
+
+Verification targets live below each Module's fixed `Tests/Feature/` or
+`Tests/Unit/` root and use the Module namespace. `test` defaults to a feature
+test, `--unit` selects the unit root, and `--pest` / `--phpunit` select the
+runner syntax. When neither runner flag is explicit, an installed Pest
+application is detected using Laravel's native convention; explicit
+`--phpunit` takes precedence. Laravel Makers with matching-test support accept
+`--test`, `--pest`, or `--phpunit` and add the matching Module-owned feature
+test to the same preflighted, rollback-safe plan. No mode writes to the
+application-global `tests/` tree.
 
 The target Module must already exist and its configured path must be inside the
 Laravel application source root. Other composite Laravel Maker options that
-create controllers, requests, policies, seeds, or tests remain deliberately
-unexposed until every generated file can retain Module ownership. Delegated
+create controllers, requests, policies, or seeds remain deliberately unexposed
+until every generated file can retain Module ownership. Delegated
 Laravel Makers run non-interactively so framework prompts
 cannot create undeclared related artifacts. Moduark does not inject `--module`
 into Laravel or third-party `make:*` commands. See
@@ -583,7 +595,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | Command | Current contract |
 |---|---|
 | `moduark:make-module {name}` | Create one minimal, non-overwriting Module entry class |
-| `moduark:make {module} {type} {name} [--dry-run]` | Plan or generate supported Module-owned PHP types, models, and controllers, with descriptor-specific options and optional model factory/migration |
+| `moduark:make {module} {type} {name} [--dry-run]` | Plan or generate supported Module-owned artifacts and tests, with descriptor-specific options and atomic related targets |
 | `moduark:baseline [--level=0..3] [--force] [--prune]` | Adopt current violations explicitly or safely remove stale baseline debt |
 | `moduark:cache` | Cache deterministic Module discovery and typed metadata |
 | `moduark:clear` | Remove cached Module metadata and incremental source analysis |

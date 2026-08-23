@@ -1,0 +1,129 @@
+{
+    "schema": 1,
+    "laravel_major": 13,
+    "plans": [
+        {
+            "type": "test",
+            "name": "Billing/InvoiceFeatureTest",
+            "options": "",
+            "targets": [
+                "Tests/Feature/Billing/InvoiceFeatureTest.php"
+            ]
+        },
+        {
+            "type": "test",
+            "name": "Billing/InvoiceUnitTest",
+            "options": "--unit",
+            "targets": [
+                "Tests/Unit/Billing/InvoiceUnitTest.php"
+            ]
+        },
+        {
+            "type": "test",
+            "name": "Billing/InvoicePestTest",
+            "options": "--pest",
+            "targets": [
+                "Tests/Feature/Billing/InvoicePestTest.php"
+            ]
+        },
+        {
+            "type": "test",
+            "name": "Billing/InvoicePestUnitTest",
+            "options": "--unit --pest",
+            "targets": [
+                "Tests/Unit/Billing/InvoicePestUnitTest.php"
+            ]
+        },
+        {
+            "type": "model",
+            "name": "Profile",
+            "options": "--test",
+            "targets": [
+                "Models/Profile.php",
+                "Tests/Feature/Models/ProfileTest.php"
+            ]
+        },
+        {
+            "type": "controller",
+            "name": "Billing/InvoiceController",
+            "options": "--phpunit",
+            "targets": [
+                "Http/Controllers/Billing/InvoiceController.php",
+                "Tests/Feature/Http/Controllers/Billing/InvoiceControllerTest.php"
+            ]
+        },
+        {
+            "type": "component",
+            "name": "Billing/InvoiceCard",
+            "options": "--test",
+            "targets": [
+                "View/Components/Billing/InvoiceCard.php",
+                "resources/views/components/billing/invoice-card.blade.php",
+                "Tests/Feature/View/Components/Billing/InvoiceCardTest.php"
+            ]
+        },
+        {
+            "type": "job",
+            "name": "Billing/ProcessInvoice",
+            "options": "--pest",
+            "targets": [
+                "Jobs/Billing/ProcessInvoice.php",
+                "Tests/Feature/Jobs/Billing/ProcessInvoiceTest.php"
+            ]
+        },
+        {
+            "type": "job-middleware",
+            "name": "Billing/WithoutOverlappingInvoices",
+            "options": "--test",
+            "targets": [
+                "Jobs/Middleware/Billing/WithoutOverlappingInvoices.php",
+                "Tests/Feature/Jobs/Middleware/Billing/WithoutOverlappingInvoicesTest.php"
+            ]
+        },
+        {
+            "type": "listener",
+            "name": "Billing/SendInvoiceReceipt",
+            "options": "--test",
+            "targets": [
+                "Listeners/Billing/SendInvoiceReceipt.php",
+                "Tests/Feature/Listeners/Billing/SendInvoiceReceiptTest.php"
+            ]
+        },
+        {
+            "type": "mail",
+            "name": "Billing/InvoiceReceipt",
+            "options": "--test",
+            "targets": [
+                "Mail/Billing/InvoiceReceipt.php",
+                "Tests/Feature/Mail/Billing/InvoiceReceiptTest.php"
+            ]
+        },
+        {
+            "type": "middleware",
+            "name": "Admin/EnsureProfileIsComplete",
+            "options": "--test",
+            "targets": [
+                "Http/Middleware/Admin/EnsureProfileIsComplete.php",
+                "Tests/Feature/Http/Middleware/Admin/EnsureProfileIsCompleteTest.php"
+            ]
+        },
+        {
+            "type": "notification",
+            "name": "Billing/InvoicePaid",
+            "options": "--test",
+            "targets": [
+                "Notifications/Billing/InvoicePaid.php",
+                "Tests/Feature/Notifications/Billing/InvoicePaidTest.php"
+            ]
+        },
+        {
+            "type": "view",
+            "name": "billing.invoice-summary",
+            "options": "--phpunit",
+            "targets": [
+                "resources/views/billing/invoice-summary.blade.php",
+                "Tests/Feature/View/Billing/InvoiceSummaryTest.php"
+            ]
+        }
+    ]
+}

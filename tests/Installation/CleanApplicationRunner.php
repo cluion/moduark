@@ -324,6 +324,9 @@ final class CleanApplicationRunner
             ['rule', 'Profile/RequiredProfile', '--implicit', 'Rules/Profile/RequiredProfile.php'],
             ['scope', 'Visibility/PublishedScope', null, 'Models/Scopes/Visibility/PublishedScope.php'],
             ['seeder', 'Billing/ProfileSeeder', null, 'Database/Seeders/Billing/ProfileSeeder.php'],
+            ['test', 'Billing/ModuleFeatureTest', '--phpunit', 'Tests/Feature/Billing/ModuleFeatureTest.php'],
+            ['test', 'Billing/ModuleUnitTest', '--unit', 'Tests/Unit/Billing/ModuleUnitTest.php'],
+            ['test', 'Billing/ModulePestTest', '--pest', 'Tests/Feature/Billing/ModulePestTest.php'],
             ['trait', 'Serialization/SerializesAttributes', null, 'Concerns/Serialization/SerializesAttributes.php'],
             ['view', 'billing.invoice-summary', null, 'resources/views/billing/invoice-summary.blade.php'],
         ] as [$type, $name, $option, $relativePath]) {
@@ -364,6 +367,60 @@ final class CleanApplicationRunner
             $application.'/resources/views/components/billing/invoice-card.blade.php',
             'moduark:make component wrote an application-global Blade view.',
         );
+        $this->assertFileMissing(
+            $application.'/tests/Feature/Billing/ModuleFeatureTest.php',
+            'moduark:make test wrote an application-global feature test.',
+        );
+        $this->assertFileMissing(
+            $application.'/tests/Unit/Billing/ModuleUnitTest.php',
+            'moduark:make test wrote an application-global unit test.',
+        );
+
+        $matchingTestArguments = [
+            'moduark:make',
+            'User',
+            'job',
+            'Billing/RebuildInvoiceIndex',
+            '--test',
+        ];
+        $matchingTestDryRun = $this->artisan(
+            $application,
+            [...$matchingTestArguments, '--dry-run'],
+            $environment,
+        );
+        $this->assertContains(
+            'CREATE Jobs/Billing/RebuildInvoiceIndex.php',
+            $matchingTestDryRun,
+            'moduark:make job --test dry-run omitted the Module-owned job.',
+        );
+        $this->assertContains(
+            'CREATE Tests/Feature/Jobs/Billing/RebuildInvoiceIndexTest.php',
+            $matchingTestDryRun,
+            'moduark:make job --test dry-run omitted the Module-owned matching test.',
+        );
+        $this->artisan($application, $matchingTestArguments, $environment);
+        $matchingTestPath = $application
+            .'/app/Modules/User/Tests/Feature/Jobs/Billing/RebuildInvoiceIndexTest.php';
+        $this->assertFileExists(
+            $matchingTestPath,
+            'moduark:make job --test did not create its Module-owned matching test.',
+        );
+        $this->assertFileMissing(
+            $application.'/tests/Feature/Modules/User/Jobs/Billing/RebuildInvoiceIndexTest.php',
+            'moduark:make job --test wrote Laravel native application-global test output.',
+        );
+
+        foreach ([
+            $application.'/app/Modules/User/Tests/Feature/Billing/ModuleFeatureTest.php',
+            $application.'/app/Modules/User/Tests/Unit/Billing/ModuleUnitTest.php',
+            $matchingTestPath,
+        ] as $moduleTestPath) {
+            $this->command([
+                $application.'/vendor/bin/phpunit',
+                '--colors=never',
+                $moduleTestPath,
+            ], $application, $environment);
+        }
 
         $migrationArguments = [
             'moduark:make',

@@ -52,6 +52,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added deterministic standalone Blade view generation below each Module's
   `resources/views/`, including nested dot/slash names, safe custom extensions,
   collision preflight, force, and dry-run behavior for Laravel 12 and 13.
+- Added Module-owned PHPUnit and Pest test generation below fixed
+  `Tests/Feature/` and `Tests/Unit/` roots. Supported Laravel Makers can include
+  matching feature tests in the same atomic generation plan without writing to
+  the application-global `tests/` tree.
 - Added the standalone Module-owned `migration` Maker below
   `Database/Migrations/` with Laravel 12 / 13 compatible plain, create, update,
   name inference, timestamp, collision, and no-force contracts.

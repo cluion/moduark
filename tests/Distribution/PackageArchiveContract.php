@@ -33,6 +33,12 @@ final class PackageArchiveContract
         'stubs/module-migration.stub',
         'stubs/module-migration.update.stub',
         'stubs/module-model.factory.stub',
+        'stubs/module-test.feature.pest.stub',
+        'stubs/module-test.feature.phpunit.stub',
+        'stubs/module-test.unit.pest.stub',
+        'stubs/module-test.unit.phpunit.stub',
+        'stubs/module-view-test.pest.stub',
+        'stubs/module-view-test.phpunit.stub',
     ];
 
     /** @var list<string> */

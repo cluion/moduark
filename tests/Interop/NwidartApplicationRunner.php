@@ -626,6 +626,10 @@ PHP;
         $this->assertContains('--inline', $moduark, 'Moduark Module Maker lost its inline component option.');
         $this->assertContains('--path', $moduark, 'Moduark Module Maker lost its component view path option.');
         $this->assertContains('--extension', $moduark, 'Moduark Module Maker lost its view extension option.');
+        $this->assertContains('--unit', $moduark, 'Moduark Module Maker lost its unit test option.');
+        $this->assertContains('--test', $moduark, 'Moduark Module Maker lost its matching test option.');
+        $this->assertContains('--pest', $moduark, 'Moduark Module Maker lost its Pest test option.');
+        $this->assertContains('--phpunit', $moduark, 'Moduark Module Maker lost its PHPUnit test option.');
         $this->assertContains(
             'middleware',
             $moduark,
@@ -644,6 +648,7 @@ PHP;
         $this->assertContains('policy', $moduark, 'Moduark resource maker lost its policy type.');
         $this->assertContains('rule', $moduark, 'Moduark resource maker lost its rule type.');
         $this->assertContains('seeder', $moduark, 'Moduark resource maker lost its seeder type.');
+        $this->assertContains('test', $moduark, 'Moduark Module Maker lost its test type.');
         $this->assertContains('view', $moduark, 'Moduark Module Maker lost its view type.');
     }
 
