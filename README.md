@@ -144,6 +144,7 @@ php artisan moduark:make User cast Money/AmountCast --inbound
 php artisan moduark:make User enum Workflow/Status --string
 php artisan moduark:make User exception Billing/PaymentFailed --render --report
 php artisan moduark:make User interface Lookup/UserLookup
+php artisan moduark:make User middleware Admin/EnsureProfileIsComplete
 php artisan moduark:make User request Profile/StoreProfileRequest
 php artisan moduark:make User resource Profile/ProfileResource
 php artisan moduark:make User resource Profile/ProfileCollection --collection
@@ -183,6 +184,12 @@ ownership first. Requests use `Http/Requests/`; resources use
 `--collection`, and `--json-api` modes. The two specialized resource modes are
 mutually exclusive so one requested stub cannot silently override the other.
 Both types support nested names, `--force`, and `--dry-run`.
+
+Middleware uses the Module-owned `Http/Middleware/` path and Laravel's native
+stub. It supports nested names and `--dry-run`. Laravel's Middleware Maker does
+not expose `--force`, so Moduark rejects that option instead of emulating an
+overwrite. Native `--test`, `--pest`, and `--phpunit` modes remain unexposed
+because their related targets are outside the Module-owned single-file plan.
 
 The target Module must already exist and its configured path must be inside the
 Laravel application source root. Other composite Laravel Maker options that

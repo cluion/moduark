@@ -98,6 +98,13 @@ final class HttpModuleMakerTest extends TestCase
     {
         $root = $this->temporaryBasePath.'/app/Modules/User/Http';
 
+        $this->command('moduark:make User middleware Admin/EnsureProfileIsComplete')
+            ->assertSuccessful();
+        self::assertDirectoryDoesNotExist($this->temporaryBasePath.'/tests');
+        self::assertSame([
+            $root.'/Middleware/Admin/EnsureProfileIsComplete.php',
+            $this->temporaryBasePath.'/app/Modules/User/UserModule.php',
+        ], $this->files());
         $this->command('moduark:make User request Profile/StoreProfileRequest')
             ->assertSuccessful();
         $this->command('moduark:make User resource Profile/ProfileResource')
@@ -107,6 +114,9 @@ final class HttpModuleMakerTest extends TestCase
         $this->command('moduark:make User resource Profile/ProfileJsonApiResource --json-api')
             ->assertSuccessful();
 
+        $middleware = (string) file_get_contents(
+            $root.'/Middleware/Admin/EnsureProfileIsComplete.php',
+        );
         $request = (string) file_get_contents(
             $root.'/Requests/Profile/StoreProfileRequest.php',
         );
@@ -120,6 +130,21 @@ final class HttpModuleMakerTest extends TestCase
             $root.'/Resources/Profile/ProfileJsonApiResource.php',
         );
 
+        self::assertStringContainsString(
+            'namespace MakerFixture\\Modules\\User\\Http\\Middleware\\Admin;',
+            $middleware,
+        );
+        self::assertStringContainsString('use Closure;', $middleware);
+        self::assertStringContainsString('use Illuminate\\Http\\Request;', $middleware);
+        self::assertStringContainsString(
+            'use Symfony\\Component\\HttpFoundation\\Response;',
+            $middleware,
+        );
+        self::assertStringContainsString(
+            'public function handle(Request $request, Closure $next): Response',
+            $middleware,
+        );
+        self::assertStringContainsString('return $next($request);', $middleware);
         self::assertStringContainsString(
             'namespace MakerFixture\\Modules\\User\\Http\\Requests\\Profile;',
             $request,
@@ -168,6 +193,33 @@ final class HttpModuleMakerTest extends TestCase
         self::assertNotSame('existing source', file_get_contents($path));
     }
 
+    public function test_middleware_preserves_native_collision_and_force_contract(): void
+    {
+        $relativePath = 'Http/Middleware/Admin/EnsureProfileIsComplete.php';
+        $path = $this->temporaryBasePath.'/app/Modules/User/'.$relativePath;
+        $command = 'moduark:make User middleware Admin/EnsureProfileIsComplete';
+
+        $this->command($command.' --dry-run')
+            ->expectsOutputToContain('CREATE '.$relativePath)
+            ->assertSuccessful();
+        self::assertFileDoesNotExist($path);
+
+        $this->command($command)->assertSuccessful();
+        self::assertIsInt(file_put_contents($path, 'existing source'));
+
+        $this->command($command)
+            ->expectsOutputToContain('Middleware already exists.')
+            ->assertFailed();
+        self::assertSame('existing source', file_get_contents($path));
+
+        $this->command($command.' --force')
+            ->expectsOutputToContain(
+                'Module Maker failed: The --force option is not supported for Maker type [middleware].',
+            )
+            ->assertExitCode(2);
+        self::assertSame('existing source', file_get_contents($path));
+    }
+
     #[DataProvider('invalidOptionCases')]
     public function test_http_types_reject_ambiguous_or_foreign_options(
         string $command,
@@ -198,6 +250,10 @@ final class HttpModuleMakerTest extends TestCase
     /** @return iterable<string, array{string, string}> */
     public static function invalidOptionCases(): iterable
     {
+        yield 'middleware collection' => [
+            'moduark:make User middleware Admin/EnsureProfileIsComplete --collection',
+            'The --collection option is not supported for Maker type [middleware].',
+        ];
         yield 'request collection' => [
             'moduark:make User request Profile/StoreProfileRequest --collection',
             'The --collection option is not supported for Maker type [request].',

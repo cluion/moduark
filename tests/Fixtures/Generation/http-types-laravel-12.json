@@ -3,6 +3,12 @@
     "laravel_major": 12,
     "plans": [
         {
+            "type": "middleware",
+            "name": "Admin/EnsureProfileIsComplete",
+            "options": "",
+            "target": "Http/Middleware/Admin/EnsureProfileIsComplete.php"
+        },
+        {
             "type": "request",
             "name": "Profile/StoreProfileRequest",
             "options": "",

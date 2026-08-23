@@ -109,6 +109,11 @@ moduark:cache
 moduark:clear
 ```
 
+Maker options are descriptor-specific. In particular, `middleware` supports
+`--dry-run` but rejects `--force`; Laravel's native Middleware Maker has no
+force option. Its native matching-test options remain outside the Stable
+single-target Module ownership contract.
+
 Architecture checks use these process exit codes:
 
 - `0`: analysis completed without blocking violations; warnings may still be

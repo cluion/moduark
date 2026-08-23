@@ -16,6 +16,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     case PhpEnum = 'enum';
     case PhpException = 'exception';
     case PhpInterface = 'interface';
+    case HttpMiddleware = 'middleware';
     case HttpRequest = 'request';
     case HttpResource = 'resource';
     case PhpScope = 'scope';
@@ -31,6 +32,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpEnum->value => self::PhpEnum,
             self::PhpException->value => self::PhpException,
             self::PhpInterface->value => self::PhpInterface,
+            self::HttpMiddleware->value => self::HttpMiddleware,
             self::HttpRequest->value => self::HttpRequest,
             self::HttpResource->value => self::HttpResource,
             self::PhpScope->value => self::PhpScope,
@@ -59,6 +61,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpEnum => 'Enums',
             self::PhpException => 'Exceptions',
             self::PhpInterface => 'Contracts',
+            self::HttpMiddleware => 'Http\\Middleware',
             self::HttpRequest => 'Http\\Requests',
             self::HttpResource => 'Http\\Resources',
             self::PhpScope => 'Models\\Scopes',
@@ -81,6 +84,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpEnum,
             self::PhpException,
             self::PhpInterface,
+            self::HttpMiddleware,
             self::HttpRequest,
             self::HttpResource,
             self::PhpScope,
@@ -165,10 +169,18 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpEnum => ['int', 'string'],
             self::PhpException => ['render', 'report'],
             self::HttpResource => ['collection', 'json-api'],
-            self::PhpInterface, self::HttpRequest, self::PhpScope, self::PhpTrait => [],
+            self::PhpInterface,
+            self::HttpMiddleware,
+            self::HttpRequest,
+            self::PhpScope,
+            self::PhpTrait => [],
             default => [],
         };
         $this->rejectUnsupportedOptions($options, $allowed);
+
+        if ($this === self::HttpMiddleware && $options->force) {
+            throw ModuleMakerFailed::unsupportedOption('force', $this->value);
+        }
 
         if ($this === self::HttpResource && $options->collection && $options->jsonApi) {
             throw ModuleMakerFailed::conflictingResourceOptions(['collection', 'json-api']);

@@ -1,6 +1,6 @@
 # ADR-0049: Generator Registry Contract and Laravel Maker Inventory
 
-- Status: Accepted and implemented through `1.1` Slice G2-A
+- Status: Accepted and implemented through `1.1` Slice G2-B
 - Date: 2026-08-23
 
 ## Context
@@ -28,6 +28,8 @@ G1-B completes the PHP type group with Module-owned `cast`, `exception`, and
 `scope` descriptors.
 G2-A begins the HTTP group with Module-owned `request` and `resource`
 descriptors, including the native Resource Collection and JSON:API variants.
+G2-B adds the Module-owned `middleware` descriptor while preserving its
+single-target native contract.
 
 ## Decision
 
@@ -71,6 +73,11 @@ descriptors, including the native Resource Collection and JSON:API variants.
   `Http/Resources/`. Resources allowlist `--collection` and `--json-api`, but
   reject the competing modes together instead of relying on Laravel's implicit
   collection precedence. Both descriptors remain single-target native delegates.
+- G2-B fixes middleware below `Http/Middleware/` and keeps native delegation.
+  Laravel's Middleware Maker has no force option, so the descriptor rejects
+  `--force` before execution. Native `--test`, `--pest`, and `--phpunit` modes
+  remain unexposed because their related targets are not represented by the
+  single-target Module plan.
 
 The concrete PHP interfaces were introduced with executable contract tests in
 G0-B. They remain pre-`1.1` internal extension boundaries until their public API
@@ -140,6 +147,9 @@ membership is evidence for planning, not a support claim.
 - G2-A adds separate Laravel 12 / 13 HTTP plan fixtures and verifies Form
   Request, standard JSON Resource, Resource Collection, and JSON:API stubs,
   including nested namespaces, conflict refusal, collision/force parity,
+  dry-run zero mutation, clean installation, and nwidart command ownership.
+- G2-B extends both HTTP fixtures with nested Middleware ownership and verifies
+  the native stub, collision refusal, explicit unsupported-force behavior,
   dry-run zero mutation, clean installation, and nwidart command ownership.
 
 ## Consequences

@@ -31,6 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Module-owned `request` and `resource` Maker descriptors with native
   Form Request, JSON Resource, Resource Collection, and JSON:API stubs. Resource
   modes are explicitly allowlisted and conflicting modes fail before writing.
+- Added the Module-owned `middleware` Maker below `Http/Middleware/` with its
+  Laravel-native stub and explicit refusal of unsupported force or related-test
+  generation rather than writing outside the single-target Module plan.
 
 ## [1.0.1] - 2026-08-23
 
