@@ -59,4 +59,17 @@ abstract class Module
     {
         return [];
     }
+
+    /**
+     * Opt-in configuration for Module resource plugins.
+     *
+     * Values must contain only scalar, null, and nested array data so the
+     * resulting resource manifest can be cached without framework objects.
+     *
+     * @return array<string, mixed>
+     */
+    public function resources(): array
+    {
+        return [];
+    }
 }

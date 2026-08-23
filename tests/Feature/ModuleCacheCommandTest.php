@@ -8,6 +8,7 @@ use Cluion\Moduark\Analysis\Source\SourceAnalysisCacheStore;
 use Cluion\Moduark\Cache\ModuleCacheManifest;
 use Cluion\Moduark\Cache\ModuleCacheStore;
 use Cluion\Moduark\Registry\ModuleRegistry;
+use Cluion\Moduark\Resources\ResourceManifest;
 use Tests\TestCase;
 
 final class ModuleCacheCommandTest extends TestCase
@@ -56,6 +57,12 @@ final class ModuleCacheCommandTest extends TestCase
         self::assertCount(3, $payload['registry']);
         self::assertIsArray($payload['descriptors']);
         self::assertCount(3, $payload['descriptors']);
+        self::assertIsArray($payload['resources']);
+        self::assertSame(ResourceManifest::SCHEMA_VERSION, $payload['resources']['schema_version']);
+        self::assertSame(
+            $this->application()->make(ResourceManifest::class)->toArray(),
+            $payload['resources'],
+        );
 
         $this->command('moduark:check')->assertSuccessful();
         self::assertFileExists($this->sourceStore()->path());
@@ -80,6 +87,19 @@ final class ModuleCacheCommandTest extends TestCase
         $this->refreshApplication();
 
         self::assertContains('CacheProbe', $this->moduleNames());
+    }
+
+    public function test_cold_and_cached_resource_manifests_are_identical(): void
+    {
+        $cold = $this->application()->make(ResourceManifest::class)->toArray();
+
+        $this->command('moduark:cache')->assertSuccessful();
+        $this->refreshApplication();
+
+        self::assertSame(
+            $cold,
+            $this->application()->make(ResourceManifest::class)->toArray(),
+        );
     }
 
     public function test_rebuilding_never_reuses_the_loaded_manifest(): void

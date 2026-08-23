@@ -108,6 +108,27 @@ rule semantics.
 
 ## CLI Contract
 
+The following Runtime Completeness additions are Unreleased candidates for
+`1.2.0`. Once `1.2.0` is published, their documented command definitions,
+schema version `1` fields, status identities, and exit meanings are Stable for
+the remainder of `1.x`:
+
+```text
+moduark:resources [{module}] [--format=text|json]
+moduark:doctor [{module}] [--format=text|json]
+moduark:migrate {module} [--format=text|json]
+moduark:seed {module} [--format=text|json]
+moduark:test {module} [arguments...] [--runner=auto|phpunit|pest] [--list] [--format=text|json]
+```
+
+Resources and doctor use exit `0` for a healthy result, `1` for diagnosed
+collisions or issues, and `2` for invalid input or tool failure. Migrate and
+seed use `0` for success, including an empty declared set, and `2` for invalid
+input or execution failure. Test uses `0` for a successful run/list, `1` for a
+test failure or no declared tests, and `2` for invalid input or unavailable
+runner. Human-readable output may be clarified; automation must use JSON and
+exit codes.
+
 The following commands and their documented arguments and options are Stable:
 
 ```text
@@ -235,6 +256,36 @@ existing identity for unrelated semantics is not compatible.
 Module metadata and source-analysis caches are explicitly excluded from this
 contract. They are rebuildable and may receive a new internal schema or be
 invalidated by any release. Do not edit or consume them as application data.
+
+Resource manifest schema version `1` and Module asset manifest schema version
+`1` are the Unreleased `1.2.0` machine contracts. The resource manifest contains
+the dependency-ordered enabled Module class list and ordered resource
+descriptors. Each descriptor contains `module`, `plugin`, `identity`, nullable
+`source`, nullable `namespace`, normalized `attributes`, and nullable
+`collision_key`. The asset manifest contains `schema_version`, `modules`, and
+sorted `inputs`. A minor release may add ignorable fields but cannot remove or
+reinterpret existing fields without a schema change.
+
+## Resource Extension Contract
+
+The following additive PHP extension points are Unreleased candidates for
+`1.2.0` and become Stable when that release is published:
+
+- overridable parameterless `Module::resources(): array`;
+- `ResourceDiscoverer` and `ResourceHandler` interfaces;
+- immutable `ResourcePlugin`, `ResourceDescriptor`, `ResourceManifest`, and
+  `ModuleAssetManifest` value objects;
+- `ResourcePluginRegistration::register()` as the package-provider registration
+  entry point.
+
+`Module::resources()` and discovery output must remain pure serializable data.
+The built-in metadata keys and their current meanings are additive 1.x
+contracts. Existing conventions remain enabled; config, custom routes,
+recursive commands, factories, seeders, policies, listeners/components,
+assets, tests, and extensions require explicit metadata. Third-party plugins
+must register before application booting so cold and cached manifest binding
+remain deterministic. See
+[ADR-0056](adr/0056-resource-plugin-manifest-runtime.md).
 
 ## Deprecation Policy
 

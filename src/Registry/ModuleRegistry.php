@@ -77,6 +77,17 @@ final readonly class ModuleRegistry
         );
     }
 
+    public function find(string $name): ?DiscoveredModule
+    {
+        foreach ($this->modules as $module) {
+            if (strcasecmp($module->name(), $name) === 0) {
+                return $module;
+            }
+        }
+
+        return null;
+    }
+
     /**
      * @return list<array{
      *     name: string,

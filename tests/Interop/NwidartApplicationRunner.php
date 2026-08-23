@@ -443,6 +443,13 @@ final class OrderModule extends Module
         return [OrderProbeServiceProvider::class];
     }
 
+    public function resources(): array
+    {
+        return [
+            'routes' => ['app/routes/web.php'],
+        ];
+    }
+
     /** @return list<CapabilityRequirement> */
     public function requires(): array
     {
@@ -822,6 +829,12 @@ PHP;
     {
         $cache = $this->artisan($application, ['moduark:cache'], $environment);
         $this->assertContains('2 Modules cached', $cache, 'The enabled-state fixture did not start with two cached Modules.');
+        $initialResources = $this->resourcesProbe($application, $environment);
+        $initialModules = $initialResources['modules'] ?? null;
+
+        if (! is_array($initialModules) || count($initialModules) !== 2) {
+            throw new RuntimeException('The initial resource manifest did not contain both active Modules.');
+        }
 
         $this->artisan($application, ['module:disable', 'Order'], $environment);
 
@@ -832,6 +845,16 @@ PHP;
         $moduarkList = $this->artisan($application, ['moduark:list'], $environment);
         $this->assertContains('User', $moduarkList, 'Moduark omitted the active User Module.');
         $this->assertNotContains('Order', $moduarkList, 'Moduark retained the disabled Order Module.');
+
+        $disabledResources = $this->resourcesProbe($application, $environment, 'Order');
+        $disabledModules = $disabledResources['modules'] ?? null;
+
+        if (! is_array($disabledModules)
+            || ! is_array($disabledModules[0] ?? null)
+            || ($disabledModules[0]['state'] ?? null) !== 'disabled'
+            || ($disabledResources['resources'] ?? null) !== []) {
+            throw new RuntimeException('Resource diagnostics loaded or misreported the disabled Order Module.');
+        }
 
         $inspection = $this->artisanResult(
             $application,
@@ -877,6 +900,16 @@ PHP;
 
         $disabledCache = $this->artisan($application, ['moduark:cache'], $environment);
         $this->assertContains('1 Module cached', $disabledCache, 'The disabled Module remained in the cache manifest.');
+        $cachedResources = $this->resourcesProbe($application, $environment);
+        $cachedModules = $cachedResources['modules'] ?? null;
+
+        if (($cachedResources['cached'] ?? null) !== true
+            || ! is_array($cachedModules)
+            || count($cachedModules) !== 1
+            || ! is_array($cachedModules[0] ?? null)
+            || ($cachedModules[0]['name'] ?? null) !== 'User') {
+            throw new RuntimeException('The cached resource manifest retained the disabled Order Module.');
+        }
 
         $this->artisan($application, ['module:enable', 'Order'], $environment);
 
@@ -902,7 +935,50 @@ PHP;
 
         $restoredCache = $this->artisan($application, ['moduark:cache'], $environment);
         $this->assertContains('2 Modules cached', $restoredCache, 'The re-enabled Module was not restored to the cache manifest.');
+        $restoredResources = $this->resourcesProbe($application, $environment, 'Order');
+
+        if (($restoredResources['cached'] ?? null) !== true
+            || ($restoredResources['resources'] ?? []) === []) {
+            throw new RuntimeException('The re-enabled Order Module was not restored to the cached resource manifest.');
+        }
+
         $this->artisan($application, ['moduark:clear'], $environment);
+    }
+
+    /**
+     * @param array<string, string> $environment
+     * @return array<string, mixed>
+     */
+    private function resourcesProbe(
+        string $application,
+        array $environment,
+        ?string $module = null,
+    ): array {
+        $arguments = ['moduark:resources'];
+
+        if ($module !== null) {
+            $arguments[] = $module;
+        }
+
+        $arguments[] = '--format=json';
+        $output = $this->artisan($application, $arguments, $environment);
+        $payload = json_decode(trim($output), true, 512, JSON_THROW_ON_ERROR);
+
+        if (! is_array($payload)) {
+            throw new RuntimeException('The interoperability resource probe did not return an object.');
+        }
+
+        $result = [];
+
+        foreach ($payload as $key => $value) {
+            if (! is_string($key)) {
+                throw new RuntimeException('The interoperability resource probe returned an invalid key.');
+            }
+
+            $result[$key] = $value;
+        }
+
+        return $result;
     }
 
     /**

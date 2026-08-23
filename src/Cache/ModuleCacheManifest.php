@@ -9,11 +9,14 @@ use Cluion\Moduark\Metadata\ModuleDescriptor;
 use Cluion\Moduark\Module;
 use Cluion\Moduark\Persistence\TableOwnershipIndex;
 use Cluion\Moduark\Registry\ModuleRegistry;
+use Cluion\Moduark\Resources\ResourceManifest;
 use InvalidArgumentException;
 
 final readonly class ModuleCacheManifest
 {
-    public const SCHEMA_VERSION = 4;
+    public const SCHEMA_VERSION = 5;
+
+    private ResourceManifest $resources;
 
     /**
      * @param list<ModuleDescriptor> $descriptors
@@ -23,6 +26,7 @@ final readonly class ModuleCacheManifest
         private string $activationFingerprint,
         private ModuleRegistry $registry,
         private array $descriptors,
+        ?ResourceManifest $resources = null,
     ) {
         if ($this->modulesPath === '') {
             throw new InvalidArgumentException('The cached Module path must be a non-empty string.');
@@ -50,6 +54,16 @@ final readonly class ModuleCacheManifest
         }
 
         new TableOwnershipIndex($this->descriptors);
+
+        $orderedClasses = array_map(
+            static fn (ModuleDescriptor $descriptor): string => $descriptor->moduleClass(),
+            $this->descriptors,
+        );
+        $this->resources = $resources ?? new ResourceManifest($orderedClasses, []);
+
+        if ($this->resources->moduleClasses() !== $orderedClasses) {
+            throw new InvalidArgumentException('The Module cache descriptors and resource manifest do not match.');
+        }
     }
 
     /**
@@ -65,11 +79,13 @@ final readonly class ModuleCacheManifest
         $activationFingerprint = $payload['activation_fingerprint'] ?? null;
         $registryRows = $payload['registry'] ?? null;
         $descriptorRows = $payload['descriptors'] ?? null;
+        $resourcePayload = $payload['resources'] ?? null;
 
         if (! is_string($modulesPath) || $modulesPath === ''
             || ! is_string($activationFingerprint) || $activationFingerprint === ''
             || ! is_array($registryRows)
-            || ! is_array($descriptorRows)) {
+            || ! is_array($descriptorRows)
+            || ! is_array($resourcePayload)) {
             throw new InvalidArgumentException('The Module cache payload is invalid.');
         }
 
@@ -129,6 +145,7 @@ final readonly class ModuleCacheManifest
             $activationFingerprint,
             new ModuleRegistry($modules),
             $descriptors,
+            ResourceManifest::fromArray($resourcePayload),
         );
     }
 
@@ -155,13 +172,19 @@ final readonly class ModuleCacheManifest
         return $this->descriptors;
     }
 
+    public function resources(): ResourceManifest
+    {
+        return $this->resources;
+    }
+
     /**
      * @return array{
      *     schema_version: int,
      *     modules_path: string,
      *     activation_fingerprint: string,
      *     registry: list<array{name: string, class: class-string<Module>, path: string, namespace: string}>,
-     *     descriptors: list<array<string, mixed>>
+     *     descriptors: list<array<string, mixed>>,
+     *     resources: array<string, mixed>
      * }
      */
     public function toArray(): array
@@ -175,6 +198,7 @@ final readonly class ModuleCacheManifest
                 static fn (ModuleDescriptor $descriptor): array => $descriptor->toArray(),
                 $this->descriptors,
             ),
+            'resources' => $this->resources->toArray(),
         ];
     }
 

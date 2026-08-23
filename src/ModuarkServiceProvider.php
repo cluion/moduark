@@ -47,9 +47,14 @@ use Cluion\Moduark\Console\ModuleCacheCommand;
 use Cluion\Moduark\Console\ModuleCheckCommand;
 use Cluion\Moduark\Console\ModuleClearCommand;
 use Cluion\Moduark\Console\ModuleGraphCommand;
+use Cluion\Moduark\Console\ModuleDoctorCommand;
 use Cluion\Moduark\Console\ModuleInspectCommand;
 use Cluion\Moduark\Console\ModuleListCommand;
 use Cluion\Moduark\Console\ModuleMakeCommand;
+use Cluion\Moduark\Console\ModuleMigrateCommand;
+use Cluion\Moduark\Console\ModuleResourcesCommand;
+use Cluion\Moduark\Console\ModuleSeedCommand;
+use Cluion\Moduark\Console\ModuleTestCommand;
 use Cluion\Moduark\Discovery\ModuleActivationSet;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
 use Cluion\Moduark\Discovery\NwidartModuleActivationResolver;
@@ -80,6 +85,16 @@ use Cluion\Moduark\Persistence\TableOwnershipIndex;
 use Cluion\Moduark\Registry\ModuleRegistry;
 use Cluion\Moduark\Resources\ModuleResourceDiscoverer;
 use Cluion\Moduark\Resources\ModuleResourceServiceProvider;
+use Cluion\Moduark\Resources\BuiltInResourcePlugins;
+use Cluion\Moduark\Resources\ResourceManifest;
+use Cluion\Moduark\Resources\ResourceManifestBuilder;
+use Cluion\Moduark\Resources\ResourceManifestStatus;
+use Cluion\Moduark\Resources\ResourceOwnership;
+use Cluion\Moduark\Resources\ResourcePluginRegistry;
+use Cluion\Moduark\Resources\ResourceInspector;
+use Cluion\Moduark\Resources\ModuleOperationResolver;
+use Cluion\Moduark\Resources\ModuleAssetManifest;
+use Cluion\Moduark\Resources\ResourceRegistrationState;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
@@ -112,18 +127,18 @@ final class ModuarkServiceProvider extends ServiceProvider
             throw new InvalidArgumentException('The moduark configuration must be an array.');
         }
 
-        $followsNwidart = false;
+        $nwidartPath = $this->nwidartModulesPath($repository);
 
         if (
             ! array_key_exists('path', $applicationConfiguration)
             || $applicationConfiguration['path'] === null
         ) {
-            $nwidartPath = $this->nwidartModulesPath($repository);
             $configured['path'] = $nwidartPath ?? app_path('Modules');
-            $followsNwidart = $nwidartPath !== null;
         }
 
         $configuration = ModulesConfig::from($defaults, $configured);
+        $followsNwidart = $nwidartPath !== null
+            && $this->pathsMatch($configuration->path(), $nwidartPath);
 
         $repository->set('moduark', $configuration->all());
         $this->app->instance(ModulesConfig::class, $configuration);
@@ -131,6 +146,7 @@ final class ModuarkServiceProvider extends ServiceProvider
             ? $this->nwidartActivationSet($repository, $configuration->path())
             : ModuleActivationSet::all();
         $this->app->instance(ModuleActivationSet::class, $activationSet);
+        $this->app->instance(ResourceOwnership::class, new ResourceOwnership($followsNwidart));
         $this->app->singleton(RulePresets::class);
         $this->app->singleton(RuleResolver::class);
         $this->app->singleton(PublicApi::class, ConventionPublicApi::class);
@@ -139,6 +155,10 @@ final class ModuarkServiceProvider extends ServiceProvider
             $this->app->make(RuleResolver::class)->resolve($configuration),
         );
         $this->app->singleton(ModuleDiscoverer::class);
+        $resourcePlugins = new ResourcePluginRegistry;
+        BuiltInResourcePlugins::register($resourcePlugins);
+        $this->app->instance(ResourcePluginRegistry::class, $resourcePlugins);
+        $this->app->singleton(ResourceManifestBuilder::class);
         $this->app->singleton(
             ModuleCacheStore::class,
             fn (): ModuleCacheStore => new ModuleCacheStore($this->app->bootstrapPath('cache/moduark.php')),
@@ -266,7 +286,23 @@ final class ModuarkServiceProvider extends ServiceProvider
             ->registerProviders($registry->moduleClasses());
 
         $this->app->instance(OrderedModules::class, new OrderedModules($ordered));
-        $this->app->register(ModuleResourceServiceProvider::class);
+        if ($manifest === null) {
+            $this->app->singleton(
+                ResourceManifest::class,
+                fn (): ResourceManifest => $this->app->make(ResourceManifestBuilder::class)
+                    ->build($registry, $ordered),
+            );
+        } else {
+            $this->app->instance(ResourceManifest::class, $manifest->resources());
+        }
+        $this->app->instance(ResourceManifestStatus::class, new ResourceManifestStatus($manifest !== null));
+        $this->app->singleton(ResourceInspector::class);
+        $this->app->singleton(ModuleOperationResolver::class);
+        $this->app->singleton(ModuleAssetManifest::class);
+        $this->app->singleton(ResourceRegistrationState::class);
+        $this->app->booting(function (): void {
+            $this->app->register(ModuleResourceServiceProvider::class);
+        });
     }
 
     public function boot(): void
@@ -281,10 +317,15 @@ final class ModuarkServiceProvider extends ServiceProvider
             ModuleCacheCommand::class,
             ModuleCheckCommand::class,
             ModuleClearCommand::class,
+            ModuleDoctorCommand::class,
             ModuleGraphCommand::class,
             ModuleInspectCommand::class,
             ModuleListCommand::class,
             ModuleMakeCommand::class,
+            ModuleMigrateCommand::class,
+            ModuleResourcesCommand::class,
+            ModuleSeedCommand::class,
+            ModuleTestCommand::class,
         ]);
 
         $this->optimizes('moduark:cache', 'moduark:clear');
@@ -307,6 +348,19 @@ final class ModuarkServiceProvider extends ServiceProvider
         $path = $repository->get('modules.paths.modules', $this->app->basePath('Modules'));
 
         return is_string($path) && $path !== '' ? $path : null;
+    }
+
+    private function pathsMatch(string $left, string $right): bool
+    {
+        $resolvedLeft = realpath($left);
+        $resolvedRight = realpath($right);
+
+        if ($resolvedLeft !== false && $resolvedRight !== false) {
+            return $resolvedLeft === $resolvedRight;
+        }
+
+        return rtrim(str_replace('\\', '/', $left), '/')
+            === rtrim(str_replace('\\', '/', $right), '/');
     }
 
     private function nwidartActivationSet(

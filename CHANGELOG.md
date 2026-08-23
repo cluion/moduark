@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added an extensible Resource Plugin contract with separate pure discovery and
+  runtime handling, third-party registration, scalar-only descriptors, and a
+  schema-versioned resource manifest embedded in the Module cache.
+- Added opt-in Module config, custom route files, recursive commands, factories,
+  seeders, policies, events/listeners, Blade components, generic assets, tests,
+  and extension metadata while retaining all existing resource conventions.
+- Added deterministic generic Vite inputs and `moduark-assets` publication for
+  framework-neutral public assets.
+- Added schema-versioned text/JSON `moduark:resources` and `moduark:doctor`
+  diagnostics, including disabled Module state, framework support, missing
+  resources or handlers, duplicates, and cross-Module collisions.
+- Added forward-only `moduark:migrate`, `moduark:seed`, and PHPUnit/Pest-backed
+  `moduark:test` operations that resolve the selected Module exclusively through
+  the canonical registry and runtime manifest.
+
+### Changed
+
+- Extended the rebuildable Module cache to schema version 5 so cold discovery
+  and cached boot use the same dependency-ordered active Module and resource
+  manifest.
+- Made resource registration idempotent across repeated provider boot while
+  retaining Laravel config-cache and route-cache behavior.
+
+### Fixed
+
+- Kept resource diagnostics, operations, providers, assets, registry, analysis,
+  graphs, cache, and Capabilities aligned with nwidart's authoritative active
+  Module set, including after config caching and with an observable
+  known-disabled state.
+- Prevented duplicate conventional resource registration when Moduark and
+  nwidart share a Module root; explicit `Module::resources()` entries remain
+  Moduark-owned.
+
 ## [1.1.0] - 2026-08-23
 
 This minor release completes the Generation Foundation while preserving the

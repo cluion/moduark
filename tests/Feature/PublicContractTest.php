@@ -22,6 +22,11 @@ use Cluion\Moduark\Generation\GeneratorRegistration;
 use Cluion\Moduark\Generation\ModuleMakerTarget;
 use Cluion\Moduark\Module;
 use Cluion\Moduark\ModuarkServiceProvider;
+use Cluion\Moduark\Resources\ModuleAssetManifest;
+use Cluion\Moduark\Resources\ResourceDescriptor;
+use Cluion\Moduark\Resources\ResourceManifest;
+use Cluion\Moduark\Resources\ResourcePlugin;
+use Cluion\Moduark\Resources\ResourcePluginRegistration;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\ServiceProvider;
 use ReflectionClass;
@@ -43,7 +48,7 @@ final class PublicContractTest extends TestCase
         self::assertTrue($constructor->isFinal());
         self::assertSame(0, $constructor->getNumberOfParameters());
 
-        foreach (['dependencies', 'providers', 'requires', 'provides', 'tables', 'exports'] as $methodName) {
+        foreach (['dependencies', 'providers', 'requires', 'provides', 'tables', 'exports', 'resources'] as $methodName) {
             $method = $module->getMethod($methodName);
             $returnType = $method->getReturnType();
 
@@ -91,6 +96,10 @@ final class PublicContractTest extends TestCase
         self::assertTrue(
             (new ReflectionClass(GeneratorRegistration::class))->getMethod('register')->isStatic(),
         );
+        self::assertTrue((new ReflectionClass(ResourcePluginRegistration::class))->isFinal());
+        self::assertTrue(
+            (new ReflectionClass(ResourcePluginRegistration::class))->getMethod('register')->isStatic(),
+        );
 
         foreach ([
             GenerationOptions::class,
@@ -98,6 +107,10 @@ final class PublicContractTest extends TestCase
             GenerationTarget::class,
             GenerationFileTemplate::class,
             ModuleMakerTarget::class,
+            ResourceDescriptor::class,
+            ResourceManifest::class,
+            ResourcePlugin::class,
+            ModuleAssetManifest::class,
         ] as $valueObject) {
             $reflection = new ReflectionClass($valueObject);
 
@@ -155,6 +168,8 @@ final class PublicContractTest extends TestCase
         );
         self::assertSame(1, ArchitectureBaseline::SCHEMA_VERSION);
         self::assertSame(1, SuppressionManifest::SCHEMA_VERSION);
+        self::assertSame(1, ResourceManifest::SCHEMA_VERSION);
+        self::assertSame(1, ModuleAssetManifest::SCHEMA_VERSION);
 
         $output = new BufferedOutput;
         $exitCode = $this->application()->make(Kernel::class)->call(
@@ -199,6 +214,11 @@ final class PublicContractTest extends TestCase
             'moduark:baseline' => [],
             'moduark:cache' => [],
             'moduark:clear' => [],
+            'moduark:resources' => ['module'],
+            'moduark:doctor' => ['module'],
+            'moduark:migrate' => ['module'],
+            'moduark:seed' => ['module'],
+            'moduark:test' => ['module', 'arguments'],
         ];
 
         foreach ($arguments as $name => $expectedArguments) {
@@ -239,8 +259,29 @@ final class PublicContractTest extends TestCase
             );
         }
 
+        foreach (['moduark:migrate', 'moduark:seed', 'moduark:test'] as $command) {
+            self::assertTrue(
+                $this->documentedCommand($commands, $command)
+                    ->getDefinition()
+                    ->getArgument('module')
+                    ->isRequired(),
+            );
+        }
+
         self::assertFalse(
             $this->documentedCommand($commands, 'moduark:graph')
+                ->getDefinition()
+                ->getArgument('module')
+                ->isRequired(),
+        );
+        self::assertFalse(
+            $this->documentedCommand($commands, 'moduark:resources')
+                ->getDefinition()
+                ->getArgument('module')
+                ->isRequired(),
+        );
+        self::assertFalse(
+            $this->documentedCommand($commands, 'moduark:doctor')
                 ->getDefinition()
                 ->getArgument('module')
                 ->isRequired(),
@@ -290,6 +331,23 @@ final class PublicContractTest extends TestCase
             'level' => null,
             'force' => false,
             'prune' => false,
+        ]);
+        $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:resources'), [
+            'format' => 'text',
+        ]);
+        $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:doctor'), [
+            'format' => 'text',
+        ]);
+        $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:migrate'), [
+            'format' => 'text',
+        ]);
+        $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:seed'), [
+            'format' => 'text',
+        ]);
+        $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:test'), [
+            'runner' => 'auto',
+            'list' => false,
+            'format' => 'text',
         ]);
     }
 

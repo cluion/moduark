@@ -42,6 +42,23 @@ final class ModuleActivationSetTest extends TestCase
         self::assertTrue($first->includes('User'));
         self::assertFalse($first->includes('Billing'));
         self::assertSame($first->fingerprint(), $second->fingerprint());
+        self::assertFalse($first->knows('Billing'));
+        self::assertFalse($first->disabled('Billing'));
+    }
+
+    public function test_known_nwidart_states_distinguish_disabled_from_unknown_modules(): void
+    {
+        $set = ModuleActivationSet::fromStates([
+            'Order' => true,
+            'Billing' => false,
+        ]);
+
+        self::assertTrue($set->includes('Order'));
+        self::assertFalse($set->includes('Billing'));
+        self::assertTrue($set->knows('Billing'));
+        self::assertTrue($set->disabled('Billing'));
+        self::assertFalse($set->knows('Missing'));
+        self::assertFalse($set->disabled('Missing'));
     }
 
     public function test_nwidart_resolver_uses_only_enabled_module_names(): void

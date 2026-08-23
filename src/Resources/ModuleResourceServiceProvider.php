@@ -4,60 +4,38 @@ declare(strict_types=1);
 
 namespace Cluion\Moduark\Resources;
 
-use Cluion\Moduark\Lifecycle\OrderedModules;
-use Cluion\Moduark\Registry\ModuleRegistry;
 use Illuminate\Support\ServiceProvider;
-use LogicException;
+use Illuminate\Foundation\Application;
 
 final class ModuleResourceServiceProvider extends ServiceProvider
 {
-    public function boot(): void
+    public function register(): void
     {
-        $modules = [];
-
-        foreach ($this->app->make(ModuleRegistry::class)->all() as $module) {
-            $modules[$module->moduleClass()] = $module;
-        }
-
-        $includeCommands = $this->app->runningInConsole();
-
-        foreach ($this->app->make(OrderedModules::class)->all() as $descriptor) {
-            $moduleClass = $descriptor->moduleClass();
-            $module = $modules[$moduleClass] ?? null;
-
-            if ($module === null) {
-                throw new LogicException("Ordered Module [{$moduleClass}] is missing from the registry.");
-            }
-
-            $this->bootResources(
-                $this->app->make(ModuleResourceDiscoverer::class)->discover(
-                    $module,
-                    $includeCommands,
-                ),
-            );
-        }
+        $this->handle(ResourcePhase::Register);
     }
 
-    private function bootResources(ModuleResources $resources): void
+    public function boot(): void
     {
-        foreach ($resources->routePaths() as $routePath) {
-            $this->loadRoutesFrom($routePath);
-        }
+        $this->handle(ResourcePhase::Boot);
+    }
 
-        if ($resources->viewPath() !== null) {
-            $this->loadViewsFrom($resources->viewPath(), $resources->namespace());
-        }
+    private function handle(ResourcePhase $phase): void
+    {
+        $plugins = $this->app->make(ResourcePluginRegistry::class);
+        $status = $this->app->make(ResourceManifestStatus::class);
+        $state = $this->app->make(ResourceRegistrationState::class);
+        $runtime = new ResourceRuntime(
+            $this->app->make(Application::class),
+            $status->cached(),
+            $this->app->make(ResourceOwnership::class),
+        );
 
-        if ($resources->translationPath() !== null) {
-            $this->loadTranslationsFrom($resources->translationPath(), $resources->namespace());
-        }
+        foreach ($this->app->make(ResourceManifest::class)->all() as $resource) {
+            $handler = $plugins->get($resource->plugin())->handler();
 
-        if ($resources->migrationPath() !== null) {
-            $this->loadMigrationsFrom($resources->migrationPath());
-        }
-
-        if ($this->app->runningInConsole() && $resources->commands() !== []) {
-            $this->commands($resources->commands());
+            if ($handler->phase() === $phase && $state->claim($phase, $resource)) {
+                $handler->handle($resource, $runtime);
+            }
         }
     }
 }

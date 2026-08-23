@@ -11,13 +11,18 @@ final readonly class ModuleActivationSet
     /** @var array<string, true>|null */
     private ?array $activeNames;
 
+    /** @var array<string, true>|null */
+    private ?array $knownNames;
+
     /**
      * @param list<string>|null $activeNames
+     * @param list<string>|null $knownNames
      */
-    private function __construct(?array $activeNames)
+    private function __construct(?array $activeNames, ?array $knownNames = null)
     {
         if ($activeNames === null) {
             $this->activeNames = null;
+            $this->knownNames = null;
 
             return;
         }
@@ -37,6 +42,24 @@ final readonly class ModuleActivationSet
         ksort($indexed, SORT_STRING);
 
         $this->activeNames = $indexed;
+        $known = [];
+
+        foreach ($knownNames ?? $activeNames as $name) {
+            if ($name === '' || trim($name) !== $name) {
+                throw new InvalidArgumentException(
+                    'Known Module names must be non-empty strings without surrounding whitespace.',
+                );
+            }
+
+            $known[$name] = true;
+        }
+
+        foreach ($indexed as $name => $_active) {
+            $known[$name] = true;
+        }
+
+        ksort($known, SORT_STRING);
+        $this->knownNames = $known;
     }
 
     public static function all(): self
@@ -52,9 +75,42 @@ final readonly class ModuleActivationSet
         return new self($activeNames);
     }
 
+    /** @param array<string, mixed> $states */
+    public static function fromStates(array $states): self
+    {
+        $active = [];
+        $known = [];
+
+        foreach ($states as $name => $enabled) {
+            if ($name === '' || ! is_bool($enabled)) {
+                throw new InvalidArgumentException('Module activation states must map non-empty names to booleans.');
+            }
+
+            $known[] = $name;
+
+            if ($enabled) {
+                $active[] = $name;
+            }
+        }
+
+        return new self($active, $known);
+    }
+
     public function includes(string $moduleName): bool
     {
         return $this->activeNames === null || isset($this->activeNames[$moduleName]);
+    }
+
+    public function knows(string $moduleName): bool
+    {
+        return $this->knownNames === null || isset($this->knownNames[$moduleName]);
+    }
+
+    public function disabled(string $moduleName): bool
+    {
+        return $this->activeNames !== null
+            && isset($this->knownNames[$moduleName])
+            && ! isset($this->activeNames[$moduleName]);
     }
 
     public function fingerprint(): string

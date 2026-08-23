@@ -32,7 +32,7 @@ final class NwidartModuleActivationResolver
             );
         }
 
-        $names = [];
+        $states = [];
 
         foreach ($directories as $directory) {
             $name = basename($directory);
@@ -44,18 +44,22 @@ final class NwidartModuleActivationResolver
                 );
             }
 
-            if ($active) {
-                $names[] = $name;
-            }
+            $states[$name] = $active;
         }
 
-        return ModuleActivationSet::only($names);
+        return ModuleActivationSet::fromStates($states);
     }
 
     public function resolveFile(string $statusesPath, string $modulesPath): ModuleActivationSet
     {
         if (! is_file($statusesPath)) {
-            return ModuleActivationSet::only([]);
+            return $this->resolve(new class
+            {
+                public function hasStatus(string $name, bool $status): bool
+                {
+                    return false;
+                }
+            }, $modulesPath);
         }
 
         $contents = file_get_contents($statusesPath);

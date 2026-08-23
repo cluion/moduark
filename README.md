@@ -32,12 +32,16 @@ When `nwidart/laravel-modules` is installed, Moduark keeps nwidart's
 follows nwidart's configured Module root when that package is present and uses
 `app/Modules` otherwise; set a non-empty path to override auto-detection. Moduark
 discovers entry classes at either `<Module>/<Module>Module.php` or
-`<Module>/app/<Module>Module.php`. In this automatic mode, nwidart's active
-Module set is authoritative: disabling a Module removes it from Moduark's
+`<Module>/app/<Module>Module.php`. When Moduark and nwidart resolve the same
+Module root, nwidart's active Module set is authoritative, including after
+Laravel config caching: disabling a Module removes it from Moduark's
 registry, analysis, graphs, cache, providers, Capability bindings, and native
-resources; re-enabling it restores those surfaces. An explicit non-empty
-`moduark.path` remains independent of nwidart activation state. Publish Moduark
-settings independently with:
+resources; re-enabling it restores those surfaces. nwidart continues to own
+its conventional routes, views, translations, migrations, and direct commands,
+while resources explicitly declared by `Module::resources()` remain
+Moduark-owned. An explicit non-empty `moduark.path` remains independent when it
+does not resolve to nwidart's Module root. Publish Moduark settings independently
+with:
 
 ```bash
 php artisan vendor:publish --tag=moduark-config
@@ -230,11 +234,12 @@ and `--report`. All seven PHP types support nested names, `--force`, and
 Application/framework Makers complete the 31-name Laravel 12 / 13 inventory.
 Commands are direct classes below `Console/Commands/`, use Laravel's native
 stub, and accept `--command=`, `--force`, and Module-owned matching-test options.
-Nested command paths are rejected because current runtime discovery is
-intentionally non-recursive. Config files are template-backed targets below the
-Module's lowercase `config/` tree; generating one does not write to the
-application's `config/` directory or claim that the 1.2 config runtime plugin is
-already active. Providers are template-backed below `Providers/`; generation
+The Maker retains its 1.1 direct-class contract; hand-written nested commands
+can opt into recursive runtime discovery through `resources()`. Config files are
+template-backed targets below the Module's lowercase `config/` tree; generating
+one does not write to the application's `config/` directory, and runtime merge
+or publication remains an explicit resource declaration. Providers are
+template-backed below `Providers/`; generation
 never invokes Laravel's native provider Maker because that command mutates
 `bootstrap/providers.php`. Add generated providers explicitly to the Module's
 `providers()` metadata. See
@@ -604,7 +609,8 @@ string references are not treated as observed dependencies in the current RC.
 ## Laravel Resource Conventions
 
 Existing paths are loaded through Laravel's native mechanisms; absent paths are
-ignored.
+ignored. Additive 1.2 resource behavior is opt-in through pure-data
+`Module::resources()` metadata.
 
 | Module-relative path | Behavior |
 |---|---|
@@ -617,6 +623,45 @@ ignored.
 
 Module-specific service providers belong in `providers()` metadata. Moduark does
 not generate per-Module Composer packages or manifests.
+
+An opt-in Module may declare runtime resources like this:
+
+```php
+public function resources(): array
+{
+    return [
+        'routes' => [
+            ['path' => 'routes/admin.php', 'group' => ['prefix' => 'admin']],
+        ],
+        'config' => [
+            ['path' => 'config/order.php', 'key' => 'order', 'publish' => true],
+        ],
+        'commands' => ['recursive' => true],
+        'factories' => true,
+        'seeders' => [OrderDatabaseSeeder::class],
+        'policies' => [Order::class => OrderPolicy::class],
+        'listeners' => [OrderPlaced::class => [SendReceipt::class]],
+        'components' => true,
+        'assets' => [
+            'resources/js/order.js',
+            ['path' => 'resources/public/icon.svg', 'type' => 'public', 'publish_to' => 'vendor/order/icon.svg'],
+        ],
+        'tests' => true,
+        'extensions' => ['frontend' => ['driver' => 'vite']],
+    ];
+}
+```
+
+Metadata must contain only scalar, null, and nested array values. New resource
+types are never activated merely because a matching directory exists. Events
+are represented separately from listeners in the manifest; providers retain
+the dependency-ordered `providers()` lifecycle. Generic Vite inputs are
+available from `ModuleAssetManifest::inputs()`, and public assets can be
+published with `php artisan vendor:publish --tag=moduark-assets`.
+
+Third-party packages can add a discover/handle pair by registering a
+`ResourcePlugin` through `ResourcePluginRegistration::register()` from their
+service provider. See [ADR-0056](docs/adr/0056-resource-plugin-manifest-runtime.md).
 
 ## Configuration
 
@@ -670,6 +715,11 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `moduark:check [--level=0..3] [--format=text\|json\|github] [--show-suppressions]` | Run the effective architecture rules, audit suppressions, and optionally emit JSON or GitHub Actions annotations |
 | `moduark:graph [module] [--view=module\|capability\|combined] [--format=text\|mermaid]` | Render direct, Capability, or combined relationships and optionally select one neighborhood |
 | `moduark:inspect {module}` | Inspect one Module's identity, dependencies, providers, Capabilities, owned tables, and Public API convention |
+| `moduark:resources [module] [--format=text\|json]` | Inspect the canonical enabled resource manifest and deterministic collisions |
+| `moduark:doctor [module] [--format=text\|json]` | Diagnose framework support, Module state, dependencies, resources, sources, handlers, and collisions |
+| `moduark:migrate {module} [--format=text\|json]` | Run only the selected active Module's forward migrations |
+| `moduark:seed {module} [--format=text\|json]` | Run only seeders declared by the selected active Module |
+| `moduark:test {module} [arguments...] [--runner=auto\|phpunit\|pest] [--list] [--format=text\|json]` | Run or list the selected active Module's declared test paths |
 
 `moduark:check` exit codes are part of the Stable `1.x` contract:
 
@@ -828,14 +878,15 @@ php artisan optimize
 
 The versioned scalar PHP manifest is stored at
 `bootstrap/cache/moduark.php`. It contains the configured Module root, sorted
-discovery records, and dependency-ordered descriptors. Runtime lifecycle,
-Capability validation, graphs, inspection, and checks reuse those descriptors;
-routes, views, translations, migrations, and Module commands still use their
-normal Laravel resource loading.
+discovery records, dependency-ordered descriptors, and schema-versioned runtime
+resource manifest. Runtime lifecycle, Capability validation, graphs, inspection,
+checks, operations, and resource handlers reuse the same enabled Module set.
+Cached boot consumes the serialized descriptors without repeating filesystem
+resource discovery.
 
 Rebuild the cache after adding, removing, or moving a Module, or after changing
-`dependencies()`, `providers()`, `requires()`, `provides()`, `tables()`, or
-`exports()`.
+`dependencies()`, `providers()`, `requires()`, `provides()`, `tables()`,
+`exports()`, or `resources()`.
 Clear it to return to fresh discovery:
 
 ```bash
@@ -965,6 +1016,13 @@ contract.
 - [Changelog](CHANGELOG.md)
 
 ## Current Scope
+
+The next `1.2.0` minor is under development. Its Runtime Completeness candidate
+adds a serializable Resource Plugin manifest, opt-in Laravel runtime resources,
+generic assets, resource diagnostics, and Module-scoped test/migrate/seed
+operations. These changes are not a published `1.2.0` release until the release
+commit, Laravel 12 / 13 gates, exact-commit CI, tag, registry, and fresh public
+installation stages have each been verified.
 
 The `1.1.0` minor release retains the Stable command, configuration, diagnostic,
 and architecture boundaries while completing the Generation Foundation.

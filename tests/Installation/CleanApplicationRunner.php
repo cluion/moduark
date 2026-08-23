@@ -234,6 +234,11 @@ final class CleanApplicationRunner
                 'moduark:inspect',
                 'moduark:list',
                 'moduark:make',
+                'moduark:resources',
+                'moduark:doctor',
+                'moduark:migrate',
+                'moduark:seed',
+                'moduark:test',
             ] as $command
         ) {
             $this->assertMatches(
@@ -726,6 +731,9 @@ final class CleanApplicationRunner
             );
         }
 
+        $this->enableRuntimeOperationFixtures($modulePath);
+        $this->verifyRuntimeOperations($application, $environment);
+
         $list = $this->artisan($application, ['moduark:list'], $environment);
         $this->assertContains('User', $list, 'moduark:list did not report the generated User Module.');
         $this->assertContains('| 1', $list, 'moduark:list did not use the default Level 1 configuration.');
@@ -1165,6 +1173,96 @@ final class CleanApplicationRunner
 
         if ($files !== [$expected]) {
             throw new RuntimeException('moduark:make-module must generate exactly one Module entry file.');
+        }
+    }
+
+    private function enableRuntimeOperationFixtures(string $modulePath): void
+    {
+        $contents = file_get_contents($modulePath);
+
+        if (! is_string($contents)) {
+            throw new RuntimeException('Unable to read the generated User Module runtime fixture.');
+        }
+
+        $method = <<<'PHP'
+
+    public function resources(): array
+    {
+        return [
+            'seeders' => [\App\Modules\User\Database\Seeders\Billing\ProfileSeeder::class],
+            'tests' => true,
+        ];
+    }
+PHP;
+        $updated = preg_replace('/\n}\s*\z/', $method."\n}\n", $contents, 1, $count);
+
+        if (! is_string($updated) || $count !== 1 || file_put_contents($modulePath, $updated) === false) {
+            throw new RuntimeException('Unable to enable the generated User Module runtime fixture.');
+        }
+    }
+
+    /** @param array<string, string> $environment */
+    private function verifyRuntimeOperations(string $application, array $environment): void
+    {
+        $resources = json_decode($this->artisan(
+            $application,
+            ['moduark:resources', 'User', '--format=json'],
+            $environment,
+        ), true, 512, JSON_THROW_ON_ERROR);
+        $resourceRows = is_array($resources) ? ($resources['resources'] ?? null) : null;
+        $plugins = is_array($resourceRows) ? array_column($resourceRows, 'plugin') : [];
+
+        if (! is_array($resources)
+            || ($resources['status'] ?? null) !== 'passed'
+            || ! in_array('migrations', $plugins, true)
+            || ! in_array('seeders', $plugins, true)
+            || ! in_array('tests', $plugins, true)) {
+            throw new RuntimeException('moduark:resources omitted fresh-install runtime descriptors.');
+        }
+
+        $doctor = json_decode($this->artisan(
+            $application,
+            ['moduark:doctor', 'User', '--format=json'],
+            $environment,
+        ), true, 512, JSON_THROW_ON_ERROR);
+
+        if (! is_array($doctor)
+            || ($doctor['status'] ?? null) !== 'healthy'
+            || ($doctor['issues'] ?? null) !== []) {
+            throw new RuntimeException('moduark:doctor did not report a healthy fresh-install runtime.');
+        }
+
+        $test = json_decode($this->artisan(
+            $application,
+            ['moduark:test', 'User', '--list', '--format=json'],
+            $environment,
+        ), true, 512, JSON_THROW_ON_ERROR);
+
+        if (! is_array($test)
+            || ($test['status'] ?? null) !== 'listed'
+            || ! is_array($test['paths'] ?? null)
+            || count($test['paths']) !== 1) {
+            throw new RuntimeException('moduark:test did not select the fresh-install Module test path.');
+        }
+
+        $seed = json_decode($this->artisan(
+            $application,
+            ['moduark:seed', 'User', '--format=json'],
+            $environment,
+        ), true, 512, JSON_THROW_ON_ERROR);
+
+        if (! is_array($seed) || ($seed['status'] ?? null) !== 'passed') {
+            throw new RuntimeException('moduark:seed did not run the fresh-install Module seeder.');
+        }
+
+        $migrate = json_decode($this->artisan(
+            $application,
+            ['moduark:migrate', 'User', '--format=json'],
+            $environment,
+        ), true, 512, JSON_THROW_ON_ERROR);
+
+        if (! is_array($migrate) || ($migrate['status'] ?? null) !== 'passed') {
+            throw new RuntimeException('moduark:migrate did not run the fresh-install Module migration path.');
         }
     }
 

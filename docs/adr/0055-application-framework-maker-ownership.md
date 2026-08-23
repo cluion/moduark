@@ -55,5 +55,6 @@ single Module and outside the declared Generation Plan.
 Generation Foundation now covers every reviewed name-based Laravel Maker
 candidate. Runtime config loading and provider activation remain explicit and
 honest rather than being smuggled into generation as undeclared global writes.
-Recursive command discovery remains a 1.2 concern; the Maker refuses paths the
-current runtime cannot execute.
+ADR-0056 completes the 1.2 runtime contract. Nested commands are now supported
+when the Module explicitly opts into recursive discovery; the Maker's nested
+name restriction remains the compatible 1.1 generation contract.
