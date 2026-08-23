@@ -116,6 +116,53 @@ final class ModuleMakeCommandTest extends TestCase
         self::assertNotSame('existing source', file_get_contents($path));
     }
 
+    public function test_dry_run_renders_the_model_plan_without_filesystem_mutation(): void
+    {
+        $path = $this->temporaryBasePath.'/app/Modules/User/Models/Admin/Profile.php';
+
+        $this->command('moduark:make User model Admin/Profile --dry-run')
+            ->expectsOutputToContain('Generation plan (dry run):')
+            ->expectsOutputToContain('CREATE Models/Admin/Profile.php')
+            ->assertSuccessful();
+
+        self::assertFileDoesNotExist($path);
+        self::assertSame(
+            [$this->temporaryBasePath.'/app/Modules/User/UserModule.php'],
+            $this->files(),
+        );
+    }
+
+    public function test_dry_run_validates_controller_options_without_writing_files(): void
+    {
+        $path = $this->temporaryBasePath.'/app/Modules/User/Http/Controllers/ProfileController.php';
+
+        $this->command(
+            'moduark:make User controller ProfileController --resource --api --dry-run',
+        )
+            ->expectsOutputToContain('CREATE Http/Controllers/ProfileController.php')
+            ->assertSuccessful();
+
+        self::assertFileDoesNotExist($path);
+    }
+
+    public function test_dry_run_uses_the_same_collision_preflight_as_execution(): void
+    {
+        $path = $this->temporaryBasePath.'/app/Modules/User/Models/Profile.php';
+
+        $this->command('moduark:make User model Profile')->assertSuccessful();
+        $source = (string) file_get_contents($path);
+
+        $this->command('moduark:make User model Profile --dry-run')
+            ->expectsOutputToContain('Model already exists.')
+            ->assertFailed();
+        self::assertSame($source, file_get_contents($path));
+
+        $this->command('moduark:make User model Profile --force --dry-run')
+            ->expectsOutputToContain('OVERWRITE Models/Profile.php')
+            ->assertSuccessful();
+        self::assertSame($source, file_get_contents($path));
+    }
+
     public function test_it_rejects_an_unknown_module(): void
     {
         $this->command('moduark:make Unknown model Profile')

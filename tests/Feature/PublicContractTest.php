@@ -212,6 +212,7 @@ final class PublicContractTest extends TestCase
         );
 
         $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:make'), [
+            'dry-run' => false,
             'force' => false,
             'invokable' => false,
             'resource' => false,

@@ -1,6 +1,6 @@
 # ADR-0049: Generator Registry Contract and Laravel Maker Inventory
 
-- Status: Accepted for `1.1` Slice G0-A
+- Status: Accepted and implemented through `1.1` Slice G0-B
 - Date: 2026-08-23
 
 ## Context
@@ -17,16 +17,17 @@ assumed to have the same class, aliases, arguments, or options in another. The
 registry design needs reviewed framework evidence before it becomes production
 behavior.
 
-G0-A establishes that contract and evidence without changing the current
-`moduark:make` runtime or claiming support for additional Maker types.
+G0-A established that contract and evidence without changing the current
+`moduark:make` runtime. G0-B makes the boundary executable for the existing
+model and controller types without claiming support for additional Makers.
 
 ## Decision
 
 ### Registry and descriptor boundary
 
-- A future `GeneratorDescriptor` owns one canonical, lowercase kebab-case
+- A `GeneratorDescriptor` owns one canonical, lowercase kebab-case
   generator ID such as `model` or `controller`.
-- A future `GeneratorRegistry` accepts descriptors during container
+- A `GeneratorRegistry` accepts descriptors during container
   registration, rejects duplicate IDs, resolves IDs case-insensitively for the
   CLI, and returns descriptors in canonical ID order. Registration order must
   not change observable plans.
@@ -39,19 +40,21 @@ G0-A establishes that contract and evidence without changing the current
   path, Module-relative path, generated symbol when applicable, generator ID,
   and overwrite intent. Composite generators contribute all of their targets to
   the same plan.
-- One executor will validate that every target remains within the selected
-  Module, report all collisions in one preflight, and only then perform writes.
-  `--dry-run` renders that same plan without filesystem mutation. Atomic write
-  and rollback details remain part of G0-B implementation.
+- The planner resolves every target within the selected Module, and centralized
+  preflight reports all existing or duplicate planned paths before delegation.
+  The command only begins delegation after the whole plan passes. The current
+  built-ins each have one target; composite all-or-nothing execution and
+  rollback remain a separate slice before composite Makers are registered.
+  `--dry-run` renders that same plan without filesystem mutation.
 - Laravel delegation is descriptor-owned and allowlisted. Unknown native or
   third-party options are never forwarded implicitly; a composite native option
   is exposed only when its related targets are represented in the same plan.
 - Existing `model` and `controller` public output, options, and exit codes remain
   unchanged when they move behind the registry in G0-B.
 
-The concrete PHP interfaces are intentionally not published in G0-A. They will
-be introduced with their executable contract tests in G0-B, before the `1.1`
-public API is released.
+The concrete PHP interfaces were introduced with executable contract tests in
+G0-B. They remain pre-`1.1` internal extension boundaries until their public API
+stability is explicitly declared.
 
 ### Laravel Maker inventory
 
@@ -94,6 +97,15 @@ membership is evidence for planning, not a support claim.
   unchanged and green.
 - G0-A adds no production source, command, option, output, exit-code, or
   filesystem-write behavior.
+- `GeneratorRegistryTest` locks canonical IDs, deterministic order,
+  case-insensitive resolution, and duplicate rejection.
+- `GenerationPreflightTest` proves that all existing targets are reported before
+  generation and that `--force` cannot permit duplicate planned paths.
+- `ModuleMakeCommandTest` proves model/controller parity, dry-run zero mutation,
+  shared collision behavior, and explicit `OVERWRITE` plans.
+- Clean Laravel 12 and 13 installation gates run a dry-run before real model and
+  controller generation and assert that the planned model is absent until the
+  real command executes.
 
 ## Consequences
 
@@ -103,7 +115,8 @@ membership is evidence for planning, not a support claim.
 - The 31 name-based commands are a bounded research surface for later Maker
   groups; each still needs its own Module ownership, path, option, and composite
   tests before registration.
-- G0-B can focus on executable registry, plan, dry-run, and collision semantics
-  without rediscovering the framework surface.
+- Composite generators still require an executor-level rollback/atomicity
+  contract; they must not be registered merely because the plan can represent
+  multiple targets.
 - JSON plan output, all Maker groups, native `make:* --module` bridging, resource
   plugins, and presets remain separate later slices.

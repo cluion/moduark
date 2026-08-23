@@ -6,9 +6,11 @@ namespace Cluion\Moduark\Console;
 
 use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Exceptions\ModuleMakerFailed;
-use Cluion\Moduark\Generation\ModuleMakerTarget;
-use Cluion\Moduark\Generation\ModuleMakerTargetResolver;
-use Cluion\Moduark\Generation\ModuleMakerType;
+use Cluion\Moduark\Generation\GenerationOptions;
+use Cluion\Moduark\Generation\GenerationPlan;
+use Cluion\Moduark\Generation\GenerationPlanner;
+use Cluion\Moduark\Generation\GenerationPreflight;
+use Cluion\Moduark\Generation\GenerationTarget;
 use Illuminate\Console\Command;
 
 final class ModuleMakeCommand extends Command
@@ -18,6 +20,7 @@ final class ModuleMakeCommand extends Command
         {module : Existing Module name}
         {type : Maker type: model or controller}
         {name : StudlyCase class name, optionally with nested segments}
+        {--dry-run : Display the complete generation plan without writing files}
         {--force : Overwrite an existing generated class}
         {--invokable : Generate an invokable controller}
         {--resource : Generate a resource controller}
@@ -26,8 +29,10 @@ final class ModuleMakeCommand extends Command
     /** @var string */
     protected $description = 'Generate a model or controller inside an existing Module';
 
-    public function __construct(private readonly ModuleMakerTargetResolver $resolver)
-    {
+    public function __construct(
+        private readonly GenerationPlanner $planner,
+        private readonly GenerationPreflight $preflight,
+    ) {
         parent::__construct();
     }
 
@@ -44,66 +49,57 @@ final class ModuleMakeCommand extends Command
         }
 
         try {
-            $target = $this->resolver->resolve($module, $type, $name);
-            $parameters = $this->parameters($target);
+            $plan = $this->planner->plan($module, $type, $name, new GenerationOptions(
+                force: $this->option('force') === true,
+                invokable: $this->option('invokable') === true,
+                resource: $this->option('resource') === true,
+                api: $this->option('api') === true,
+            ));
         } catch (ModuleMakerFailed $exception) {
             $this->components->error('Module Maker failed: '.$exception->getMessage());
 
             return ExitPolicy::TOOL_ERROR;
         }
 
-        if ($this->option('force') !== true && is_file($target->filePath())) {
-            $this->components->error(ucfirst($target->type()->value).' already exists.');
+        $collisions = $this->preflight->collisions($plan);
+
+        if ($collisions !== []) {
+            foreach ($collisions as $collision) {
+                $this->components->error(ucfirst($collision->generatorId()).' already exists.');
+            }
 
             return self::FAILURE;
         }
 
-        $parameters['--no-interaction'] = true;
+        if ($this->option('dry-run') === true) {
+            $this->renderPlan($plan);
 
-        return $this->call($target->command(), $parameters);
+            return self::SUCCESS;
+        }
+
+        foreach ($plan->targets() as $target) {
+            $exitCode = $this->call($target->command(), $target->parameters());
+
+            if ($exitCode !== self::SUCCESS) {
+                return $exitCode;
+            }
+        }
+
+        return self::SUCCESS;
     }
 
-    /** @return array<string, bool|string> */
-    private function parameters(ModuleMakerTarget $target): array
+    private function renderPlan(GenerationPlan $plan): void
     {
-        $force = $this->option('force') === true;
-        $invokable = $this->option('invokable') === true;
-        $resource = $this->option('resource') === true;
-        $api = $this->option('api') === true;
+        $this->components->info('Generation plan (dry run):');
 
-        if ($target->type() === ModuleMakerType::Model) {
-            foreach (['invokable' => $invokable, 'resource' => $resource, 'api' => $api] as $option => $enabled) {
-                if ($enabled) {
-                    throw ModuleMakerFailed::unsupportedOption($option, $target->type()->value);
-                }
-            }
-
-            return array_filter([
-                'name' => $target->className(),
-                '--force' => $force,
-            ], static fn (bool|string $value): bool => $value !== false);
+        foreach ($plan->targets() as $target) {
+            $action = $this->action($target);
+            $this->line("  {$action} {$target->moduleRelativePath()}");
         }
+    }
 
-        if ($invokable && ($resource || $api)) {
-            $options = ['invokable'];
-
-            if ($resource) {
-                $options[] = 'resource';
-            }
-
-            if ($api) {
-                $options[] = 'api';
-            }
-
-            throw ModuleMakerFailed::conflictingOptions($options);
-        }
-
-        return array_filter([
-            'name' => $target->className(),
-            '--force' => $force,
-            '--invokable' => $invokable,
-            '--resource' => $resource,
-            '--api' => $api,
-        ], static fn (bool|string $value): bool => $value !== false);
+    private function action(GenerationTarget $target): string
+    {
+        return $target->overwrite() && is_file($target->filePath()) ? 'OVERWRITE' : 'CREATE';
     }
 }

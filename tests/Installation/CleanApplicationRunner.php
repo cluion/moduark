@@ -229,6 +229,21 @@ final class CleanApplicationRunner
         $this->assertFileExists($modulePath, 'moduark:make-module did not create UserModule.php.');
         $this->assertOnlyGeneratedModuleFile($application.'/app/Modules/User', $modulePath);
 
+        $dryRun = $this->artisan(
+            $application,
+            ['moduark:make', 'User', 'model', 'Profile', '--dry-run'],
+            $environment,
+        );
+        $this->assertContains(
+            'CREATE Models/Profile.php',
+            $dryRun,
+            'moduark:make --dry-run did not render the resolved Module-relative target.',
+        );
+        $this->assertFileMissing(
+            $application.'/app/Modules/User/Models/Profile.php',
+            'moduark:make --dry-run must not create the planned model.',
+        );
+
         $this->artisan($application, ['moduark:make', 'User', 'model', 'Profile'], $environment);
         $this->assertFileExists(
             $application.'/app/Modules/User/Models/Profile.php',

@@ -7,20 +7,10 @@ namespace Cluion\Moduark\Generation;
 final readonly class ModuleMakerTarget
 {
     public function __construct(
-        private ModuleMakerType $type,
         private string $className,
         private string $filePath,
+        private string $moduleRelativePath,
     ) {
-    }
-
-    public function type(): ModuleMakerType
-    {
-        return $this->type;
-    }
-
-    public function command(): string
-    {
-        return $this->type->command();
     }
 
     public function className(): string
@@ -31,5 +21,10 @@ final readonly class ModuleMakerTarget
     public function filePath(): string
     {
         return $this->filePath;
+    }
+
+    public function moduleRelativePath(): string
+    {
+        return $this->moduleRelativePath;
     }
 }

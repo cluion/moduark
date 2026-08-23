@@ -62,7 +62,11 @@ use Cluion\Moduark\Graph\Export\TextCapabilityGraphExporter;
 use Cluion\Moduark\Graph\Export\TextCombinedGraphExporter;
 use Cluion\Moduark\Graph\Export\TextModuleGraphExporter;
 use Cluion\Moduark\Graph\ModuleGraphBuilder;
+use Cluion\Moduark\Generation\GenerationPlanner;
+use Cluion\Moduark\Generation\GenerationPreflight;
+use Cluion\Moduark\Generation\GeneratorRegistry;
 use Cluion\Moduark\Generation\ModuleMakerTargetResolver;
+use Cluion\Moduark\Generation\ModuleMakerType;
 use Cluion\Moduark\Inspection\ModuleInspectionBuilder;
 use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
 use Cluion\Moduark\Lifecycle\ModuleOrderer;
@@ -184,6 +188,12 @@ final class ModuarkServiceProvider extends ServiceProvider
         $this->app->singleton(TextModuleGraphExporter::class);
         $this->app->singleton(MermaidModuleGraphExporter::class);
         $this->app->singleton(ModuleInspectionBuilder::class);
+        $this->app->singleton(
+            GeneratorRegistry::class,
+            static fn (): GeneratorRegistry => new GeneratorRegistry(ModuleMakerType::cases()),
+        );
+        $this->app->singleton(GenerationPlanner::class);
+        $this->app->singleton(GenerationPreflight::class);
         $this->app->singleton(ModuleMakerTargetResolver::class);
         $this->app->singleton(ModuleOrderer::class);
         $this->app->singleton(CapabilityResolver::class);

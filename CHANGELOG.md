@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Laravel 12 / 13 native Maker inventory fixtures. The fixtures cover all 37
   framework `make:*` commands and detect command, alias, argument, or option
   drift without changing the current `moduark:make` runtime contract.
+- Added the executable Generator Registry and immutable Generation Plan for the
+  existing model and controller Makers. `moduark:make --dry-run` now validates
+  and renders the same preflighted Module-relative targets without filesystem
+  mutation, while normal generation retains the existing Laravel delegation.
 
 ## [1.0.1] - 2026-08-23
 

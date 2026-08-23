@@ -596,6 +596,11 @@ PHP;
             $moduark,
             'Moduark resource maker lost its required arguments.',
         );
+        $this->assertContains(
+            '--dry-run',
+            $moduark,
+            'Moduark resource maker lost its generation-plan preview option.',
+        );
     }
 
     /** @param array<string, string> $environment */

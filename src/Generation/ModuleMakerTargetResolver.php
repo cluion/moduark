@@ -19,9 +19,12 @@ final readonly class ModuleMakerTargetResolver
     ) {
     }
 
-    public function resolve(string $module, string $type, string $name): ModuleMakerTarget
+    public function resolve(
+        string $module,
+        GeneratorDescriptor $descriptor,
+        string $name,
+    ): ModuleMakerTarget
     {
-        $makerType = ModuleMakerType::parse($type);
         $className = $this->className($name);
         $discovered = $this->findModule($module);
         $applicationPath = $this->applicationPath();
@@ -55,9 +58,9 @@ final readonly class ModuleMakerTargetResolver
         }
 
         return new ModuleMakerTarget(
-            $makerType,
-            $discovered->namespace().'\\'.$makerType->namespace().'\\'.$className,
-            $modulePath.'/'.str_replace('\\', '/', $makerType->namespace().'\\'.$className).'.php',
+            $discovered->namespace().'\\'.$descriptor->targetNamespace().'\\'.$className,
+            $modulePath.'/'.str_replace('\\', '/', $descriptor->targetNamespace().'\\'.$className).'.php',
+            str_replace('\\', '/', $descriptor->targetNamespace().'\\'.$className).'.php',
         );
     }
 

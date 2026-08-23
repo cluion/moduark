@@ -137,12 +137,16 @@ php artisan moduark:make User model Profile
 php artisan moduark:make User controller ProfileController
 php artisan moduark:make User controller ProfileController --invokable
 php artisan moduark:make User controller ProfileController --resource --api
+php artisan moduark:make User model Profile --dry-run
 ```
 
 Models are generated below `Models/`; controllers are generated below
 `Http/Controllers/`. Both types support `--force`. Controllers additionally
 support `--invokable`, `--resource`, and `--api`; `--invokable` cannot be combined
-with the resource or API modes.
+with the resource or API modes. `--dry-run` resolves and validates the complete
+generation plan, including collisions, then displays each Module-relative target
+without writing files. With `--force`, an existing target is shown as
+`OVERWRITE`; otherwise it remains a collision.
 
 The target Module must already exist and its configured path must be inside the
 Laravel application source root. Composite Laravel Maker options that create
@@ -152,7 +156,7 @@ ownership. Delegated Laravel Makers run non-interactively so framework prompts
 cannot create undeclared related artifacts. Moduark does not inject `--module`
 into Laravel or third-party `make:*` commands. See
 [ADR-0032](docs/adr/0032-laravel-maker-integration-direction.md). The reviewed
-Laravel 12/13 Maker inventory and planned `1.1` registry boundary are recorded
+Laravel 12/13 Maker inventory and executable `1.1` registry boundary are recorded
 in [ADR-0049](docs/adr/0049-generator-registry-contract.md); they do not expand
 the Maker types currently supported by `moduark:make`.
 
@@ -429,7 +433,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | Command | Current contract |
 |---|---|
 | `moduark:make-module {name}` | Create one minimal, non-overwriting Module entry class |
-| `moduark:make {module} {type} {name}` | Generate a model or controller inside an existing application Module |
+| `moduark:make {module} {type} {name} [--dry-run]` | Plan or generate a model or controller inside an existing application Module |
 | `moduark:baseline [--level=0..3] [--force] [--prune]` | Adopt current violations explicitly or safely remove stale baseline debt |
 | `moduark:cache` | Cache deterministic Module discovery and typed metadata |
 | `moduark:clear` | Remove cached Module metadata and incremental source analysis |
