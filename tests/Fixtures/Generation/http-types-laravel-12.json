@@ -1,0 +1,30 @@
+{
+    "schema": 1,
+    "laravel_major": 12,
+    "plans": [
+        {
+            "type": "request",
+            "name": "Profile/StoreProfileRequest",
+            "options": "",
+            "target": "Http/Requests/Profile/StoreProfileRequest.php"
+        },
+        {
+            "type": "resource",
+            "name": "Profile/ProfileResource",
+            "options": "",
+            "target": "Http/Resources/Profile/ProfileResource.php"
+        },
+        {
+            "type": "resource",
+            "name": "Profile/ProfileCollection",
+            "options": "--collection",
+            "target": "Http/Resources/Profile/ProfileCollection.php"
+        },
+        {
+            "type": "resource",
+            "name": "Profile/ProfileJsonApiResource",
+            "options": "--json-api",
+            "target": "Http/Resources/Profile/ProfileJsonApiResource.php"
+        }
+    ]
+}

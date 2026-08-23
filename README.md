@@ -144,6 +144,10 @@ php artisan moduark:make User cast Money/AmountCast --inbound
 php artisan moduark:make User enum Workflow/Status --string
 php artisan moduark:make User exception Billing/PaymentFailed --render --report
 php artisan moduark:make User interface Lookup/UserLookup
+php artisan moduark:make User request Profile/StoreProfileRequest
+php artisan moduark:make User resource Profile/ProfileResource
+php artisan moduark:make User resource Profile/ProfileCollection --collection
+php artisan moduark:make User resource Profile/ProfileJsonApiResource --json-api
 php artisan moduark:make User scope Visibility/PublishedScope
 php artisan moduark:make User trait Serialization/SerializesAttributes
 ```
@@ -172,6 +176,13 @@ and traits use `Concerns/`. Classes support `--invokable`; casts support
 `--inbound`; enums support `--int` and `--string`; exceptions support `--render`
 and `--report`. All seven PHP types support nested names, `--force`, and
 `--dry-run` through the same plan and collision preflight.
+
+HTTP request and resource Makers also retain Laravel's native stubs while fixing
+ownership first. Requests use `Http/Requests/`; resources use
+`Http/Resources/`. Resources support standard JSON resources,
+`--collection`, and `--json-api` modes. The two specialized resource modes are
+mutually exclusive so one requested stub cannot silently override the other.
+Both types support nested names, `--force`, and `--dry-run`.
 
 The target Module must already exist and its configured path must be inside the
 Laravel application source root. Other composite Laravel Maker options that

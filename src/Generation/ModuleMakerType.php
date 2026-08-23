@@ -16,6 +16,8 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     case PhpEnum = 'enum';
     case PhpException = 'exception';
     case PhpInterface = 'interface';
+    case HttpRequest = 'request';
+    case HttpResource = 'resource';
     case PhpScope = 'scope';
     case PhpTrait = 'trait';
 
@@ -29,6 +31,8 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpEnum->value => self::PhpEnum,
             self::PhpException->value => self::PhpException,
             self::PhpInterface->value => self::PhpInterface,
+            self::HttpRequest->value => self::HttpRequest,
+            self::HttpResource->value => self::HttpResource,
             self::PhpScope->value => self::PhpScope,
             self::PhpTrait->value => self::PhpTrait,
             default => throw ModuleMakerFailed::unsupportedType($type),
@@ -55,6 +59,8 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpEnum => 'Enums',
             self::PhpException => 'Exceptions',
             self::PhpInterface => 'Contracts',
+            self::HttpRequest => 'Http\\Requests',
+            self::HttpResource => 'Http\\Resources',
             self::PhpScope => 'Models\\Scopes',
             self::PhpTrait => 'Concerns',
         };
@@ -75,8 +81,10 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpEnum,
             self::PhpException,
             self::PhpInterface,
+            self::HttpRequest,
+            self::HttpResource,
             self::PhpScope,
-            self::PhpTrait => $this->phpTypePlan($target, $options),
+            self::PhpTrait => $this->singleTargetPlan($target, $options),
         };
     }
 
@@ -147,7 +155,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
         ]);
     }
 
-    private function phpTypePlan(
+    private function singleTargetPlan(
         ModuleMakerTarget $target,
         GenerationOptions $options,
     ): GenerationPlan {
@@ -156,10 +164,16 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpClass => ['invokable'],
             self::PhpEnum => ['int', 'string'],
             self::PhpException => ['render', 'report'],
-            self::PhpInterface, self::PhpScope, self::PhpTrait => [],
+            self::HttpResource => ['collection', 'json-api'],
+            self::PhpInterface, self::HttpRequest, self::PhpScope, self::PhpTrait => [],
             default => [],
         };
         $this->rejectUnsupportedOptions($options, $allowed);
+
+        if ($this === self::HttpResource && $options->collection && $options->jsonApi) {
+            throw ModuleMakerFailed::conflictingResourceOptions(['collection', 'json-api']);
+        }
+
         $parameters = [
             'name' => $target->className(),
             '--force' => $options->force,
@@ -176,6 +190,9 @@ enum ModuleMakerType: string implements GeneratorDescriptor
         } elseif ($this === self::PhpException) {
             $parameters['--render'] = $options->render;
             $parameters['--report'] = $options->report;
+        } elseif ($this === self::HttpResource) {
+            $parameters['--collection'] = $options->collection;
+            $parameters['--json-api'] = $options->jsonApi;
         }
 
         return new GenerationPlan([
@@ -208,6 +225,8 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             'inbound' => $options->inbound,
             'render' => $options->render,
             'report' => $options->report,
+            'collection' => $options->collection,
+            'json-api' => $options->jsonApi,
         ] as $option => $enabled) {
             if ($enabled && ! in_array($option, $allowed, true)) {
                 throw ModuleMakerFailed::unsupportedOption($option, $this->value);

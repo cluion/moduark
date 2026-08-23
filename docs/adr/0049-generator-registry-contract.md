@@ -1,6 +1,6 @@
 # ADR-0049: Generator Registry Contract and Laravel Maker Inventory
 
-- Status: Accepted and implemented through `1.1` Slice G1-B
+- Status: Accepted and implemented through `1.1` Slice G2-A
 - Date: 2026-08-23
 
 ## Context
@@ -26,6 +26,8 @@ in ADR-0050. G1-A adds the first new single-target group: Module-owned `class`,
 `enum`, `interface`, and `trait` descriptors backed by Laravel's native Makers.
 G1-B completes the PHP type group with Module-owned `cast`, `exception`, and
 `scope` descriptors.
+G2-A begins the HTTP group with Module-owned `request` and `resource`
+descriptors, including the native Resource Collection and JSON:API variants.
 
 ## Decision
 
@@ -65,6 +67,10 @@ G1-B completes the PHP type group with Module-owned `cast`, `exception`, and
   below `Models/Scopes/`. Casts allowlist `--inbound`; exceptions allowlist
   `--render` and `--report`; scopes expose no additional native option. These
   three descriptors remain single-target plans and do not copy framework stubs.
+- G2-A fixes requests below `Http/Requests/` and resources below
+  `Http/Resources/`. Resources allowlist `--collection` and `--json-api`, but
+  reject the competing modes together instead of relying on Laravel's implicit
+  collection precedence. Both descriptors remain single-target native delegates.
 
 The concrete PHP interfaces were introduced with executable contract tests in
 G0-B. They remain pre-`1.1` internal extension boundaries until their public API
@@ -131,6 +137,10 @@ membership is evidence for planning, not a support claim.
   scopes, including inbound cast interface semantics, combined exception
   render/report methods, the Module-owned scope location, and nwidart command
   ownership.
+- G2-A adds separate Laravel 12 / 13 HTTP plan fixtures and verifies Form
+  Request, standard JSON Resource, Resource Collection, and JSON:API stubs,
+  including nested namespaces, conflict refusal, collision/force parity,
+  dry-run zero mutation, clean installation, and nwidart command ownership.
 
 ## Consequences
 

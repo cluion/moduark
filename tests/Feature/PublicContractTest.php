@@ -221,6 +221,8 @@ final class PublicContractTest extends TestCase
             'inbound' => false,
             'render' => false,
             'report' => false,
+            'collection' => false,
+            'json-api' => false,
             'invokable' => false,
             'resource' => false,
             'api' => false,

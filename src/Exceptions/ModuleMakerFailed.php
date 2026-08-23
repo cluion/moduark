@@ -16,7 +16,7 @@ final class ModuleMakerFailed extends RuntimeException
     public static function unsupportedType(string $type): self
     {
         return new self(
-            "Maker type [{$type}] is not supported; expected cast, class, controller, enum, exception, interface, model, scope, or trait.",
+            "Maker type [{$type}] is not supported; expected cast, class, controller, enum, exception, interface, model, request, resource, scope, or trait.",
         );
     }
 
@@ -66,6 +66,15 @@ final class ModuleMakerFailed extends RuntimeException
     {
         return new self(sprintf(
             'The controller Maker options [%s] cannot be combined.',
+            implode(', ', array_map(static fn (string $option): string => '--'.$option, $options)),
+        ));
+    }
+
+    /** @param list<string> $options */
+    public static function conflictingResourceOptions(array $options): self
+    {
+        return new self(sprintf(
+            'The resource Maker options [%s] cannot be combined.',
             implode(', ', array_map(static fn (string $option): string => '--'.$option, $options)),
         ));
     }

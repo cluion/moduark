@@ -22,7 +22,7 @@ final class GeneratorRegistryTest extends TestCase
 
         self::assertSame(ModuleMakerType::Model, $registry->resolve('MODEL'));
         self::assertSame(
-            ['cast', 'class', 'controller', 'enum', 'exception', 'interface', 'model', 'scope', 'trait'],
+            ['cast', 'class', 'controller', 'enum', 'exception', 'interface', 'model', 'request', 'resource', 'scope', 'trait'],
             array_map(
                 static fn (GeneratorDescriptor $descriptor): string => $descriptor->id(),
                 $registry->all(),
@@ -54,10 +54,10 @@ final class GeneratorRegistryTest extends TestCase
 
         $this->expectException(ModuleMakerFailed::class);
         $this->expectExceptionMessage(
-            'Maker type [request] is not supported; expected cast, class, controller, enum, exception, interface, model, scope, or trait.',
+            'Maker type [rule] is not supported; expected cast, class, controller, enum, exception, interface, model, request, resource, scope, or trait.',
         );
 
-        $registry->resolve('request');
+        $registry->resolve('rule');
     }
 
     private function descriptor(string $id): GeneratorDescriptor

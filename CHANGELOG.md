@@ -28,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Module-owned `cast`, `exception`, and `scope` Maker descriptors with
   Laravel-native stubs and reviewed `--inbound`, `--render`, and `--report`
   option ownership across the Laravel 12 / 13 regression matrix.
+- Added Module-owned `request` and `resource` Maker descriptors with native
+  Form Request, JSON Resource, Resource Collection, and JSON:API stubs. Resource
+  modes are explicitly allowlisted and conflicting modes fail before writing.
 
 ## [1.0.1] - 2026-08-23
 

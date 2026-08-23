@@ -20,7 +20,7 @@ final class ModuleMakeCommand extends Command
     /** @var string */
     protected $signature = 'moduark:make
         {module : Existing Module name}
-        {type : Maker type: cast, class, controller, enum, exception, interface, model, scope, or trait}
+        {type : Maker type: cast, class, controller, enum, exception, interface, model, request, resource, scope, or trait}
         {name : StudlyCase class name, optionally with nested segments}
         {--dry-run : Display the complete generation plan without writing files}
         {--force : Overwrite an existing generated class}
@@ -31,6 +31,8 @@ final class ModuleMakeCommand extends Command
         {--inbound : Generate an inbound Eloquent cast}
         {--render : Generate an exception with an empty render method}
         {--report : Generate an exception with an empty report method}
+        {--collection : Generate a resource collection}
+        {--json-api : Generate a JSON:API resource}
         {--invokable : Generate an invokable class or controller}
         {--resource : Generate a resource controller}
         {--api : Generate an API controller without create and edit methods}';
@@ -71,6 +73,8 @@ final class ModuleMakeCommand extends Command
                 inbound: $this->option('inbound') === true,
                 render: $this->option('render') === true,
                 report: $this->option('report') === true,
+                collection: $this->option('collection') === true,
+                jsonApi: $this->option('json-api') === true,
             ));
         } catch (ModuleMakerFailed $exception) {
             $this->components->error('Module Maker failed: '.$exception->getMessage());

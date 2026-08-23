@@ -18,6 +18,8 @@ final readonly class GenerationOptions
         public bool $inbound,
         public bool $render,
         public bool $report,
+        public bool $collection,
+        public bool $jsonApi,
     ) {
     }
 }

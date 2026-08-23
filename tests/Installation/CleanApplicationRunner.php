@@ -303,6 +303,10 @@ final class CleanApplicationRunner
             ['enum', 'Workflow/Status', '--string', 'Enums/Workflow/Status.php'],
             ['exception', 'Billing/PaymentFailed', '--render', 'Exceptions/Billing/PaymentFailed.php'],
             ['interface', 'Lookup/UserLookup', null, 'Contracts/Lookup/UserLookup.php'],
+            ['request', 'Profile/StoreProfileRequest', null, 'Http/Requests/Profile/StoreProfileRequest.php'],
+            ['resource', 'Profile/ProfileResource', null, 'Http/Resources/Profile/ProfileResource.php'],
+            ['resource', 'Profile/ProfileCollection', '--collection', 'Http/Resources/Profile/ProfileCollection.php'],
+            ['resource', 'Profile/ProfileJsonApiResource', '--json-api', 'Http/Resources/Profile/ProfileJsonApiResource.php'],
             ['scope', 'Visibility/PublishedScope', null, 'Models/Scopes/Visibility/PublishedScope.php'],
             ['trait', 'Serialization/SerializesAttributes', null, 'Concerns/Serialization/SerializesAttributes.php'],
         ] as [$type, $name, $option, $relativePath]) {

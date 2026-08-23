@@ -612,6 +612,8 @@ PHP;
         $this->assertContains('--inbound', $moduark, 'Moduark resource maker lost its cast inbound option.');
         $this->assertContains('--render', $moduark, 'Moduark resource maker lost its exception render option.');
         $this->assertContains('--report', $moduark, 'Moduark resource maker lost its exception report option.');
+        $this->assertContains('--collection', $moduark, 'Moduark resource maker lost its collection option.');
+        $this->assertContains('--json-api', $moduark, 'Moduark resource maker lost its JSON:API option.');
     }
 
     /** @param array<string, string> $environment */
