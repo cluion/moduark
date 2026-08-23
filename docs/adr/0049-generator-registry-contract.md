@@ -135,6 +135,9 @@ no implicit registration side effects.
   single-target delegation. The stub retains Laravel's application auth-provider
   model reference, while generation does not create models, tests, routes,
   providers, or channel registration.
+- G4-G fixes job middleware below `Jobs/Middleware/` and keeps native
+  single-target delegation. Laravel 12 and 13 expose only `--force`; generation
+  does not create a job, matching test, queue infrastructure, or registration.
 
 The concrete PHP interfaces were introduced with executable contract tests in
 G0-B. They remain pre-`1.1` internal extension boundaries until their public API

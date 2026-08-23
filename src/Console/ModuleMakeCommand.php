@@ -20,7 +20,7 @@ final class ModuleMakeCommand extends Command
     /** @var string */
     protected $signature = 'moduark:make
         {module : Existing Module name}
-        {type : Maker type: cast, channel, class, controller, enum, event, exception, factory, interface, job, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, or trait}
+        {type : Maker type: cast, channel, class, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, or trait}
         {name : StudlyCase class name, optionally with nested segments}
         {--dry-run : Display the complete generation plan without writing files}
         {--force : Overwrite an existing generated class}

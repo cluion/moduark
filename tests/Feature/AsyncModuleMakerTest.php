@@ -554,6 +554,72 @@ final class AsyncModuleMakerTest extends TestCase
         );
     }
 
+    public function test_it_generates_module_owned_job_middleware_without_related_jobs(): void
+    {
+        $this->command(
+            'moduark:make User job-middleware Billing/WithoutOverlappingInvoices',
+        )->assertSuccessful();
+
+        $path = $this->temporaryBasePath
+            .'/app/Modules/User/Jobs/Middleware/Billing/WithoutOverlappingInvoices.php';
+        $middleware = (string) file_get_contents($path);
+
+        self::assertStringContainsString(
+            'namespace MakerFixture\\Modules\\User\\Jobs\\Middleware\\Billing;',
+            $middleware,
+        );
+        self::assertStringContainsString('use Closure;', $middleware);
+        self::assertStringContainsString('class WithoutOverlappingInvoices', $middleware);
+        self::assertStringContainsString(
+            'public function handle(object $job, Closure $next): void',
+            $middleware,
+        );
+        self::assertStringContainsString('$next($job);', $middleware);
+        self::assertSame([
+            $path,
+            $this->temporaryBasePath.'/app/Modules/User/UserModule.php',
+        ], $this->files());
+    }
+
+    public function test_job_middleware_shares_collision_force_and_dry_run_behavior(): void
+    {
+        $relativePath = 'Jobs/Middleware/Billing/WithoutOverlappingInvoices.php';
+        $path = $this->temporaryBasePath.'/app/Modules/User/'.$relativePath;
+        $command = 'moduark:make User job-middleware Billing/WithoutOverlappingInvoices';
+
+        $this->command($command.' --dry-run')
+            ->expectsOutputToContain('CREATE '.$relativePath)
+            ->assertSuccessful();
+        self::assertFileDoesNotExist($path);
+
+        $this->command($command)->assertSuccessful();
+        self::assertIsInt(file_put_contents($path, 'existing source'));
+
+        $this->command($command)
+            ->expectsOutputToContain('Job-middleware already exists.')
+            ->assertFailed();
+        self::assertSame('existing source', file_get_contents($path));
+
+        $this->command($command.' --force')->assertSuccessful();
+        self::assertNotSame('existing source', file_get_contents($path));
+    }
+
+    public function test_job_middleware_rejects_foreign_options_without_mutation(): void
+    {
+        $this->command(
+            'moduark:make User job-middleware Billing/WithoutOverlappingInvoices --queued',
+        )
+            ->expectsOutputToContain(
+                'Module Maker failed: The --queued option is not supported for Maker type [job-middleware].',
+            )
+            ->assertExitCode(2);
+
+        self::assertSame(
+            [$this->temporaryBasePath.'/app/Modules/User/UserModule.php'],
+            $this->files(),
+        );
+    }
+
     /** @return list<string> */
     private function files(): array
     {

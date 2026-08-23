@@ -137,6 +137,9 @@ below `Events/`; generation never creates that event or provider registration.
 Jobs are generated below `Jobs/` with Laravel's native queued, synchronous, or
 batched queued stub. `--sync` and `--batched` cannot be combined; generation
 never creates matching tests, queue infrastructure, or batch migrations.
+Job middleware is generated below `Jobs/Middleware/` with Laravel's native
+single-target stub. It never creates a job, matching test, queue infrastructure,
+or registration.
 Notifications are generated below `Notifications/` with Laravel's native plain
 stub. Laravel's `--markdown` mode also creates an application-global view, so
 Moduark rejects it before generation and never writes below `resources/views/`.

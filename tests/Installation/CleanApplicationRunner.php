@@ -309,6 +309,7 @@ final class CleanApplicationRunner
             ['job', 'Billing/ProcessInvoice', null, 'Jobs/Billing/ProcessInvoice.php'],
             ['job', 'Billing/SyncInvoice', '--sync', 'Jobs/Billing/SyncInvoice.php'],
             ['job', 'Billing/ReconcileInvoices', '--batched', 'Jobs/Billing/ReconcileInvoices.php'],
+            ['job-middleware', 'Billing/WithoutOverlappingInvoices', null, 'Jobs/Middleware/Billing/WithoutOverlappingInvoices.php'],
             ['listener', 'Billing/SendInvoiceReceipt', '--event=Billing/InvoicePaid', 'Listeners/Billing/SendInvoiceReceipt.php'],
             ['mail', 'Billing/InvoiceReceipt', null, 'Mail/Billing/InvoiceReceipt.php'],
             ['middleware', 'Admin/EnsureProfileIsComplete', null, 'Http/Middleware/Admin/EnsureProfileIsComplete.php'],

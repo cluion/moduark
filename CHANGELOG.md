@@ -67,6 +67,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the Module-owned `channel` Maker below `Broadcasting/` with Laravel's
   native auth-provider model reference and no implicit model, test, route,
   provider, or registration side effects.
+- Added the Module-owned `job-middleware` Maker below `Jobs/Middleware/` with
+  Laravel's native single-target stub and no implicit job, test, queue, or
+  registration side effects.
 
 ## [1.0.1] - 2026-08-23
 

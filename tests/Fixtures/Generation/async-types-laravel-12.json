@@ -67,6 +67,12 @@
             "name": "Billing/InvoiceChannel",
             "options": "",
             "target": "Broadcasting/Billing/InvoiceChannel.php"
+        },
+        {
+            "type": "job-middleware",
+            "name": "Billing/WithoutOverlappingInvoices",
+            "options": "",
+            "target": "Jobs/Middleware/Billing/WithoutOverlappingInvoices.php"
         }
     ]
 }

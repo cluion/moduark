@@ -21,6 +21,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     case Factory = 'factory';
     case PhpInterface = 'interface';
     case Job = 'job';
+    case JobMiddleware = 'job-middleware';
     case Listener = 'listener';
     case Mail = 'mail';
     case HttpMiddleware = 'middleware';
@@ -49,6 +50,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Factory->value => self::Factory,
             self::PhpInterface->value => self::PhpInterface,
             self::Job->value => self::Job,
+            self::JobMiddleware->value => self::JobMiddleware,
             self::Listener->value => self::Listener,
             self::Mail->value => self::Mail,
             self::HttpMiddleware->value => self::HttpMiddleware,
@@ -90,6 +92,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Factory => 'Database\\Factories',
             self::PhpInterface => 'Contracts',
             self::Job => 'Jobs',
+            self::JobMiddleware => 'Jobs\\Middleware',
             self::Listener => 'Listeners',
             self::Mail => 'Mail',
             self::HttpMiddleware => 'Http\\Middleware',
@@ -127,6 +130,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpException,
             self::PhpInterface,
             self::Job,
+            self::JobMiddleware,
             self::Listener,
             self::Mail,
             self::Notification,
@@ -332,6 +336,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Listener => ['event', 'queued'],
             self::Event,
             self::Channel,
+            self::JobMiddleware,
             self::Mail,
             self::Notification,
             self::PhpInterface,

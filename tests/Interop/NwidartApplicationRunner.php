@@ -633,6 +633,7 @@ PHP;
         $this->assertContains('observer', $moduark, 'Moduark Module Maker lost its observer type.');
         $this->assertContains('event', $moduark, 'Moduark Module Maker lost its event type.');
         $this->assertContains('job', $moduark, 'Moduark Module Maker lost its job type.');
+        $this->assertContains('job-middleware', $moduark, 'Moduark Module Maker lost its job middleware type.');
         $this->assertContains('listener', $moduark, 'Moduark Module Maker lost its listener type.');
         $this->assertContains('mail', $moduark, 'Moduark Module Maker lost its mail type.');
         $this->assertContains('notification', $moduark, 'Moduark Module Maker lost its notification type.');
