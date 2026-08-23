@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added a Generation Foundation completion contract that binds the exact
+  31-ID registry to the reviewed Laravel 12 / 13 Maker inventories and requires
+  every built-in Maker to retain versioned fixture coverage.
 - Added the final Module-owned `command`, `config`, and `provider` Makers,
   completing all 31 name-based Laravel 12 / 13 inventory candidates. Commands
   retain native stubs and runtime discovery, while config/provider templates

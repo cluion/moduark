@@ -1,6 +1,6 @@
 # ADR-0049: Generator Registry Contract and Laravel Maker Inventory
 
-- Status: Accepted and implemented through `1.1` Slice G10-A
+- Status: Accepted and implemented through `1.1` Slice G11-A
 - Date: 2026-08-23
 
 ## Context
@@ -41,6 +41,9 @@ no implicit registration side effects.
 G10-A closes the audited inventory gap with Module-owned `command`, `config`,
 and `provider` descriptors, completing all 31 name-based candidates without
 application-global config or bootstrap-provider mutations.
+G11-A binds that completed registry to both versioned fixture sets with one
+permanent completion contract, so removing a candidate or fixture group cannot
+leave a false-green `1.1` support claim.
 
 ## Decision
 
@@ -261,6 +264,10 @@ membership is evidence for planning, not a support claim.
   command names, non-recursive command refusal, Module-only config/provider
   writes, collision/force parity, and unchanged application config/provider
   state in clean-install and nwidart gates.
+- G11-A derives the 31 name-based candidates and six table-only commands from
+  each reviewed 37-command inventory, then requires both Laravel-major fixture
+  sets to cover every built-in ID with identical group membership. Intentional
+  cross-group cases, such as matching-test composites, remain covered.
 
 ## Consequences
 
