@@ -22,7 +22,7 @@ final class GeneratorRegistryTest extends TestCase
 
         self::assertSame(ModuleMakerType::Model, $registry->resolve('MODEL'));
         self::assertSame(
-            ['cast', 'class', 'controller', 'enum', 'event', 'exception', 'factory', 'interface', 'job', 'listener', 'middleware', 'migration', 'model', 'observer', 'policy', 'request', 'resource', 'rule', 'scope', 'seeder', 'trait'],
+            ['cast', 'class', 'controller', 'enum', 'event', 'exception', 'factory', 'interface', 'job', 'listener', 'middleware', 'migration', 'model', 'notification', 'observer', 'policy', 'request', 'resource', 'rule', 'scope', 'seeder', 'trait'],
             array_map(
                 static fn (GeneratorDescriptor $descriptor): string => $descriptor->id(),
                 $registry->all(),
@@ -54,7 +54,7 @@ final class GeneratorRegistryTest extends TestCase
 
         $this->expectException(ModuleMakerFailed::class);
         $this->expectExceptionMessage(
-            'Maker type [view] is not supported; expected cast, class, controller, enum, event, exception, factory, interface, job, listener, middleware, migration, model, observer, policy, request, resource, rule, scope, seeder, or trait.',
+            'Maker type [view] is not supported; expected cast, class, controller, enum, event, exception, factory, interface, job, listener, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, or trait.',
         );
 
         $registry->resolve('view');

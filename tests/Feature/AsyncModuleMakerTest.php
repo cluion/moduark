@@ -341,6 +341,74 @@ final class AsyncModuleMakerTest extends TestCase
         );
     }
 
+    public function test_it_generates_a_plain_module_owned_notification_without_related_views(): void
+    {
+        $this->command('moduark:make User notification Billing/InvoicePaid')
+            ->assertSuccessful();
+
+        $path = $this->temporaryBasePath
+            .'/app/Modules/User/Notifications/Billing/InvoicePaid.php';
+        $notification = (string) file_get_contents($path);
+
+        self::assertStringContainsString(
+            'namespace MakerFixture\\Modules\\User\\Notifications\\Billing;',
+            $notification,
+        );
+        self::assertStringContainsString('class InvoicePaid extends Notification', $notification);
+        self::assertStringContainsString('use Queueable;', $notification);
+        self::assertStringContainsString("return ['mail'];", $notification);
+        self::assertDirectoryDoesNotExist($this->temporaryBasePath.'/resources/views');
+        self::assertSame([
+            $path,
+            $this->temporaryBasePath.'/app/Modules/User/UserModule.php',
+        ], $this->files());
+    }
+
+    public function test_notification_shares_collision_force_and_dry_run_behavior(): void
+    {
+        $relativePath = 'Notifications/Billing/InvoicePaid.php';
+        $path = $this->temporaryBasePath.'/app/Modules/User/'.$relativePath;
+        $command = 'moduark:make User notification Billing/InvoicePaid';
+
+        $this->command($command.' --dry-run')
+            ->expectsOutputToContain('CREATE '.$relativePath)
+            ->assertSuccessful();
+        self::assertFileDoesNotExist($path);
+
+        $this->command($command)->assertSuccessful();
+        self::assertIsInt(file_put_contents($path, 'existing source'));
+
+        $this->command($command)
+            ->expectsOutputToContain('Notification already exists.')
+            ->assertFailed();
+        self::assertSame('existing source', file_get_contents($path));
+
+        $this->command($command.' --force')->assertSuccessful();
+        self::assertNotSame('existing source', file_get_contents($path));
+    }
+
+    public function test_notification_rejects_markdown_and_foreign_options_without_mutation(): void
+    {
+        $this->command(
+            'moduark:make User notification Billing/InvoicePaid --markdown=mail.invoice-paid',
+        )
+            ->expectsOutputToContain(
+                'Module Maker failed: The --markdown option is not supported for Maker type [notification].',
+            )
+            ->assertExitCode(2);
+        $this->command('moduark:make User notification Billing/InvoicePaid --queued')
+            ->expectsOutputToContain(
+                'Module Maker failed: The --queued option is not supported for Maker type [notification].',
+            )
+            ->assertExitCode(2);
+
+        self::assertDirectoryDoesNotExist($this->temporaryBasePath.'/resources/views');
+        self::assertSame(
+            [$this->temporaryBasePath.'/app/Modules/User/UserModule.php'],
+            $this->files(),
+        );
+    }
+
     /** @return list<string> */
     private function files(): array
     {

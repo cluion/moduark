@@ -49,6 +49,12 @@
             "name": "Billing/ReconcileInvoices",
             "options": "--batched",
             "target": "Jobs/Billing/ReconcileInvoices.php"
+        },
+        {
+            "type": "notification",
+            "name": "Billing/InvoicePaid",
+            "options": "",
+            "target": "Notifications/Billing/InvoicePaid.php"
         }
     ]
 }

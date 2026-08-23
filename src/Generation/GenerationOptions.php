@@ -29,6 +29,7 @@ final readonly class GenerationOptions
         public bool $queued,
         public bool $sync,
         public bool $batched,
+        public ?string $markdown,
     ) {
     }
 }

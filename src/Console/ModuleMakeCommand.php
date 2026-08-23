@@ -20,7 +20,7 @@ final class ModuleMakeCommand extends Command
     /** @var string */
     protected $signature = 'moduark:make
         {module : Existing Module name}
-        {type : Maker type: cast, class, controller, enum, event, exception, factory, interface, job, listener, middleware, migration, model, observer, policy, request, resource, rule, scope, seeder, or trait}
+        {type : Maker type: cast, class, controller, enum, event, exception, factory, interface, job, listener, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, or trait}
         {name : StudlyCase class name, optionally with nested segments}
         {--dry-run : Display the complete generation plan without writing files}
         {--force : Overwrite an existing generated class}
@@ -42,6 +42,7 @@ final class ModuleMakeCommand extends Command
         {--queued : Generate a queued listener}
         {--sync : Generate a synchronous job}
         {--batched : Generate a batchable queued job}
+        {--markdown= : Related Markdown views are not supported by the Module notification Maker}
         {--invokable : Generate an invokable class or controller}
         {--resource : Generate a resource controller}
         {--api : Generate an API controller without create and edit methods}';
@@ -93,6 +94,7 @@ final class ModuleMakeCommand extends Command
                 queued: $this->option('queued') === true,
                 sync: $this->option('sync') === true,
                 batched: $this->option('batched') === true,
+                markdown: $this->optionalStringOption('markdown'),
             ));
         } catch (ModuleMakerFailed $exception) {
             $this->components->error('Module Maker failed: '.$exception->getMessage());

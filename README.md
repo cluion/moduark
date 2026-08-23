@@ -151,6 +151,7 @@ php artisan moduark:make User job Billing/SyncInvoice --sync
 php artisan moduark:make User job Billing/ReconcileInvoices --batched
 php artisan moduark:make User listener Billing/SendInvoiceReceipt --event=Billing/InvoicePaid --queued
 php artisan moduark:make User middleware Admin/EnsureProfileIsComplete
+php artisan moduark:make User notification Billing/InvoicePaid
 php artisan moduark:make User migration CreateAuditLogsTable --create=audit_logs
 php artisan moduark:make User migration AddStatusToProfilesTable --table=profiles
 php artisan moduark:make User observer Audit/ProfileObserver
@@ -257,6 +258,11 @@ or batched queued stub. The default is queued; `--sync` selects the synchronous
 stub and `--batched` selects the batch-aware queued stub. The two modes are
 mutually exclusive. Job generation supports `--force` and `--dry-run`, but does
 not create matching tests, queue infrastructure, or batch migrations.
+
+Notifications use the Module-owned `Notifications/` path and Laravel's native
+plain notification stub. They support `--force` and `--dry-run`. Laravel's
+`--markdown` mode also writes an application-global view below `resources/views/`,
+so Moduark explicitly rejects it and never creates a related view.
 
 The target Module must already exist and its configured path must be inside the
 Laravel application source root. Other composite Laravel Maker options that

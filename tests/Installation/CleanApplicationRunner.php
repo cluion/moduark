@@ -310,6 +310,7 @@ final class CleanApplicationRunner
             ['job', 'Billing/ReconcileInvoices', '--batched', 'Jobs/Billing/ReconcileInvoices.php'],
             ['listener', 'Billing/SendInvoiceReceipt', '--event=Billing/InvoicePaid', 'Listeners/Billing/SendInvoiceReceipt.php'],
             ['middleware', 'Admin/EnsureProfileIsComplete', null, 'Http/Middleware/Admin/EnsureProfileIsComplete.php'],
+            ['notification', 'Billing/InvoicePaid', null, 'Notifications/Billing/InvoicePaid.php'],
             ['observer', 'Profile/ProfileObserver', '--model=Profile', 'Observers/Profile/ProfileObserver.php'],
             ['policy', 'Profile/ProfilePolicy', '--model=Profile', 'Policies/Profile/ProfilePolicy.php'],
             ['request', 'Profile/StoreProfileRequest', null, 'Http/Requests/Profile/StoreProfileRequest.php'],

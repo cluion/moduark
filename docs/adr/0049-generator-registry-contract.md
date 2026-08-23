@@ -123,6 +123,10 @@ no implicit registration side effects.
   Laravel 12 and 13 share queued, synchronous, and batched queued stubs. Moduark
   rejects `--sync --batched` instead of preserving Laravel's silent batched
   precedence, and does not expose matching-test generation.
+- G4-D fixes plain notifications below `Notifications/` and keeps native
+  single-target delegation. Laravel 12 and 13 both write an additional
+  application-global view for `--markdown`, so Moduark exposes that option only
+  as an explicit planning-time rejection and never writes below `resources/views/`.
 
 The concrete PHP interfaces were introduced with executable contract tests in
 G0-B. They remain pre-`1.1` internal extension boundaries until their public API

@@ -58,6 +58,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the Module-owned `job` Maker below `Jobs/` with Laravel-native queued,
   synchronous, and batched queued stubs. `--sync` and `--batched` are explicitly
   mutually exclusive and never create related tests or queue infrastructure.
+- Added the Module-owned plain `notification` Maker below `Notifications/`.
+  Laravel's `--markdown` mode is explicitly rejected because it also writes an
+  application-global view below `resources/views/`.
 
 ## [1.0.1] - 2026-08-23
 

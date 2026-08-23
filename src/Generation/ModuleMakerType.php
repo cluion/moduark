@@ -23,6 +23,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     case Listener = 'listener';
     case HttpMiddleware = 'middleware';
     case Migration = 'migration';
+    case Notification = 'notification';
     case Observer = 'observer';
     case Policy = 'policy';
     case HttpRequest = 'request';
@@ -48,6 +49,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Listener->value => self::Listener,
             self::HttpMiddleware->value => self::HttpMiddleware,
             self::Migration->value => self::Migration,
+            self::Notification->value => self::Notification,
             self::Observer->value => self::Observer,
             self::Policy->value => self::Policy,
             self::HttpRequest->value => self::HttpRequest,
@@ -86,6 +88,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Listener => 'Listeners',
             self::HttpMiddleware => 'Http\\Middleware',
             self::Migration => 'Database\\Migrations',
+            self::Notification => 'Notifications',
             self::Observer => 'Observers',
             self::Policy => 'Policies',
             self::HttpRequest => 'Http\\Requests',
@@ -118,6 +121,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpInterface,
             self::Job,
             self::Listener,
+            self::Notification,
             self::HttpMiddleware,
             self::Observer,
             self::Policy,
@@ -319,6 +323,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Job => ['sync', 'batched'],
             self::Listener => ['event', 'queued'],
             self::Event,
+            self::Notification,
             self::PhpInterface,
             self::HttpMiddleware,
             self::HttpRequest,
@@ -425,6 +430,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             'queued' => $options->queued,
             'sync' => $options->sync,
             'batched' => $options->batched,
+            'markdown' => $options->markdown !== null,
         ] as $option => $enabled) {
             if ($enabled && ! in_array($option, $allowed, true)) {
                 throw ModuleMakerFailed::unsupportedOption($option, $this->value);
