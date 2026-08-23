@@ -1,0 +1,447 @@
+{
+    "schema": 1,
+    "laravel_major": 12,
+    "commands": {
+        "make:cache-table": {
+            "class": "Illuminate\\Cache\\Console\\CacheTableCommand",
+            "aliases": [
+                "cache:table"
+            ],
+            "arguments": [],
+            "options": []
+        },
+        "make:cast": {
+            "class": "Illuminate\\Foundation\\Console\\CastMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single",
+                "inbound||flag|single"
+            ]
+        },
+        "make:channel": {
+            "class": "Illuminate\\Foundation\\Console\\ChannelMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single"
+            ]
+        },
+        "make:class": {
+            "class": "Illuminate\\Foundation\\Console\\ClassMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single",
+                "invokable|i|flag|single"
+            ]
+        },
+        "make:command": {
+            "class": "Illuminate\\Foundation\\Console\\ConsoleMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "command||optional-value|single",
+                "force|f|flag|single",
+                "pest||flag|single",
+                "phpunit||flag|single",
+                "test||flag|single"
+            ]
+        },
+        "make:component": {
+            "class": "Illuminate\\Foundation\\Console\\ComponentMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single",
+                "inline||flag|single",
+                "path||required-value|single",
+                "pest||flag|single",
+                "phpunit||flag|single",
+                "test||flag|single",
+                "view||flag|single"
+            ]
+        },
+        "make:config": {
+            "class": "Illuminate\\Foundation\\Console\\ConfigMakeCommand",
+            "aliases": [
+                "config:make"
+            ],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single"
+            ]
+        },
+        "make:controller": {
+            "class": "Illuminate\\Routing\\Console\\ControllerMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "api||flag|single",
+                "creatable||flag|single",
+                "force||flag|single",
+                "invokable|i|flag|single",
+                "model|m|optional-value|single",
+                "parent|p|optional-value|single",
+                "pest||flag|single",
+                "phpunit||flag|single",
+                "requests|R|flag|single",
+                "resource|r|flag|single",
+                "singleton|s|flag|single",
+                "test||flag|single",
+                "type||required-value|single"
+            ]
+        },
+        "make:enum": {
+            "class": "Illuminate\\Foundation\\Console\\EnumMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single",
+                "int|i|flag|single",
+                "string|s|flag|single"
+            ]
+        },
+        "make:event": {
+            "class": "Illuminate\\Foundation\\Console\\EventMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single"
+            ]
+        },
+        "make:exception": {
+            "class": "Illuminate\\Foundation\\Console\\ExceptionMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single",
+                "render||flag|single",
+                "report||flag|single"
+            ]
+        },
+        "make:factory": {
+            "class": "Illuminate\\Database\\Console\\Factories\\FactoryMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "model|m|optional-value|single"
+            ]
+        },
+        "make:interface": {
+            "class": "Illuminate\\Foundation\\Console\\InterfaceMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single"
+            ]
+        },
+        "make:job": {
+            "class": "Illuminate\\Foundation\\Console\\JobMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "batched||flag|single",
+                "force|f|flag|single",
+                "pest||flag|single",
+                "phpunit||flag|single",
+                "sync||flag|single",
+                "test||flag|single"
+            ]
+        },
+        "make:job-middleware": {
+            "class": "Illuminate\\Foundation\\Console\\JobMiddlewareMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single",
+                "pest||flag|single",
+                "phpunit||flag|single",
+                "test||flag|single"
+            ]
+        },
+        "make:listener": {
+            "class": "Illuminate\\Foundation\\Console\\ListenerMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "event|e|optional-value|single",
+                "force|f|flag|single",
+                "pest||flag|single",
+                "phpunit||flag|single",
+                "queued||flag|single",
+                "test||flag|single"
+            ]
+        },
+        "make:mail": {
+            "class": "Illuminate\\Foundation\\Console\\MailMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single",
+                "markdown|m|optional-value|single",
+                "pest||flag|single",
+                "phpunit||flag|single",
+                "test||flag|single",
+                "view||optional-value|single"
+            ]
+        },
+        "make:middleware": {
+            "class": "Illuminate\\Routing\\Console\\MiddlewareMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "pest||flag|single",
+                "phpunit||flag|single",
+                "test||flag|single"
+            ]
+        },
+        "make:migration": {
+            "class": "Illuminate\\Database\\Console\\Migrations\\MigrateMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "create||optional-value|single",
+                "fullpath||flag|single",
+                "path||optional-value|single",
+                "realpath||flag|single",
+                "table||optional-value|single"
+            ]
+        },
+        "make:model": {
+            "class": "Illuminate\\Foundation\\Console\\ModelMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "all|a|flag|single",
+                "api||flag|single",
+                "controller|c|flag|single",
+                "factory|f|flag|single",
+                "force||flag|single",
+                "migration|m|flag|single",
+                "morph-pivot||flag|single",
+                "pest||flag|single",
+                "phpunit||flag|single",
+                "pivot|p|flag|single",
+                "policy||flag|single",
+                "requests|R|flag|single",
+                "resource|r|flag|single",
+                "seed|s|flag|single",
+                "test||flag|single"
+            ]
+        },
+        "make:notification": {
+            "class": "Illuminate\\Foundation\\Console\\NotificationMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single",
+                "markdown|m|optional-value|single",
+                "pest||flag|single",
+                "phpunit||flag|single",
+                "test||flag|single"
+            ]
+        },
+        "make:notifications-table": {
+            "class": "Illuminate\\Notifications\\Console\\NotificationTableCommand",
+            "aliases": [
+                "notifications:table"
+            ],
+            "arguments": [],
+            "options": []
+        },
+        "make:observer": {
+            "class": "Illuminate\\Foundation\\Console\\ObserverMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single",
+                "model|m|optional-value|single"
+            ]
+        },
+        "make:policy": {
+            "class": "Illuminate\\Foundation\\Console\\PolicyMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single",
+                "guard|g|optional-value|single",
+                "model|m|optional-value|single"
+            ]
+        },
+        "make:provider": {
+            "class": "Illuminate\\Foundation\\Console\\ProviderMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single"
+            ]
+        },
+        "make:queue-batches-table": {
+            "class": "Illuminate\\Queue\\Console\\BatchesTableCommand",
+            "aliases": [
+                "queue:batches-table"
+            ],
+            "arguments": [],
+            "options": []
+        },
+        "make:queue-failed-table": {
+            "class": "Illuminate\\Queue\\Console\\FailedTableCommand",
+            "aliases": [
+                "queue:failed-table"
+            ],
+            "arguments": [],
+            "options": []
+        },
+        "make:queue-table": {
+            "class": "Illuminate\\Queue\\Console\\TableCommand",
+            "aliases": [
+                "queue:table"
+            ],
+            "arguments": [],
+            "options": []
+        },
+        "make:request": {
+            "class": "Illuminate\\Foundation\\Console\\RequestMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single"
+            ]
+        },
+        "make:resource": {
+            "class": "Illuminate\\Foundation\\Console\\ResourceMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "collection|c|flag|single",
+                "force|f|flag|single",
+                "json-api|j|flag|single"
+            ]
+        },
+        "make:rule": {
+            "class": "Illuminate\\Foundation\\Console\\RuleMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single",
+                "implicit|i|flag|single"
+            ]
+        },
+        "make:scope": {
+            "class": "Illuminate\\Foundation\\Console\\ScopeMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single"
+            ]
+        },
+        "make:seeder": {
+            "class": "Illuminate\\Database\\Console\\Seeds\\SeederMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": []
+        },
+        "make:session-table": {
+            "class": "Illuminate\\Session\\Console\\SessionTableCommand",
+            "aliases": [
+                "session:table"
+            ],
+            "arguments": [],
+            "options": []
+        },
+        "make:test": {
+            "class": "Illuminate\\Foundation\\Console\\TestMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single",
+                "pest||flag|single",
+                "phpunit||flag|single",
+                "unit|u|flag|single"
+            ]
+        },
+        "make:trait": {
+            "class": "Illuminate\\Foundation\\Console\\TraitMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "force|f|flag|single"
+            ]
+        },
+        "make:view": {
+            "class": "Illuminate\\Foundation\\Console\\ViewMakeCommand",
+            "aliases": [],
+            "arguments": [
+                "name|required|single"
+            ],
+            "options": [
+                "extension||optional-value|single",
+                "force|f|flag|single",
+                "pest||flag|single",
+                "phpunit||flag|single",
+                "test||flag|single"
+            ]
+        }
+    }
+}

@@ -151,7 +151,10 @@ are deliberately not exposed until every generated file can retain Module
 ownership. Delegated Laravel Makers run non-interactively so framework prompts
 cannot create undeclared related artifacts. Moduark does not inject `--module`
 into Laravel or third-party `make:*` commands. See
-[ADR-0032](docs/adr/0032-laravel-maker-integration-direction.md).
+[ADR-0032](docs/adr/0032-laravel-maker-integration-direction.md). The reviewed
+Laravel 12/13 Maker inventory and planned `1.1` registry boundary are recorded
+in [ADR-0049](docs/adr/0049-generator-registry-contract.md); they do not expand
+the Maker types currently supported by `moduark:make`.
 
 Inspect the discovered architecture:
 

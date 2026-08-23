@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added the reviewed `1.1` Generator Registry contract and deterministic
+  Laravel 12 / 13 native Maker inventory fixtures. The fixtures cover all 37
+  framework `make:*` commands and detect command, alias, argument, or option
+  drift without changing the current `moduark:make` runtime contract.
+
 ## [1.0.1] - 2026-08-23
 
 This patch keeps the Stable Level 0 through 2 contract and Level 3 Preview
