@@ -1,6 +1,6 @@
 # ADR-0048: nwidart Active Module Set
 
-- Status: Accepted for the next `1.0.x` patch
+- Status: Accepted in `1.0.1`
 - Date: 2026-08-23
 
 ## Context

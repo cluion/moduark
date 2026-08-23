@@ -13,9 +13,13 @@ final class UpgradePolicyContractTest extends TestCase
         $guide = $this->contents('UPGRADING.md');
 
         foreach ([
-            '`1.0.0` is the current stable release',
-            'reviewed RC.2 command, configuration',
+            '`1.0.1` is the current stable release',
+            'fixes nwidart',
             'composer require cluion/moduark:^1.0',
+            'Upgrading from `1.0.0` to `1.0.1`',
+            'active-set fingerprint',
+            'php artisan optimize:clear',
+            'No configuration migration, baseline rewrite, or suppression rewrite',
             'Upgrading from `1.0.0-rc.2` to `1.0.0`',
             'Upgrading from `1.0.0-rc.1` to `1.0.0-rc.2`',
             'php artisan moduark:check --format=json',

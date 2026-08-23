@@ -4,9 +4,9 @@ This guide covers application-owned changes required when upgrading Moduark.
 Read the complete changelog between the installed and target versions as well
 as the section below for the target release.
 
-> **Current status:** `1.0.0` is the current stable release. It promotes the
-> reviewed RC.2 command, configuration, and `nwidart/laravel-modules`
-> interoperability boundaries without another runtime or schema change.
+> **Current status:** `1.0.1` is the current stable release. It fixes nwidart
+> enabled-state interoperability without changing Moduark's public PHP,
+> configuration, command, diagnostic, or architecture-policy contracts.
 
 Install or upgrade to the stable line:
 
@@ -42,6 +42,34 @@ the namespace migration. The debt-file commands below use Moduark's default
 filenames. Substitute the paths configured in
 `moduark.architecture.baseline` and `moduark.architecture.suppressions` when the
 application overrides them.
+
+## Upgrading from `1.0.0` to `1.0.1`
+
+This patch affects applications that let Moduark automatically follow
+nwidart's Module root by leaving `moduark.path` absent or `null`. In that mode,
+`module:disable <Name>` now removes the Module from Moduark's registry,
+analysis, graphs, lifecycle providers, Capability bindings, native resources,
+and metadata cache; `module:enable <Name>` restores the same surfaces. An
+explicit non-empty `moduark.path` remains independent of nwidart activation
+state.
+
+The Module metadata cache advances to schema version `4` and includes an
+active-set fingerprint. Older manifests and manifests for a different enabled
+set are bypassed automatically. After Composer updates the package, clear
+Laravel's rebuildable caches, inspect the effective Module set, and rebuild the
+optional production cache:
+
+```bash
+php artisan optimize:clear
+php artisan moduark:list
+php artisan moduark:check --format=json
+php artisan moduark:cache
+```
+
+No configuration migration, baseline rewrite, or suppression rewrite is
+required. Applications using nwidart should confirm that `module:list` and
+`moduark:list` intentionally differ only because nwidart continues to display
+disabled Modules with a Disabled status.
 
 ## Upgrading from `1.0.0-rc.2` to `1.0.0`
 

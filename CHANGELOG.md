@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-08-23
+
+This patch keeps the Stable Level 0 through 2 contract and Level 3 Preview
+boundary unchanged while correcting nwidart enabled-state interoperability.
+
 ### Changed
 
 - Updated the optional PHPStan companion documentation from the pre-release
@@ -339,7 +344,8 @@ incomplete and are not part of this release contract.
 - Clean installation acceptance from release-tag checkouts by explicitly
   mapping the local path repository to `dev-main`.
 
-[Unreleased]: https://github.com/cluion/moduark/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/cluion/moduark/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/cluion/moduark/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/cluion/moduark/compare/v1.0.0-rc.2...v1.0.0
 [1.0.0-rc.2]: https://github.com/cluion/moduark/compare/v1.0.0-rc.1...v1.0.0-rc.2
 [1.0.0-rc.1]: https://github.com/cluion/moduark/compare/v0.5.0-beta.1...v1.0.0-rc.1

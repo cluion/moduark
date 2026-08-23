@@ -4,10 +4,10 @@ Moduark is a Laravel-native modular architecture toolkit. It keeps Modules in a
 normal Laravel application while making their dependencies, lifecycle order,
 resources, and architecture boundaries executable and inspectable.
 
-> **Stable status:** `1.0.0` is the current stable release. Levels 0 through 2
+> **Stable status:** `1.0.1` is the current stable release. Levels 0 through 2
 > are Stable, Level 3 remains Preview, and the zero-configuration default
-> remains Level 1. The reviewed RC.2 command, configuration, and nwidart
-> interoperability boundaries are unchanged in stable.
+> remains Level 1. This patch makes nwidart's active Module set authoritative
+> across every Moduark runtime and analysis surface.
 
 ## Requirements
 
@@ -692,7 +692,7 @@ acceptance against the Packagist dist instead of the local path repository. This
 mode also verifies the installed archive layout:
 
 ```bash
-composer test:installation -- --package=1.0.0
+composer test:installation -- --package=1.0.1
 ```
 
 The GitHub Actions compatibility workflow runs PHPUnit on all four
@@ -719,9 +719,11 @@ contract.
 
 ## Current Scope
 
-The `1.0.0` stable release promotes the RC.2 command, configuration, and
-nwidart interoperability boundaries without changing their runtime behavior.
-Levels 0 through 2 are Stable and the complete Level 3 preset remains Preview.
+The `1.0.1` patch retains the Stable RC.2 command and configuration boundaries
+while correcting nwidart enabled-state interoperability across the registry,
+analysis, graphs, metadata cache, providers, Capability bindings, and native
+resources. Levels 0 through 2 are Stable and the complete Level 3 preset
+remains Preview.
 Level 2 includes typed Capability metadata, descriptor-only
 provider resolution, lifecycle preflight, consumer-owned Port wiring,
 Capability contract validation, source-enforced Adapter boundaries,
