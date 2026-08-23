@@ -53,13 +53,13 @@ particular, `moduark:make` intentionally rejects an external Module path. See
 See [ADR-0047](docs/adr/0047-nwidart-interoperability.md) and the
 [upgrade guide](UPGRADING.md) for the RC.1 namespace migration.
 
-The optional `cluion/moduark-phpstan` `v0.2.0-beta.1` companion supports the
-Moduark `^1.0@RC` line, defaults to `config/moduark.php`, and understands both
+The optional `cluion/moduark-phpstan` `v0.2.0` companion supports the Moduark
+`^1.0` line, defaults to `config/moduark.php`, and understands both
 classic and nwidart `Modules/*/app` source roots. Install it as a development
 dependency:
 
 ```bash
-composer require --dev cluion/moduark-phpstan:^0.2@beta
+composer require --dev cluion/moduark-phpstan:^0.2
 ```
 
 See [PHPStan and Larastan Integration](docs/phpstan-integration.md). The
@@ -735,9 +735,9 @@ covers literal Facade queries, Schema mutations, Blueprint constraints, and
 direct Query Builder writes inside transaction callbacks, while unresolved
 expressions remain reviewable warnings. Explicit `exports()` metadata narrows the
 convention-based Public API. The complete fourteen-rule Level 3 preset can now
-produce a complete pass. The optional `cluion/moduark-phpstan`
-`v0.2.0-beta.1` companion beta integrates `internal_api_access` with PHPStan and
-Larastan across the Moduark 1.0 line and nwidart-compatible source layouts;
+produce a complete pass. The optional `cluion/moduark-phpstan` `v0.2.0` stable
+companion integrates `internal_api_access` with PHPStan and Larastan across the
+Moduark 1.0 line and nwidart-compatible source layouts;
 suppression expiry and extension coverage for the remaining rules remain later
 work. See
 [ADR-0035](docs/adr/0035-cross-module-model-access.md),

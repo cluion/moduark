@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Updated the optional PHPStan companion documentation from the pre-release
+  constraint to the published stable `cluion/moduark-phpstan:^0.2` line after
+  Laravel 12 / 13 published-distribution acceptance.
+
 ## [1.0.0] - 2026-08-23
 
 This first stable release promotes the publicly reviewed RC.2 contract without

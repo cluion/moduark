@@ -14,38 +14,35 @@ or its complete architecture check.
 | `php artisan moduark:check` | Authoritative complete architecture result and warning output |
 | `vendor/bin/phpstan analyse` | PHP and Laravel analysis plus the currently supported Moduark diagnostic |
 
-The first extension beta supports only `internal_api_access` /
+The stable `0.2` extension line supports only `internal_api_access` /
 `MOD-BOUNDARY-001`. Continue running `moduark:check` for dependency, cycle,
 Capability, Adapter, persistence, migration, transaction, and explicit export
 rules.
 
 ## Version Compatibility
 
-The published `cluion/moduark-phpstan` `v0.2.0-beta.1` requires Moduark
-`^1.0@RC`, defaults its cache input to `config/moduark.php`, and recognizes
-classic and nwidart `Modules/*/app` source roots. Its release matrix covers PHP
-8.2 through 8.5, Laravel 12 and 13, PHPStan `^2.2`, and optional Larastan 3.10.
-It passed against the published Moduark `1.0.0-rc.1` and `1.0.0-rc.2`
-boundaries. The same `^1.0@RC` constraint accepts the stable `1.x` line.
+The published `cluion/moduark-phpstan` `v0.2.0` requires Moduark `^1.0`,
+defaults its cache input to `config/moduark.php`, and recognizes classic and
+nwidart `Modules/*/app` source roots. Its release matrix covers PHP 8.2 through
+8.5, Laravel 12 and 13, PHPStan `^2.2`, and optional Larastan 3.10. Published
+distribution acceptance resolves `v0.2.0` with Moduark `v1.0.0` on both Laravel
+12 and 13, with the same diagnostic under PHPStan alone and with Larastan.
 
 Applications remaining on Moduark 0.4 or 0.5 beta must remain on the companion
 `^0.1@beta` line and its `config/modules.php` cache input.
 
 ## Install Both Packages on the Stable 1.0 Line
 
-Composer stability flags on a dependency do not relax the consuming
-application's stability constraints. Install stable Moduark as an application
-dependency before installing the pre-release companion as a development
-dependency:
+Install stable Moduark as an application dependency and the stable companion as
+a development dependency:
 
 ```bash
 composer require cluion/moduark:^1.0
-composer require --dev cluion/moduark-phpstan:^0.2@beta
+composer require --dev cluion/moduark-phpstan:^0.2
 ```
 
 If the application already requires Moduark `^1.0`, only the second command is
-needed. Pin the exact companion beta as well when repeatable pre-release
-upgrades matter.
+needed. Pin the exact companion version when repeatable upgrades matter.
 
 ## Load the Extension
 
