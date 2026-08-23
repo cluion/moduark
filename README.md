@@ -143,6 +143,7 @@ php artisan moduark:make User class Support/InvokableTask --invokable
 php artisan moduark:make User cast Money/AmountCast --inbound
 php artisan moduark:make User enum Workflow/Status --string
 php artisan moduark:make User exception Billing/PaymentFailed --render --report
+php artisan moduark:make User factory Billing/InvoiceFactory --model=Profile
 php artisan moduark:make User interface Lookup/UserLookup
 php artisan moduark:make User middleware Admin/EnsureProfileIsComplete
 php artisan moduark:make User policy Admin/ManageProfiles
@@ -154,6 +155,7 @@ php artisan moduark:make User resource Profile/ProfileJsonApiResource --json-api
 php artisan moduark:make User rule Profile/ValidDisplayName
 php artisan moduark:make User rule Profile/RequiredProfile --implicit
 php artisan moduark:make User scope Visibility/PublishedScope
+php artisan moduark:make User seeder Billing/ProfileSeeder
 php artisan moduark:make User trait Serialization/SerializesAttributes
 ```
 
@@ -206,6 +208,15 @@ Validation rules use the Module-owned `Rules/` path and Laravel's native
 `ValidationRule` stub. `--implicit` selects Laravel's implicit-rule variant;
 both modes remain single-file plans and support nested names, `--force`, and
 `--dry-run` without creating requests, policies, or other related artifacts.
+
+Standalone factories and seeders stay below the selected Module's
+`Database/Factories/` and `Database/Seeders/` directories. They use
+Moduark-owned templates because Laravel's native commands hard-code the
+application-level `database/` path. Factory names receive the conventional
+`Factory` suffix and infer a same-name Module model unless `--model` supplies a
+different Module-relative model. Neither Maker supports `--force`, matching its
+Laravel 12 / 13 native option contract, and neither changes a model or root
+`DatabaseSeeder`.
 
 The target Module must already exist and its configured path must be inside the
 Laravel application source root. Other composite Laravel Maker options that

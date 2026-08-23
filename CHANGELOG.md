@@ -40,6 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the Module-owned validation `rule` Maker below `Rules/` with native
   plain and `--implicit` stubs, versioned Laravel 12 / 13 fixtures, and shared
   single-target dry-run, collision, and force behavior.
+- Added standalone Module-owned `factory` and `seeder` Makers below
+  `Database/Factories/` and `Database/Seeders/`, including Module-relative
+  factory model inference without writes to Laravel's root `database/` tree.
 
 ## [1.0.1] - 2026-08-23
 

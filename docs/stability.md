@@ -118,6 +118,9 @@ Policy `--model` values are Module-relative class names below `Models/`;
 creates a related model.
 Validation rules are generated below `Rules/`; `--implicit` changes only the
 native rule stub and does not create related HTTP artifacts.
+Standalone factories and seeders are generated below `Database/Factories/` and
+`Database/Seeders/`. Factory `--model` is Module-relative; both types reject
+`--force` and never mutate application-level database resources.
 
 Architecture checks use these process exit codes:
 

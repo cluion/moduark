@@ -16,7 +16,7 @@ final class ModuleMakerFailed extends RuntimeException
     public static function unsupportedType(string $type): self
     {
         return new self(
-            "Maker type [{$type}] is not supported; expected cast, class, controller, enum, exception, interface, middleware, model, policy, request, resource, rule, scope, or trait.",
+            "Maker type [{$type}] is not supported; expected cast, class, controller, enum, exception, factory, interface, middleware, model, policy, request, resource, rule, scope, seeder, or trait.",
         );
     }
 
@@ -70,6 +70,20 @@ final class ModuleMakerFailed extends RuntimeException
     {
         return new self(
             "Policy model [{$model}] must contain one or more StudlyCase class segments relative to the Module Models namespace.",
+        );
+    }
+
+    public static function invalidFactoryModel(string $model): self
+    {
+        return new self(
+            "Factory model [{$model}] must contain one or more StudlyCase class segments relative to the Module Models namespace.",
+        );
+    }
+
+    public static function invalidFactoryName(string $name): self
+    {
+        return new self(
+            "Factory name [{$name}] must identify a model before the Factory suffix.",
         );
     }
 

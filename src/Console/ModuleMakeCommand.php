@@ -20,7 +20,7 @@ final class ModuleMakeCommand extends Command
     /** @var string */
     protected $signature = 'moduark:make
         {module : Existing Module name}
-        {type : Maker type: cast, class, controller, enum, exception, interface, middleware, model, policy, request, resource, rule, scope, or trait}
+        {type : Maker type: cast, class, controller, enum, exception, factory, interface, middleware, model, policy, request, resource, rule, scope, seeder, or trait}
         {name : StudlyCase class name, optionally with nested segments}
         {--dry-run : Display the complete generation plan without writing files}
         {--force : Overwrite an existing generated class}
@@ -33,7 +33,7 @@ final class ModuleMakeCommand extends Command
         {--report : Generate an exception with an empty report method}
         {--collection : Generate a resource collection}
         {--json-api : Generate a JSON:API resource}
-        {--model= : Module-owned model that a policy applies to}
+        {--model= : Module-owned model for a policy or standalone factory}
         {--guard= : Laravel authentication guard that a policy relies on}
         {--implicit : Generate an implicit validation rule}
         {--invokable : Generate an invokable class or controller}

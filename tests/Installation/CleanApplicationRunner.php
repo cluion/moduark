@@ -302,6 +302,7 @@ final class CleanApplicationRunner
             ['cast', 'Money/AmountCast', '--inbound', 'Casts/Money/AmountCast.php'],
             ['enum', 'Workflow/Status', '--string', 'Enums/Workflow/Status.php'],
             ['exception', 'Billing/PaymentFailed', '--render', 'Exceptions/Billing/PaymentFailed.php'],
+            ['factory', 'Billing/InvoiceFactory', '--model=Profile', 'Database/Factories/Billing/InvoiceFactory.php'],
             ['interface', 'Lookup/UserLookup', null, 'Contracts/Lookup/UserLookup.php'],
             ['middleware', 'Admin/EnsureProfileIsComplete', null, 'Http/Middleware/Admin/EnsureProfileIsComplete.php'],
             ['policy', 'Profile/ProfilePolicy', '--model=Profile', 'Policies/Profile/ProfilePolicy.php'],
@@ -311,6 +312,7 @@ final class CleanApplicationRunner
             ['resource', 'Profile/ProfileJsonApiResource', '--json-api', 'Http/Resources/Profile/ProfileJsonApiResource.php'],
             ['rule', 'Profile/RequiredProfile', '--implicit', 'Rules/Profile/RequiredProfile.php'],
             ['scope', 'Visibility/PublishedScope', null, 'Models/Scopes/Visibility/PublishedScope.php'],
+            ['seeder', 'Billing/ProfileSeeder', null, 'Database/Seeders/Billing/ProfileSeeder.php'],
             ['trait', 'Serialization/SerializesAttributes', null, 'Concerns/Serialization/SerializesAttributes.php'],
         ] as [$type, $name, $option, $relativePath]) {
             $arguments = ['moduark:make', 'User', $type, $name];

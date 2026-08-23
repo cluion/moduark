@@ -1,6 +1,6 @@
 # ADR-0049: Generator Registry Contract and Laravel Maker Inventory
 
-- Status: Accepted and implemented through `1.1` Slice G2-D
+- Status: Accepted and implemented through `1.1` Slice G3-A
 - Date: 2026-08-23
 
 ## Context
@@ -34,6 +34,8 @@ G2-C adds the Module-owned `policy` descriptor with explicit model and auth-user
 ownership semantics.
 G2-D completes the HTTP validation group with a Module-owned `rule` descriptor
 and Laravel's plain or implicit native stub.
+G3-A begins the Data group with standalone Module-owned `factory` and `seeder`
+descriptors, separate from model composite generation.
 
 ## Decision
 
@@ -90,6 +92,12 @@ and Laravel's plain or implicit native stub.
 - G2-D fixes validation rules below `Rules/` and keeps native single-target
   delegation. `--implicit` selects Laravel's implicit-rule stub; plain and
   implicit modes do not create a request, policy, or any other related artifact.
+- G3-A fixes standalone factories below `Database/Factories/` and seeders below
+  `Database/Seeders/`. Laravel's commands hard-code the application `database/`
+  path, so these descriptors use reviewed Module-owned templates rather than
+  native delegation. Factory names receive the conventional suffix and infer a
+  Module model unless `--model` supplies another Module-relative class. Both
+  types reject `--force` to retain their Laravel 12 / 13 native option contract.
 
 The concrete PHP interfaces were introduced with executable contract tests in
 G0-B. They remain pre-`1.1` internal extension boundaries until their public API
@@ -171,6 +179,10 @@ membership is evidence for planning, not a support claim.
   implicit native stubs, nested Module ownership, collision/force parity,
   foreign-option refusal, dry-run zero mutation, clean installation, and
   nwidart command ownership.
+- G3-A adds separate Laravel 12 / 13 Data plan fixtures and verifies inferred
+  and explicit factory models, conventional suffixing, nested seeder ownership,
+  collision refusal, unsupported-force behavior, root-database isolation,
+  clean installation, and nwidart command ownership.
 
 ## Consequences
 

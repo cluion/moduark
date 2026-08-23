@@ -1,0 +1,24 @@
+{
+    "schema": 1,
+    "laravel_major": 12,
+    "plans": [
+        {
+            "type": "factory",
+            "name": "Admin/Profile",
+            "options": "",
+            "target": "Database/Factories/Admin/ProfileFactory.php"
+        },
+        {
+            "type": "factory",
+            "name": "Profile/AccountProfileFactory",
+            "options": "--model=Account/Profile",
+            "target": "Database/Factories/Profile/AccountProfileFactory.php"
+        },
+        {
+            "type": "seeder",
+            "name": "Demo/ProfileSeeder",
+            "options": "",
+            "target": "Database/Seeders/Demo/ProfileSeeder.php"
+        }
+    ]
+}

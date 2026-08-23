@@ -16,6 +16,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     case Controller = 'controller';
     case PhpEnum = 'enum';
     case PhpException = 'exception';
+    case Factory = 'factory';
     case PhpInterface = 'interface';
     case HttpMiddleware = 'middleware';
     case Policy = 'policy';
@@ -23,6 +24,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     case HttpResource = 'resource';
     case ValidationRule = 'rule';
     case PhpScope = 'scope';
+    case Seeder = 'seeder';
     case PhpTrait = 'trait';
 
     public static function parse(string $type): self
@@ -34,6 +36,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Controller->value => self::Controller,
             self::PhpEnum->value => self::PhpEnum,
             self::PhpException->value => self::PhpException,
+            self::Factory->value => self::Factory,
             self::PhpInterface->value => self::PhpInterface,
             self::HttpMiddleware->value => self::HttpMiddleware,
             self::Policy->value => self::Policy,
@@ -41,6 +44,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::HttpResource->value => self::HttpResource,
             self::ValidationRule->value => self::ValidationRule,
             self::PhpScope->value => self::PhpScope,
+            self::Seeder->value => self::Seeder,
             self::PhpTrait->value => self::PhpTrait,
             default => throw ModuleMakerFailed::unsupportedType($type),
         };
@@ -65,6 +69,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Controller => 'Http\\Controllers',
             self::PhpEnum => 'Enums',
             self::PhpException => 'Exceptions',
+            self::Factory => 'Database\\Factories',
             self::PhpInterface => 'Contracts',
             self::HttpMiddleware => 'Http\\Middleware',
             self::Policy => 'Policies',
@@ -72,6 +77,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::HttpResource => 'Http\\Resources',
             self::ValidationRule => 'Rules',
             self::PhpScope => 'Models\\Scopes',
+            self::Seeder => 'Database\\Seeders',
             self::PhpTrait => 'Concerns',
         };
     }
@@ -86,6 +92,8 @@ enum ModuleMakerType: string implements GeneratorDescriptor
         return match ($this) {
             self::Model => $this->modelPlan($target, $options),
             self::Controller => $this->controllerPlan($target, $options),
+            self::Factory => $this->standaloneFactoryPlan($target, $options),
+            self::Seeder => $this->seederPlan($target, $options),
             self::PhpCast,
             self::PhpClass,
             self::PhpEnum,
@@ -164,6 +172,87 @@ enum ModuleMakerType: string implements GeneratorDescriptor
                     $parameters,
                     static fn (bool|string $value): bool => $value !== false,
                 ),
+            ),
+        ]);
+    }
+
+    private function standaloneFactoryPlan(
+        ModuleMakerTarget $target,
+        GenerationOptions $options,
+    ): GenerationPlan {
+        $this->rejectUnsupportedOptions($options, ['model']);
+
+        if ($options->force) {
+            throw ModuleMakerFailed::unsupportedOption('force', $this->value);
+        }
+
+        $segments = explode('\\', $target->localName());
+        $input = array_pop($segments);
+        $modelShort = str_ends_with($input, 'Factory')
+            ? substr($input, 0, -7)
+            : $input;
+
+        if ($modelShort === '') {
+            throw ModuleMakerFailed::invalidFactoryName($input);
+        }
+
+        $class = $modelShort.'Factory';
+        $nestedNamespace = $segments === [] ? '' : '\\'.implode('\\', $segments);
+        $nestedPath = $segments === [] ? '' : '/'.implode('/', $segments);
+        $namespace = $target->moduleNamespace().'\\Database\\Factories'.$nestedNamespace;
+        $model = $options->model === null
+            ? $target->moduleNamespace().'\\Models'.$nestedNamespace.'\\'.$modelShort
+            : ltrim($this->moduleModel(
+                $target,
+                $options->model,
+                ModuleMakerFailed::invalidFactoryModel($options->model),
+            ), '\\');
+
+        return new GenerationPlan([
+            new GenerationTarget(
+                $this->id(),
+                null,
+                $namespace.'\\'.$class,
+                $target->modulePath().'/Database/Factories'.$nestedPath.'/'.$class.'.php',
+                'Database/Factories'.$nestedPath.'/'.$class.'.php',
+                false,
+                [],
+                new GenerationFileTemplate($this->stubPath('module-factory.stub'), [
+                    '{{ namespace }}' => $namespace,
+                    '{{ model }}' => $model,
+                    '{{ modelShort }}' => class_basename($model),
+                    '{{ class }}' => $class,
+                ]),
+            ),
+        ]);
+    }
+
+    private function seederPlan(
+        ModuleMakerTarget $target,
+        GenerationOptions $options,
+    ): GenerationPlan {
+        $this->rejectUnsupportedOptions($options, []);
+
+        if ($options->force) {
+            throw ModuleMakerFailed::unsupportedOption('force', $this->value);
+        }
+
+        $segments = explode('\\', $target->className());
+        $class = array_pop($segments);
+
+        return new GenerationPlan([
+            new GenerationTarget(
+                $this->id(),
+                null,
+                $target->className(),
+                $target->filePath(),
+                $target->moduleRelativePath(),
+                false,
+                [],
+                new GenerationFileTemplate($this->stubPath('module-seeder.stub'), [
+                    '{{ namespace }}' => implode('\\', $segments),
+                    '{{ class }}' => $class,
+                ]),
             ),
         ]);
     }
@@ -272,10 +361,22 @@ enum ModuleMakerType: string implements GeneratorDescriptor
 
     private function policyModel(ModuleMakerTarget $target, string $model): string
     {
+        return $this->moduleModel(
+            $target,
+            $model,
+            ModuleMakerFailed::invalidPolicyModel($model),
+        );
+    }
+
+    private function moduleModel(
+        ModuleMakerTarget $target,
+        string $model,
+        ModuleMakerFailed $failure,
+    ): string {
         $normalized = str_replace('\\', '/', $model);
 
         if (preg_match('/\A[A-Z][A-Za-z0-9]*(?:\/[A-Z][A-Za-z0-9]*)*\z/D', $normalized) !== 1) {
-            throw ModuleMakerFailed::invalidPolicyModel($model);
+            throw $failure;
         }
 
         $segments = explode('/', $normalized);
@@ -285,10 +386,10 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             $tokens = token_get_all("<?php class {$shortName} {}", TOKEN_PARSE);
 
             if ($tokens === []) {
-                throw ModuleMakerFailed::invalidPolicyModel($model);
+                throw $failure;
             }
         } catch (ParseError) {
-            throw ModuleMakerFailed::invalidPolicyModel($model);
+            throw $failure;
         }
 
         return '\\'.$target->moduleNamespace().'\\Models\\'.str_replace('/', '\\', $normalized);
