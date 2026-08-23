@@ -46,6 +46,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the Module-owned `observer` Maker below `Observers/` with Laravel-native
   plain and model-aware stubs, Module-relative model qualification, native
   collision/force behavior, and no implicit registration side effects.
+- Added Module-owned Blade component generation with atomic class-and-view,
+  inline-class, anonymous-view, and safe custom-view-path modes. Laravel 12 / 13
+  fixtures lock every planned target without writing application-global views.
 - Added the standalone Module-owned `migration` Maker below
   `Database/Migrations/` with Laravel 12 / 13 compatible plain, create, update,
   name inference, timestamp, collision, and no-force contracts.

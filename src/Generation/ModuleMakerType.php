@@ -13,6 +13,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     case PhpCast = 'cast';
     case Channel = 'channel';
     case PhpClass = 'class';
+    case Component = 'component';
     case Model = 'model';
     case Controller = 'controller';
     case PhpEnum = 'enum';
@@ -42,6 +43,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpCast->value => self::PhpCast,
             self::Channel->value => self::Channel,
             self::PhpClass->value => self::PhpClass,
+            self::Component->value => self::Component,
             self::Model->value => self::Model,
             self::Controller->value => self::Controller,
             self::PhpEnum->value => self::PhpEnum,
@@ -84,6 +86,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpCast => 'Casts',
             self::Channel => 'Broadcasting',
             self::PhpClass => '',
+            self::Component => 'View\\Components',
             self::Model => 'Models',
             self::Controller => 'Http\\Controllers',
             self::PhpEnum => 'Enums',
@@ -119,6 +122,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
         return match ($this) {
             self::Model => $this->modelPlan($target, $options),
             self::Controller => $this->controllerPlan($target, $options),
+            self::Component => $this->componentPlan($target, $options),
             self::Factory => $this->standaloneFactoryPlan($target, $options),
             self::Migration => $this->standaloneMigrationPlan($target, $options),
             self::Seeder => $this->seederPlan($target, $options),
@@ -210,6 +214,65 @@ enum ModuleMakerType: string implements GeneratorDescriptor
                 ),
             ),
         ]);
+    }
+
+    private function componentPlan(
+        ModuleMakerTarget $target,
+        GenerationOptions $options,
+    ): GenerationPlan {
+        $this->rejectUnsupportedOptions($options, ['view', 'inline', 'path']);
+
+        if ($options->inline && $options->viewOnly) {
+            throw ModuleMakerFailed::conflictingComponentOptions(['inline', 'view']);
+        }
+
+        if ($options->inline && $options->path !== null) {
+            throw ModuleMakerFailed::conflictingComponentOptions(['inline', 'path']);
+        }
+
+        $viewSegments = $this->componentViewSegments($target, $options->path);
+        $viewRelativePath = 'resources/views/'.implode('/', $viewSegments).'.blade.php';
+        $viewName = strtolower($target->moduleName()).'::'.implode('.', $viewSegments);
+        $viewTarget = new GenerationTarget(
+            'view',
+            null,
+            $viewName,
+            $target->modulePath().'/'.$viewRelativePath,
+            $viewRelativePath,
+            $options->force,
+            [],
+            new GenerationFileTemplate($this->stubPath('module-component-view.stub'), []),
+        );
+
+        if ($options->viewOnly) {
+            return new GenerationPlan([$viewTarget]);
+        }
+
+        $classSegments = explode('\\', $target->className());
+        $class = array_pop($classSegments);
+        $classTarget = new GenerationTarget(
+            $this->id(),
+            null,
+            $target->className(),
+            $target->filePath(),
+            $target->moduleRelativePath(),
+            $options->force,
+            [],
+            new GenerationFileTemplate(
+                $this->stubPath($options->inline
+                    ? 'module-component.inline.stub'
+                    : 'module-component.stub'),
+                [
+                    '{{ namespace }}' => implode('\\', $classSegments),
+                    '{{ class }}' => $class,
+                    '{{ view }}' => $viewName,
+                ],
+            ),
+        );
+
+        return new GenerationPlan($options->inline
+            ? [$classTarget]
+            : [$classTarget, $viewTarget]);
     }
 
     private function standaloneFactoryPlan(
@@ -446,12 +509,40 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             'sync' => $options->sync,
             'batched' => $options->batched,
             'markdown' => $options->markdown !== null,
-            'view' => $options->view !== null,
+            'view' => $options->view !== null || $options->viewOnly,
+            'inline' => $options->inline,
+            'path' => $options->path !== null,
         ] as $option => $enabled) {
             if ($enabled && ! in_array($option, $allowed, true)) {
                 throw ModuleMakerFailed::unsupportedOption($option, $this->value);
             }
         }
+    }
+
+    /** @return list<string> */
+    private function componentViewSegments(
+        ModuleMakerTarget $target,
+        ?string $path,
+    ): array {
+        $nameSegments = explode('\\', $target->localName());
+        $name = array_pop($nameSegments);
+
+        if ($path === null) {
+            $segments = ['components', ...$nameSegments];
+        } else {
+            if (preg_match(
+                '/\A[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?:\/[a-z][a-z0-9]*(?:-[a-z0-9]+)*)*\z/D',
+                $path,
+            ) !== 1) {
+                throw ModuleMakerFailed::invalidComponentPath($path);
+            }
+
+            $segments = explode('/', $path);
+        }
+
+        $segments[] = $name;
+
+        return array_map(static fn (string $segment): string => Str::kebab($segment), $segments);
     }
 
     private function policyModel(ModuleMakerTarget $target, string $model): string

@@ -1,0 +1,36 @@
+{
+    "schema": 1,
+    "laravel_major": 13,
+    "plans": [
+        {
+            "name": "Billing/InvoiceCard",
+            "options": "",
+            "targets": [
+                "View/Components/Billing/InvoiceCard.php",
+                "resources/views/components/billing/invoice-card.blade.php"
+            ]
+        },
+        {
+            "name": "Billing/InlineAlert",
+            "options": "--inline",
+            "targets": [
+                "View/Components/Billing/InlineAlert.php"
+            ]
+        },
+        {
+            "name": "Billing/InvoiceBadge",
+            "options": "--view",
+            "targets": [
+                "resources/views/components/billing/invoice-badge.blade.php"
+            ]
+        },
+        {
+            "name": "Billing/InvoicePanel",
+            "options": "--path=widgets/admin",
+            "targets": [
+                "View/Components/Billing/InvoicePanel.php",
+                "resources/views/widgets/admin/invoice-panel.blade.php"
+            ]
+        }
+    ]
+}

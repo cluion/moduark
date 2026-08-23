@@ -281,6 +281,14 @@ native channel stub. The generated `join` method references the application's
 configured authentication-provider model, but generation does not create that
 model, matching tests, routes, providers, or channel registration.
 
+Blade components support class, inline, anonymous-view, and custom-view-path
+modes. Class components live below `View/Components/`; related Blade files live
+below the same Module's `resources/views/` tree and use the lowercase Module
+view namespace. Default class-and-view generation is planned, preflighted, and
+rolled back as one atomic operation. `--inline` creates no view, while a
+value-less `--view` creates only an anonymous Blade view. `--path=` accepts only
+Module-relative lowercase kebab-case directory segments.
+
 The target Module must already exist and its configured path must be inside the
 Laravel application source root. Other composite Laravel Maker options that
 create controllers, requests, policies, seeds, or tests remain deliberately

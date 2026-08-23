@@ -11,6 +11,7 @@ final readonly class ModuleMakerTarget
         private string $filePath,
         private string $moduleRelativePath,
         private string $modulePath,
+        private string $moduleName,
         private string $moduleNamespace,
         private string $localName,
     ) {
@@ -34,6 +35,11 @@ final readonly class ModuleMakerTarget
     public function modulePath(): string
     {
         return $this->modulePath;
+    }
+
+    public function moduleName(): string
+    {
+        return $this->moduleName;
     }
 
     public function moduleNamespace(): string

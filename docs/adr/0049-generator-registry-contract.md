@@ -1,6 +1,6 @@
 # ADR-0049: Generator Registry Contract and Laravel Maker Inventory
 
-- Status: Accepted and implemented through `1.1` Slice G3-B
+- Status: Accepted and implemented through `1.1` Slice G5-A
 - Date: 2026-08-23
 
 ## Context
@@ -227,6 +227,10 @@ membership is evidence for planning, not a support claim.
   verifies nested Module ownership, Module-relative model qualification,
   collision/force parity, foreign-option refusal, zero implicit registration,
   clean installation, and nwidart command ownership.
+- G5-A adds Laravel 12 / 13 Presentation fixtures for class-and-view, inline,
+  anonymous-view, and custom-path Blade components. All class and Blade targets
+  remain Module-owned; multi-target modes use complete collision preflight and
+  executor rollback instead of Laravel's application-global view path.
 
 ## Consequences
 

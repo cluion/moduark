@@ -31,6 +31,9 @@ final readonly class GenerationOptions
         public bool $batched,
         public ?string $markdown,
         public ?string $view,
+        public bool $viewOnly,
+        public bool $inline,
+        public ?string $path,
     ) {
     }
 }

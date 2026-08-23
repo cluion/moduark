@@ -623,12 +623,15 @@ PHP;
         $this->assertContains('--batched', $moduark, 'Moduark Module Maker lost its batchable job option.');
         $this->assertContains('--markdown', $moduark, 'Moduark Module Maker lost its explicit Markdown rejection gate.');
         $this->assertContains('--view', $moduark, 'Moduark Module Maker lost its explicit related-view rejection gate.');
+        $this->assertContains('--inline', $moduark, 'Moduark Module Maker lost its inline component option.');
+        $this->assertContains('--path', $moduark, 'Moduark Module Maker lost its component view path option.');
         $this->assertContains(
             'middleware',
             $moduark,
             'Moduark resource maker lost its middleware type.',
         );
         $this->assertContains('channel', $moduark, 'Moduark Module Maker lost its channel type.');
+        $this->assertContains('component', $moduark, 'Moduark Module Maker lost its component type.');
         $this->assertContains('factory', $moduark, 'Moduark resource maker lost its factory type.');
         $this->assertContains('observer', $moduark, 'Moduark Module Maker lost its observer type.');
         $this->assertContains('event', $moduark, 'Moduark Module Maker lost its event type.');

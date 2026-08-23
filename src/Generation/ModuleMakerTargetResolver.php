@@ -67,6 +67,7 @@ final readonly class ModuleMakerTargetResolver
             $modulePath.'/'.str_replace('\\', '/', $relativeClass).'.php',
             str_replace('\\', '/', $relativeClass).'.php',
             $modulePath,
+            $discovered->name(),
             $discovered->namespace(),
             $className,
         );

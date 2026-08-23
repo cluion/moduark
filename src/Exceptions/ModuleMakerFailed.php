@@ -16,7 +16,7 @@ final class ModuleMakerFailed extends RuntimeException
     public static function unsupportedType(string $type): self
     {
         return new self(
-            "Maker type [{$type}] is not supported; expected cast, channel, class, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, or trait.",
+            "Maker type [{$type}] is not supported; expected cast, channel, class, component, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, or trait.",
         );
     }
 
@@ -141,6 +141,22 @@ final class ModuleMakerFailed extends RuntimeException
     public static function conflictingJobOptions(): self
     {
         return new self('The job Maker options [--sync, --batched] cannot be combined.');
+    }
+
+    /** @param list<string> $options */
+    public static function conflictingComponentOptions(array $options): self
+    {
+        return new self(sprintf(
+            'The component Maker options [%s] cannot be combined.',
+            implode(', ', array_map(static fn (string $option): string => '--'.$option, $options)),
+        ));
+    }
+
+    public static function invalidComponentPath(string $path): self
+    {
+        return new self(
+            "Component path [{$path}] must contain one or more lowercase kebab-case directory segments.",
+        );
     }
 
     /** @param list<string> $paths */

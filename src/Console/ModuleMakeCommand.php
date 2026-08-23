@@ -20,7 +20,7 @@ final class ModuleMakeCommand extends Command
     /** @var string */
     protected $signature = 'moduark:make
         {module : Existing Module name}
-        {type : Maker type: cast, channel, class, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, or trait}
+        {type : Maker type: cast, channel, class, component, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, or trait}
         {name : StudlyCase class name, optionally with nested segments}
         {--dry-run : Display the complete generation plan without writing files}
         {--force : Overwrite an existing generated class}
@@ -44,6 +44,8 @@ final class ModuleMakeCommand extends Command
         {--batched : Generate a batchable queued job}
         {--markdown= : Related Markdown views are not supported by Module notification or mail Makers}
         {--view= : Related Blade views are not supported by the Module mail Maker}
+        {--inline : Generate a Blade component with an inline view}
+        {--path= : Module-relative Blade component view directory}
         {--invokable : Generate an invokable class or controller}
         {--resource : Generate a resource controller}
         {--api : Generate an API controller without create and edit methods}';
@@ -97,6 +99,10 @@ final class ModuleMakeCommand extends Command
                 batched: $this->option('batched') === true,
                 markdown: $this->optionalStringOption('markdown'),
                 view: $this->optionalStringOption('view'),
+                viewOnly: $this->input->hasParameterOption('--view', true)
+                    && $this->option('view') === null,
+                inline: $this->option('inline') === true,
+                path: $this->optionalStringOption('path'),
             ));
         } catch (ModuleMakerFailed $exception) {
             $this->components->error('Module Maker failed: '.$exception->getMessage());

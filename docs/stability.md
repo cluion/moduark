@@ -149,6 +149,10 @@ both options are rejected before generation.
 Broadcast channels are generated below `Broadcasting/` with Laravel's native
 stub and application auth-provider model reference. Generation never creates
 that model, matching tests, routes, providers, or channel registration.
+Blade components are generated below `View/Components/` and Module-owned
+`resources/views/`. Default class-and-view generation is an atomic composite;
+`--inline` creates only the component class, a value-less `--view` creates only
+an anonymous view, and `--path=` remains constrained to the Module view tree.
 
 Architecture checks use these process exit codes:
 

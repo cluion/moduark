@@ -301,6 +301,7 @@ final class CleanApplicationRunner
             ['class', 'Support/InvokableTask', '--invokable', 'Support/InvokableTask.php'],
             ['cast', 'Money/AmountCast', '--inbound', 'Casts/Money/AmountCast.php'],
             ['channel', 'Billing/InvoiceChannel', null, 'Broadcasting/Billing/InvoiceChannel.php'],
+            ['component', 'Billing/InvoiceCard', null, 'View/Components/Billing/InvoiceCard.php'],
             ['enum', 'Workflow/Status', '--string', 'Enums/Workflow/Status.php'],
             ['event', 'Billing/InvoicePaid', null, 'Events/Billing/InvoicePaid.php'],
             ['exception', 'Billing/PaymentFailed', '--render', 'Exceptions/Billing/PaymentFailed.php'],
@@ -353,6 +354,15 @@ final class CleanApplicationRunner
                 "moduark:make {$type} did not create its Module-owned target.",
             );
         }
+
+        $this->assertFileExists(
+            $application.'/app/Modules/User/resources/views/components/billing/invoice-card.blade.php',
+            'moduark:make component did not create its Module-owned Blade view.',
+        );
+        $this->assertFileMissing(
+            $application.'/resources/views/components/billing/invoice-card.blade.php',
+            'moduark:make component wrote an application-global Blade view.',
+        );
 
         $migrationArguments = [
             'moduark:make',
