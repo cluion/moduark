@@ -1,0 +1,140 @@
+{
+    "schema": 1,
+    "module": "Blog",
+    "presets": {
+        "minimal": [
+            {
+                "generator": "module",
+                "target": "BlogModule.php"
+            }
+        ],
+        "web": [
+            {
+                "generator": "module",
+                "target": "BlogModule.php"
+            },
+            {
+                "generator": "web-route",
+                "target": "routes/web.php"
+            },
+            {
+                "generator": "web-controller",
+                "target": "Http/Controllers/Web/BlogController.php"
+            },
+            {
+                "generator": "web-view",
+                "target": "resources/views/index.blade.php"
+            },
+            {
+                "generator": "english-translations",
+                "target": "resources/lang/en/messages.php"
+            },
+            {
+                "generator": "web-test",
+                "target": "Tests/Feature/Web/BlogWebTest.php"
+            }
+        ],
+        "api": [
+            {
+                "generator": "module",
+                "target": "BlogModule.php"
+            },
+            {
+                "generator": "api-route",
+                "target": "routes/api.php"
+            },
+            {
+                "generator": "api-controller",
+                "target": "Http/Controllers/Api/BlogController.php"
+            },
+            {
+                "generator": "api-request",
+                "target": "Http/Requests/Api/BlogRequest.php"
+            },
+            {
+                "generator": "api-resource",
+                "target": "Http/Resources/Api/BlogResource.php"
+            },
+            {
+                "generator": "api-test",
+                "target": "Tests/Feature/Api/BlogApiTest.php"
+            }
+        ],
+        "domain": [
+            {
+                "generator": "module",
+                "target": "BlogModule.php"
+            },
+            {
+                "generator": "domain-directory",
+                "target": "Domain/.gitkeep"
+            },
+            {
+                "generator": "application-directory",
+                "target": "Application/.gitkeep"
+            },
+            {
+                "generator": "infrastructure-directory",
+                "target": "Infrastructure/.gitkeep"
+            }
+        ],
+        "full": [
+            {
+                "generator": "module",
+                "target": "BlogModule.php"
+            },
+            {
+                "generator": "web-route",
+                "target": "routes/web.php"
+            },
+            {
+                "generator": "web-controller",
+                "target": "Http/Controllers/Web/BlogController.php"
+            },
+            {
+                "generator": "web-view",
+                "target": "resources/views/index.blade.php"
+            },
+            {
+                "generator": "english-translations",
+                "target": "resources/lang/en/messages.php"
+            },
+            {
+                "generator": "web-test",
+                "target": "Tests/Feature/Web/BlogWebTest.php"
+            },
+            {
+                "generator": "api-route",
+                "target": "routes/api.php"
+            },
+            {
+                "generator": "api-controller",
+                "target": "Http/Controllers/Api/BlogController.php"
+            },
+            {
+                "generator": "api-request",
+                "target": "Http/Requests/Api/BlogRequest.php"
+            },
+            {
+                "generator": "api-resource",
+                "target": "Http/Resources/Api/BlogResource.php"
+            },
+            {
+                "generator": "api-test",
+                "target": "Tests/Feature/Api/BlogApiTest.php"
+            },
+            {
+                "generator": "domain-directory",
+                "target": "Domain/.gitkeep"
+            },
+            {
+                "generator": "application-directory",
+                "target": "Application/.gitkeep"
+            },
+            {
+                "generator": "infrastructure-directory",
+                "target": "Infrastructure/.gitkeep"
+            }
+        ]
+    }
+}

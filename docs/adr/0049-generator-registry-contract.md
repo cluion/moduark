@@ -1,6 +1,6 @@
 # ADR-0049: Generator Registry Contract and Laravel Maker Inventory
 
-- Status: Accepted and implemented through `1.1` Slice G5-B
+- Status: Accepted and implemented through `1.1` Slice G5-C
 - Date: 2026-08-23
 
 ## Context

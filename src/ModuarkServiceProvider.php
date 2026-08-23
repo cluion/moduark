@@ -68,6 +68,7 @@ use Cluion\Moduark\Generation\GenerationExecutor;
 use Cluion\Moduark\Generation\GeneratorRegistry;
 use Cluion\Moduark\Generation\ModuleMakerTargetResolver;
 use Cluion\Moduark\Generation\ModuleMakerType;
+use Cluion\Moduark\Generation\ModuleScaffoldPlanner;
 use Cluion\Moduark\Inspection\ModuleInspectionBuilder;
 use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
 use Cluion\Moduark\Lifecycle\ModuleOrderer;
@@ -197,6 +198,7 @@ final class ModuarkServiceProvider extends ServiceProvider
         $this->app->singleton(GenerationPreflight::class);
         $this->app->singleton(GenerationExecutor::class);
         $this->app->singleton(ModuleMakerTargetResolver::class);
+        $this->app->singleton(ModuleScaffoldPlanner::class);
         $this->app->singleton(ModuleOrderer::class);
         $this->app->singleton(CapabilityResolver::class);
         $this->app->singleton(

@@ -1,0 +1,7 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use {{ web_controller }};
+
+Route::get('/{{ module_slug }}', {{ module }}Controller::class)
+    ->name('{{ module_slug }}.index');

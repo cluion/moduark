@@ -1,0 +1,17 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use Tests\TestCase;
+
+final class {{ class }} extends TestCase
+{
+    public function test_module_web_entry_point_is_available(): void
+    {
+        $this->get('/{{ module_slug }}')
+            ->assertOk()
+            ->assertViewIs('{{ view }}');
+    }
+}

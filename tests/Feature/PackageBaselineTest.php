@@ -37,6 +37,7 @@ use Cluion\Moduark\Generation\GenerationPreflight;
 use Cluion\Moduark\Generation\GenerationExecutor;
 use Cluion\Moduark\Generation\GeneratorRegistry;
 use Cluion\Moduark\Generation\ModuleMakerTargetResolver;
+use Cluion\Moduark\Generation\ModuleScaffoldPlanner;
 use Cluion\Moduark\Inspection\ModuleInspectionBuilder;
 use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
 use Cluion\Moduark\Lifecycle\ModuleOrderer;
@@ -92,6 +93,7 @@ final class PackageBaselineTest extends TestCase
         self::assertTrue($application->bound(GenerationPreflight::class));
         self::assertTrue($application->bound(GenerationExecutor::class));
         self::assertTrue($application->bound(ModuleMakerTargetResolver::class));
+        self::assertTrue($application->bound(ModuleScaffoldPlanner::class));
         self::assertTrue($application->bound(ModuleOrderer::class));
         self::assertTrue($application->bound(CapabilityResolver::class));
         self::assertTrue($application->bound(ModuleLifecycleRegistrar::class));

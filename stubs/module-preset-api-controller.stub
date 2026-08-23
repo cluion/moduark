@@ -1,0 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use {{ api_request }};
+use {{ api_resource }};
+
+final class {{ class }}
+{
+    public function __invoke({{ module }}Request $request): {{ module }}Resource
+    {
+        return new {{ module }}Resource($request->validated());
+    }
+}

@@ -1,0 +1,7 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use {{ api_controller }};
+
+Route::get('/api/{{ module_slug }}', {{ module }}Controller::class)
+    ->name('{{ module_slug }}.api.show');

@@ -56,6 +56,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Tests/Feature/` and `Tests/Unit/` roots. Supported Laravel Makers can include
   matching feature tests in the same atomic generation plan without writing to
   the application-global `tests/` tree.
+- Added the package-owned planning contract for additive `minimal`, `web`,
+  `api`, `domain`, and `full` Module scaffold presets, with deterministic target
+  manifests and shared collision ownership.
 - Added the standalone Module-owned `migration` Maker below
   `Database/Migrations/` with Laravel 12 / 13 compatible plain, create, update,
   name inference, timestamp, collision, and no-force contracts.

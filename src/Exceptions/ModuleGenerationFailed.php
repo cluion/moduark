@@ -18,6 +18,13 @@ final class ModuleGenerationFailed extends RuntimeException
         return new self("Module name [{$name}] is reserved by PHP.");
     }
 
+    public static function unsupportedPreset(string $preset): self
+    {
+        return new self(
+            "Module scaffold preset [{$preset}] is not supported; expected minimal, web, api, domain, or full.",
+        );
+    }
+
     public static function namespaceNotResolvable(string $path): self
     {
         return new self("Module path [{$path}] is not inside a registered Composer PSR-4 path.");
