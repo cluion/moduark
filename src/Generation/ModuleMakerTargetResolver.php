@@ -61,6 +61,9 @@ final readonly class ModuleMakerTargetResolver
             $discovered->namespace().'\\'.$descriptor->targetNamespace().'\\'.$className,
             $modulePath.'/'.str_replace('\\', '/', $descriptor->targetNamespace().'\\'.$className).'.php',
             str_replace('\\', '/', $descriptor->targetNamespace().'\\'.$className).'.php',
+            $modulePath,
+            $discovered->namespace(),
+            $className,
         );
     }
 

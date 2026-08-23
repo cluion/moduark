@@ -6,13 +6,16 @@ namespace Tests\Feature;
 
 use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Discovery\DiscoveredModule;
+use Cluion\Moduark\Generation\GenerationExecutor;
 use Cluion\Moduark\Generation\ModuleMakerTargetResolver;
 use Cluion\Moduark\Module;
 use Cluion\Moduark\Registry\ModuleRegistry;
 use FilesystemIterator;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Filesystem\Filesystem;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use RuntimeException;
 use SplFileInfo;
 use Tests\TestCase;
 
@@ -161,6 +164,157 @@ final class ModuleMakeCommandTest extends TestCase
             ->expectsOutputToContain('OVERWRITE Models/Profile.php')
             ->assertSuccessful();
         self::assertSame($source, file_get_contents($path));
+    }
+
+    public function test_it_dry_runs_a_complete_model_factory_and_migration_plan_without_writes(): void
+    {
+        $this->command(
+            'moduark:make User model Admin/Profile --factory --migration --dry-run',
+        )
+            ->expectsOutputToContain('CREATE Models/Admin/Profile.php')
+            ->expectsOutputToContain('CREATE Database/Factories/Admin/ProfileFactory.php')
+            ->expectsOutputToContain('CREATE Database/Migrations/')
+            ->assertSuccessful();
+
+        self::assertSame(
+            [$this->temporaryBasePath.'/app/Modules/User/UserModule.php'],
+            $this->files(),
+        );
+    }
+
+    public function test_it_generates_a_module_owned_model_factory_and_migration_atomically(): void
+    {
+        $model = $this->temporaryBasePath.'/app/Modules/User/Models/Admin/Profile.php';
+        $factory = $this->temporaryBasePath
+            .'/app/Modules/User/Database/Factories/Admin/ProfileFactory.php';
+
+        $this->command(
+            'moduark:make User model Admin/Profile --factory --migration',
+        )->assertSuccessful();
+
+        self::assertFileExists($model);
+        self::assertFileExists($factory);
+        self::assertStringContainsString(
+            'return ProfileFactory::new();',
+            (string) file_get_contents($model),
+        );
+        self::assertStringContainsString(
+            'namespace MakerFixture\\Modules\\User\\Database\\Factories\\Admin;',
+            (string) file_get_contents($factory),
+        );
+        self::assertStringContainsString(
+            'use MakerFixture\\Modules\\User\\Models\\Admin\\Profile;',
+            (string) file_get_contents($factory),
+        );
+
+        $migrations = glob(
+            $this->temporaryBasePath
+                .'/app/Modules/User/Database/Migrations/*_create_profiles_table.php',
+        );
+        self::assertIsArray($migrations);
+        self::assertCount(1, $migrations);
+        self::assertStringContainsString(
+            "Schema::create('profiles'",
+            (string) file_get_contents($migrations[0]),
+        );
+
+        require_once $factory;
+        require_once $model;
+
+        $factoryClass = 'MakerFixture\\Modules\\User\\Database\\Factories\\Admin\\ProfileFactory';
+        self::assertTrue(class_exists($factoryClass));
+        $factoryInstance = ('MakerFixture\\Modules\\User\\Models\\Admin\\Profile')::factory();
+        self::assertInstanceOf(Factory::class, $factoryInstance);
+        self::assertSame($factoryClass, get_debug_type($factoryInstance));
+        self::assertSame(
+            'MakerFixture\\Modules\\User\\Models\\Admin\\Profile',
+            get_debug_type($factoryInstance->make()),
+        );
+    }
+
+    public function test_composite_preflight_reports_all_collisions_without_partial_writes(): void
+    {
+        $root = $this->temporaryBasePath.'/app/Modules/User';
+        $model = $root.'/Models/Profile.php';
+        $factory = $root.'/Database/Factories/ProfileFactory.php';
+        $migration = $root.'/Database/Migrations/2026_08_23_000000_create_profiles_table.php';
+
+        foreach ([$model, $factory, $migration] as $path) {
+            self::assertTrue(is_dir(dirname($path)) || mkdir(dirname($path), 0755, true));
+            self::assertIsInt(file_put_contents($path, 'existing'));
+        }
+
+        $this->command('moduark:make User model Profile --factory --migration')
+            ->expectsOutputToContain('Model already exists.')
+            ->expectsOutputToContain('Factory already exists.')
+            ->expectsOutputToContain('Migration already exists.')
+            ->assertFailed();
+
+        foreach ([$model, $factory, $migration] as $path) {
+            self::assertSame('existing', file_get_contents($path));
+        }
+    }
+
+    public function test_composite_write_failure_rolls_back_every_created_target(): void
+    {
+        $root = $this->temporaryBasePath.'/app/Modules/User';
+        $filesystem = new class extends Filesystem
+        {
+            public function replace($path, $content, $mode = null): void
+            {
+                if (str_contains((string) $path, '/Database/Migrations/')) {
+                    throw new RuntimeException('Injected migration write failure.');
+                }
+
+                parent::replace($path, $content, $mode);
+            }
+        };
+        $this->application()->instance(
+            GenerationExecutor::class,
+            new GenerationExecutor($filesystem),
+        );
+
+        $this->command('moduark:make User model Profile --factory --migration')
+            ->expectsOutputToContain('Module Maker failed: Injected migration write failure.')
+            ->expectsOutputToContain(
+                'Generation failed; all planned filesystem changes were rolled back.',
+            )
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
+
+        self::assertFileDoesNotExist($root.'/Models/Profile.php');
+        self::assertFileDoesNotExist($root.'/Database/Factories/ProfileFactory.php');
+        self::assertSame([$root.'/UserModule.php'], $this->files());
+    }
+
+    public function test_it_rejects_ambiguous_existing_migrations_before_writing_the_model(): void
+    {
+        $root = $this->temporaryBasePath.'/app/Modules/User';
+        $directory = $root.'/Database/Migrations';
+        self::assertTrue(mkdir($directory, 0755, true));
+
+        foreach (['2026_08_22_000000', '2026_08_23_000000'] as $timestamp) {
+            self::assertIsInt(file_put_contents(
+                $directory.'/'.$timestamp.'_create_profiles_table.php',
+                'existing',
+            ));
+        }
+
+        $this->command('moduark:make User model Profile --migration --force')
+            ->expectsOutputToContain(
+                'Module Maker failed: Migration [create_profiles_table] has multiple Module targets:',
+            )
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
+
+        self::assertFileDoesNotExist($root.'/Models/Profile.php');
+    }
+
+    public function test_it_rejects_model_composite_options_for_controllers(): void
+    {
+        $this->command('moduark:make User controller ProfileController --factory')
+            ->expectsOutputToContain(
+                'Module Maker failed: The --factory option is not supported for Maker type [controller].',
+            )
+            ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }
 
     public function test_it_rejects_an_unknown_module(): void

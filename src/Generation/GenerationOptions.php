@@ -11,6 +11,8 @@ final readonly class GenerationOptions
         public bool $invokable,
         public bool $resource,
         public bool $api,
+        public bool $factory,
+        public bool $migration,
     ) {
     }
 }

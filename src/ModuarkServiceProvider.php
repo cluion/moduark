@@ -64,6 +64,7 @@ use Cluion\Moduark\Graph\Export\TextModuleGraphExporter;
 use Cluion\Moduark\Graph\ModuleGraphBuilder;
 use Cluion\Moduark\Generation\GenerationPlanner;
 use Cluion\Moduark\Generation\GenerationPreflight;
+use Cluion\Moduark\Generation\GenerationExecutor;
 use Cluion\Moduark\Generation\GeneratorRegistry;
 use Cluion\Moduark\Generation\ModuleMakerTargetResolver;
 use Cluion\Moduark\Generation\ModuleMakerType;
@@ -194,6 +195,7 @@ final class ModuarkServiceProvider extends ServiceProvider
         );
         $this->app->singleton(GenerationPlanner::class);
         $this->app->singleton(GenerationPreflight::class);
+        $this->app->singleton(GenerationExecutor::class);
         $this->app->singleton(ModuleMakerTargetResolver::class);
         $this->app->singleton(ModuleOrderer::class);
         $this->app->singleton(CapabilityResolver::class);

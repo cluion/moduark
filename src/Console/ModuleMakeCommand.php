@@ -7,11 +7,13 @@ namespace Cluion\Moduark\Console;
 use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Exceptions\ModuleMakerFailed;
 use Cluion\Moduark\Generation\GenerationOptions;
+use Cluion\Moduark\Generation\GenerationExecutor;
 use Cluion\Moduark\Generation\GenerationPlan;
 use Cluion\Moduark\Generation\GenerationPlanner;
 use Cluion\Moduark\Generation\GenerationPreflight;
 use Cluion\Moduark\Generation\GenerationTarget;
 use Illuminate\Console\Command;
+use RuntimeException;
 
 final class ModuleMakeCommand extends Command
 {
@@ -22,6 +24,8 @@ final class ModuleMakeCommand extends Command
         {name : StudlyCase class name, optionally with nested segments}
         {--dry-run : Display the complete generation plan without writing files}
         {--force : Overwrite an existing generated class}
+        {--factory : Generate a Module-owned factory for a model}
+        {--migration : Generate a Module-owned create-table migration for a model}
         {--invokable : Generate an invokable controller}
         {--resource : Generate a resource controller}
         {--api : Generate an API controller without create and edit methods}';
@@ -32,6 +36,7 @@ final class ModuleMakeCommand extends Command
     public function __construct(
         private readonly GenerationPlanner $planner,
         private readonly GenerationPreflight $preflight,
+        private readonly GenerationExecutor $executor,
     ) {
         parent::__construct();
     }
@@ -54,6 +59,8 @@ final class ModuleMakeCommand extends Command
                 invokable: $this->option('invokable') === true,
                 resource: $this->option('resource') === true,
                 api: $this->option('api') === true,
+                factory: $this->option('factory') === true,
+                migration: $this->option('migration') === true,
             ));
         } catch (ModuleMakerFailed $exception) {
             $this->components->error('Module Maker failed: '.$exception->getMessage());
@@ -77,11 +84,44 @@ final class ModuleMakeCommand extends Command
             return self::SUCCESS;
         }
 
-        foreach ($plan->targets() as $target) {
-            $exitCode = $this->call($target->command(), $target->parameters());
+        $result = $this->executor->execute(
+            $plan,
+            function (GenerationTarget $target): int {
+                $command = $target->command();
 
-            if ($exitCode !== self::SUCCESS) {
-                return $exitCode;
+                if ($command === null) {
+                    throw new RuntimeException(
+                        "Generator [{$target->generatorId()}] has no executable command or template.",
+                    );
+                }
+
+                return $this->call($command, $target->parameters());
+            },
+        );
+
+        if (! $result->successful()) {
+            if ($result->failureMessage() !== null) {
+                $this->components->error('Module Maker failed: '.$result->failureMessage());
+            }
+
+            if ($result->rollbackFailures() !== []) {
+                $this->components->error(
+                    'Generation rollback failed for ['.implode(', ', $result->rollbackFailures()).'].',
+                );
+            } elseif (count($plan->targets()) > 1 && $result->rollbackAttempted()) {
+                $this->components->warn('Generation failed; all planned filesystem changes were rolled back.');
+            }
+
+            return $result->exitCode();
+        }
+
+        foreach ($plan->targets() as $target) {
+            if ($target->template() !== null) {
+                $this->components->info(sprintf(
+                    '%s [%s] created successfully.',
+                    ucfirst($target->generatorId()),
+                    $target->moduleRelativePath(),
+                ));
             }
         }
 
@@ -100,6 +140,8 @@ final class ModuleMakeCommand extends Command
 
     private function action(GenerationTarget $target): string
     {
-        return $target->overwrite() && is_file($target->filePath()) ? 'OVERWRITE' : 'CREATE';
+        return $target->overwrite() && (file_exists($target->filePath()) || is_link($target->filePath()))
+            ? 'OVERWRITE'
+            : 'CREATE';
     }
 }

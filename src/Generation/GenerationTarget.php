@@ -9,12 +9,13 @@ final readonly class GenerationTarget
     /** @param array<string, bool|string> $parameters */
     public function __construct(
         private string $generatorId,
-        private string $command,
+        private ?string $command,
         private string $className,
         private string $filePath,
         private string $moduleRelativePath,
         private bool $overwrite,
         private array $parameters,
+        private ?GenerationFileTemplate $template = null,
     ) {
     }
 
@@ -23,7 +24,7 @@ final readonly class GenerationTarget
         return $this->generatorId;
     }
 
-    public function command(): string
+    public function command(): ?string
     {
         return $this->command;
     }
@@ -52,5 +53,10 @@ final readonly class GenerationTarget
     public function parameters(): array
     {
         return $this->parameters;
+    }
+
+    public function template(): ?GenerationFileTemplate
+    {
+        return $this->template;
     }
 }

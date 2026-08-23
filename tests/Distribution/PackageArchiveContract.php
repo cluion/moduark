@@ -25,6 +25,9 @@ final class PackageArchiveContract
         'src/Analysis/Suppression/SuppressionArchitectureCheck.php',
         'src/Module.php',
         'stubs/module.stub',
+        'stubs/module-factory.stub',
+        'stubs/module-migration.create.stub',
+        'stubs/module-model.factory.stub',
     ];
 
     /** @var list<string> */

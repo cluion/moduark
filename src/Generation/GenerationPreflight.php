@@ -16,7 +16,11 @@ final readonly class GenerationPreflight
             $path = $this->canonicalPath($target->filePath());
             $key = DIRECTORY_SEPARATOR === '\\' ? strtolower($path) : $path;
 
-            if (isset($seen[$key]) || (is_file($path) && ! $target->overwrite())) {
+            if (
+                isset($seen[$key])
+                || is_link($path)
+                || (file_exists($path) && (! is_file($path) || ! $target->overwrite()))
+            ) {
                 $collisions[$key] = $target;
             }
 

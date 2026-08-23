@@ -67,4 +67,14 @@ final class ModuleMakerFailed extends RuntimeException
             implode(', ', array_map(static fn (string $option): string => '--'.$option, $options)),
         ));
     }
+
+    /** @param list<string> $paths */
+    public static function ambiguousMigration(string $name, array $paths): self
+    {
+        return new self(sprintf(
+            'Migration [%s] has multiple Module targets: %s.',
+            $name,
+            implode(', ', $paths),
+        ));
+    }
 }

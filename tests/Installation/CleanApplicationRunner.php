@@ -231,7 +231,15 @@ final class CleanApplicationRunner
 
         $dryRun = $this->artisan(
             $application,
-            ['moduark:make', 'User', 'model', 'Profile', '--dry-run'],
+            [
+                'moduark:make',
+                'User',
+                'model',
+                'Profile',
+                '--factory',
+                '--migration',
+                '--dry-run',
+            ],
             $environment,
         );
         $this->assertContains(
@@ -239,16 +247,46 @@ final class CleanApplicationRunner
             $dryRun,
             'moduark:make --dry-run did not render the resolved Module-relative target.',
         );
+        $this->assertContains(
+            'CREATE Database/Factories/ProfileFactory.php',
+            $dryRun,
+            'moduark:make --dry-run omitted the Module-owned factory target.',
+        );
+        $this->assertContains(
+            'CREATE Database/Migrations/',
+            $dryRun,
+            'moduark:make --dry-run omitted the Module-owned migration target.',
+        );
         $this->assertFileMissing(
             $application.'/app/Modules/User/Models/Profile.php',
             'moduark:make --dry-run must not create the planned model.',
         );
+        $this->assertFileMissing(
+            $application.'/app/Modules/User/Database/Factories/ProfileFactory.php',
+            'moduark:make --dry-run must not create the planned factory.',
+        );
 
-        $this->artisan($application, ['moduark:make', 'User', 'model', 'Profile'], $environment);
+        $this->artisan(
+            $application,
+            ['moduark:make', 'User', 'model', 'Profile', '--factory', '--migration'],
+            $environment,
+        );
         $this->assertFileExists(
             $application.'/app/Modules/User/Models/Profile.php',
             'moduark:make did not create the User Profile model.',
         );
+        $this->assertFileExists(
+            $application.'/app/Modules/User/Database/Factories/ProfileFactory.php',
+            'moduark:make did not create the User Profile factory.',
+        );
+        $profileMigrations = glob(
+            $application.'/app/Modules/User/Database/Migrations/*_create_profiles_table.php',
+        );
+        if (! is_array($profileMigrations) || count($profileMigrations) !== 1) {
+            throw new RuntimeException(
+                'moduark:make must create exactly one Module-owned Profile migration.',
+            );
+        }
         $this->artisan(
             $application,
             ['moduark:make', 'User', 'controller', 'ProfileController', '--invokable'],

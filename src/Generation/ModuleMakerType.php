@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Cluion\Moduark\Generation;
 
 use Cluion\Moduark\Exceptions\ModuleMakerFailed;
+use Illuminate\Support\Str;
 
 enum ModuleMakerType: string implements GeneratorDescriptor
 {
@@ -57,6 +58,18 @@ enum ModuleMakerType: string implements GeneratorDescriptor
                     throw ModuleMakerFailed::unsupportedOption($option, $this->value);
                 }
             }
+
+            $targets = [$this->modelTarget($target, $options)];
+
+            if ($options->factory) {
+                $targets[] = $this->factoryTarget($target, $options);
+            }
+
+            if ($options->migration) {
+                $targets[] = $this->migrationTarget($target, $options);
+            }
+
+            return new GenerationPlan($targets);
         } elseif ($options->invokable && ($options->resource || $options->api)) {
             $conflicts = ['invokable'];
 
@@ -71,18 +84,22 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             throw ModuleMakerFailed::conflictingOptions($conflicts);
         }
 
+        foreach (['factory' => $options->factory, 'migration' => $options->migration] as $option => $enabled) {
+            if ($enabled) {
+                throw ModuleMakerFailed::unsupportedOption($option, $this->value);
+            }
+        }
+
         $parameters = [
             'name' => $target->className(),
             '--force' => $options->force,
         ];
 
-        if ($this === self::Controller) {
-            $parameters += [
-                '--invokable' => $options->invokable,
-                '--resource' => $options->resource,
-                '--api' => $options->api,
-            ];
-        }
+        $parameters += [
+            '--invokable' => $options->invokable,
+            '--resource' => $options->resource,
+            '--api' => $options->api,
+        ];
 
         $parameters['--no-interaction'] = true;
 
@@ -100,5 +117,124 @@ enum ModuleMakerType: string implements GeneratorDescriptor
                 ),
             ),
         ]);
+    }
+
+    private function modelTarget(
+        ModuleMakerTarget $target,
+        GenerationOptions $options,
+    ): GenerationTarget {
+        return new GenerationTarget(
+            $this->id(),
+            $options->factory ? null : $this->command(),
+            $target->className(),
+            $target->filePath(),
+            $target->moduleRelativePath(),
+            $options->force,
+            $options->factory ? [] : array_filter([
+                'name' => $target->className(),
+                '--force' => $options->force,
+                '--no-interaction' => true,
+            ], static fn (bool|string $value): bool => $value !== false),
+            $options->factory ? $this->modelTemplate($target) : null,
+        );
+    }
+
+    private function factoryTarget(
+        ModuleMakerTarget $target,
+        GenerationOptions $options,
+    ): GenerationTarget {
+        $segments = explode('\\', $target->localName());
+        $model = array_pop($segments);
+        $nestedNamespace = $segments === [] ? '' : '\\'.implode('\\', $segments);
+        $nestedPath = $segments === [] ? '' : '/'.implode('/', $segments);
+        $namespace = $target->moduleNamespace().'\\Database\\Factories'.$nestedNamespace;
+        $class = $model.'Factory';
+
+        return new GenerationTarget(
+            'factory',
+            null,
+            $namespace.'\\'.$class,
+            $target->modulePath().'/Database/Factories'.$nestedPath.'/'.$class.'.php',
+            'Database/Factories'.$nestedPath.'/'.$class.'.php',
+            $options->force,
+            [],
+            new GenerationFileTemplate($this->stubPath('module-factory.stub'), [
+                '{{ namespace }}' => $namespace,
+                '{{ model }}' => $target->className(),
+                '{{ modelShort }}' => $model,
+                '{{ class }}' => $class,
+            ]),
+        );
+    }
+
+    private function migrationTarget(
+        ModuleMakerTarget $target,
+        GenerationOptions $options,
+    ): GenerationTarget {
+        $model = class_basename($target->localName());
+        $table = Str::snake(Str::pluralStudly($model));
+        $name = 'create_'.$table.'_table';
+        $directory = $target->modulePath().'/Database/Migrations';
+        $existing = glob($directory.'/*_'.$name.'.php') ?: [];
+        sort($existing, SORT_STRING);
+
+        if (count($existing) > 1) {
+            throw ModuleMakerFailed::ambiguousMigration(
+                $name,
+                array_map('basename', $existing),
+            );
+        }
+
+        $path = $existing[0] ?? $this->newMigrationPath($directory, $name);
+
+        return new GenerationTarget(
+            'migration',
+            null,
+            $name,
+            $path,
+            'Database/Migrations/'.basename($path),
+            $options->force,
+            [],
+            new GenerationFileTemplate($this->stubPath('module-migration.create.stub'), [
+                '{{ table }}' => $table,
+            ]),
+        );
+    }
+
+    private function modelTemplate(ModuleMakerTarget $target): GenerationFileTemplate
+    {
+        $modelSegments = explode('\\', $target->className());
+        $model = array_pop($modelSegments);
+        $modelNamespace = implode('\\', $modelSegments);
+        $localSegments = explode('\\', $target->localName());
+        array_pop($localSegments);
+        $factoryNamespace = $target->moduleNamespace().'\\Database\\Factories';
+
+        if ($localSegments !== []) {
+            $factoryNamespace .= '\\'.implode('\\', $localSegments);
+        }
+
+        return new GenerationFileTemplate($this->stubPath('module-model.factory.stub'), [
+            '{{ namespace }}' => $modelNamespace,
+            '{{ factory }}' => $factoryNamespace.'\\'.$model.'Factory',
+            '{{ factoryShort }}' => $model.'Factory',
+            '{{ class }}' => $model,
+        ]);
+    }
+
+    private function newMigrationPath(string $directory, string $name): string
+    {
+        $timestamp = time();
+
+        do {
+            $prefix = date('Y_m_d_His', $timestamp++);
+        } while (glob($directory.'/'.$prefix.'_*.php'));
+
+        return $directory.'/'.$prefix.'_'.$name.'.php';
+    }
+
+    private function stubPath(string $stub): string
+    {
+        return dirname(__DIR__, 2).'/stubs/'.$stub;
     }
 }

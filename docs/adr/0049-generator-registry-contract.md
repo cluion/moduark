@@ -1,6 +1,6 @@
 # ADR-0049: Generator Registry Contract and Laravel Maker Inventory
 
-- Status: Accepted and implemented through `1.1` Slice G0-B
+- Status: Accepted and implemented through `1.1` Slice G0-C
 - Date: 2026-08-23
 
 ## Context
@@ -19,7 +19,9 @@ behavior.
 
 G0-A established that contract and evidence without changing the current
 `moduark:make` runtime. G0-B makes the boundary executable for the existing
-model and controller types without claiming support for additional Makers.
+model and controller types without claiming support for additional Makers. G0-C
+adds the first composite model plan and the executor atomicity contract described
+in ADR-0050.
 
 ## Decision
 
@@ -42,9 +44,9 @@ model and controller types without claiming support for additional Makers.
   the same plan.
 - The planner resolves every target within the selected Module, and centralized
   preflight reports all existing or duplicate planned paths before delegation.
-  The command only begins delegation after the whole plan passes. The current
-  built-ins each have one target; composite all-or-nothing execution and
-  rollback remain a separate slice before composite Makers are registered.
+  The command only begins execution after the whole plan passes. Standalone
+  model/controller targets retain Laravel delegation. Model `--factory` and
+  `--migration` targets use the rollback-capable executor introduced by G0-C.
   `--dry-run` renders that same plan without filesystem mutation.
 - Laravel delegation is descriptor-owned and allowlisted. Unknown native or
   third-party options are never forwarded implicitly; a composite native option
@@ -106,6 +108,10 @@ membership is evidence for planning, not a support claim.
 - Clean Laravel 12 and 13 installation gates run a dry-run before real model and
   controller generation and assert that the planned model is absent until the
   real command executes.
+- G0-C feature and executor tests cover three-target dry-run parity, Module-owned
+  factory/migration paths, runtime `Model::factory()` wiring, complete collision
+  reporting, new-file cleanup, overwritten-file restoration, and explicit
+  rollback-failure reporting.
 
 ## Consequences
 
@@ -115,8 +121,7 @@ membership is evidence for planning, not a support claim.
 - The 31 name-based commands are a bounded research surface for later Maker
   groups; each still needs its own Module ownership, path, option, and composite
   tests before registration.
-- Composite generators still require an executor-level rollback/atomicity
-  contract; they must not be registered merely because the plan can represent
-  multiple targets.
+- Further composite generators must use the same executor contract and prove
+  every related target, collision, and rollback path independently.
 - JSON plan output, all Maker groups, native `make:* --module` bridging, resource
   plugins, and presets remain separate later slices.

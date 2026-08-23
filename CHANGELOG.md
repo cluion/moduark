@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   existing model and controller Makers. `moduark:make --dry-run` now validates
   and renders the same preflighted Module-relative targets without filesystem
   mutation, while normal generation retains the existing Laravel delegation.
+- Added model `--factory` and `--migration` composite plans with Module-owned
+  targets, complete collision preflight, runtime factory wiring, and executor
+  rollback for newly created or overwritten files. Rollback failures are
+  surfaced explicitly instead of being reported as atomic success.
 
 ## [1.0.1] - 2026-08-23
 

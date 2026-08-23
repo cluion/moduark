@@ -23,11 +23,7 @@ final class GenerationPreflightTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach (glob($this->temporaryDirectory.'/*') ?: [] as $path) {
-            self::assertTrue(unlink($path));
-        }
-
-        self::assertTrue(rmdir($this->temporaryDirectory));
+        (new \Illuminate\Filesystem\Filesystem)->deleteDirectory($this->temporaryDirectory);
 
         parent::tearDown();
     }
@@ -63,6 +59,17 @@ final class GenerationPreflightTest extends TestCase
         );
 
         self::assertSame([$duplicate], $collisions);
+    }
+
+    public function test_force_does_not_allow_a_directory_at_a_planned_file_path(): void
+    {
+        $target = $this->target('factory', 'ProfileFactory.php', true);
+        self::assertTrue(mkdir($target->filePath()));
+
+        self::assertSame(
+            [$target],
+            (new GenerationPreflight)->collisions(new GenerationPlan([$target])),
+        );
     }
 
     private function target(string $generatorId, string $file, bool $overwrite = false): GenerationTarget

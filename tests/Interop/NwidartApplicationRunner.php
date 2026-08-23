@@ -601,6 +601,12 @@ PHP;
             $moduark,
             'Moduark resource maker lost its generation-plan preview option.',
         );
+        $this->assertContains('--factory', $moduark, 'Moduark resource maker lost its factory option.');
+        $this->assertContains(
+            '--migration',
+            $moduark,
+            'Moduark resource maker lost its migration option.',
+        );
     }
 
     /** @param array<string, string> $environment */

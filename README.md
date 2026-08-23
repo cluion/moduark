@@ -138,6 +138,7 @@ php artisan moduark:make User controller ProfileController
 php artisan moduark:make User controller ProfileController --invokable
 php artisan moduark:make User controller ProfileController --resource --api
 php artisan moduark:make User model Profile --dry-run
+php artisan moduark:make User model Profile --factory --migration
 ```
 
 Models are generated below `Models/`; controllers are generated below
@@ -148,17 +149,27 @@ generation plan, including collisions, then displays each Module-relative target
 without writing files. With `--force`, an existing target is shown as
 `OVERWRITE`; otherwise it remains a collision.
 
+Models additionally support `--factory` and `--migration`. These options plan a
+factory below `Database/Factories/` and a create-table migration below
+`Database/Migrations/`, wire `Model::factory()` to the Module-owned factory, and
+commit the complete plan through one rollback-capable executor. Any preflight
+collision prevents every write. If a later write fails, newly created targets
+are removed and overwritten targets are restored; an incomplete rollback is
+reported as a tool error rather than claimed as atomic success.
+
 The target Module must already exist and its configured path must be inside the
-Laravel application source root. Composite Laravel Maker options that create
-related factories, migrations, controllers, requests, policies, seeds, or tests
-are deliberately not exposed until every generated file can retain Module
-ownership. Delegated Laravel Makers run non-interactively so framework prompts
+Laravel application source root. Other composite Laravel Maker options that
+create controllers, requests, policies, seeds, or tests remain deliberately
+unexposed until every generated file can retain Module ownership. Delegated
+Laravel Makers run non-interactively so framework prompts
 cannot create undeclared related artifacts. Moduark does not inject `--module`
 into Laravel or third-party `make:*` commands. See
 [ADR-0032](docs/adr/0032-laravel-maker-integration-direction.md). The reviewed
 Laravel 12/13 Maker inventory and executable `1.1` registry boundary are recorded
-in [ADR-0049](docs/adr/0049-generator-registry-contract.md); they do not expand
-the Maker types currently supported by `moduark:make`.
+in [ADR-0049](docs/adr/0049-generator-registry-contract.md). Composite ownership
+and rollback semantics are recorded in
+[ADR-0050](docs/adr/0050-composite-generation-atomicity.md); they do not add a
+new top-level Maker type.
 
 Inspect the discovered architecture:
 
@@ -433,7 +444,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | Command | Current contract |
 |---|---|
 | `moduark:make-module {name}` | Create one minimal, non-overwriting Module entry class |
-| `moduark:make {module} {type} {name} [--dry-run]` | Plan or generate a model or controller inside an existing application Module |
+| `moduark:make {module} {type} {name} [--dry-run]` | Plan or generate a model or controller, with optional Module-owned model factory and migration |
 | `moduark:baseline [--level=0..3] [--force] [--prune]` | Adopt current violations explicitly or safely remove stale baseline debt |
 | `moduark:cache` | Cache deterministic Module discovery and typed metadata |
 | `moduark:clear` | Remove cached Module metadata and incremental source analysis |
