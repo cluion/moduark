@@ -119,6 +119,10 @@ no implicit registration side effects.
   delegation. Relative `--event` values are validated and qualified below the
   selected Module's `Events/` namespace; `--queued` selects the native queued
   variants without creating an event or mutating provider registration.
+- G4-C fixes jobs below `Jobs/` and keeps native single-target delegation.
+  Laravel 12 and 13 share queued, synchronous, and batched queued stubs. Moduark
+  rejects `--sync --batched` instead of preserving Laravel's silent batched
+  precedence, and does not expose matching-test generation.
 
 The concrete PHP interfaces were introduced with executable contract tests in
 G0-B. They remain pre-`1.1` internal extension boundaries until their public API

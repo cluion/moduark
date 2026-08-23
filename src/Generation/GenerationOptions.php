@@ -27,6 +27,8 @@ final readonly class GenerationOptions
         public bool $implicit,
         public ?string $event,
         public bool $queued,
+        public bool $sync,
+        public bool $batched,
     ) {
     }
 }

@@ -146,6 +146,9 @@ php artisan moduark:make User event Billing/InvoicePaid
 php artisan moduark:make User exception Billing/PaymentFailed --render --report
 php artisan moduark:make User factory Billing/InvoiceFactory --model=Profile
 php artisan moduark:make User interface Lookup/UserLookup
+php artisan moduark:make User job Billing/ProcessInvoice
+php artisan moduark:make User job Billing/SyncInvoice --sync
+php artisan moduark:make User job Billing/ReconcileInvoices --batched
 php artisan moduark:make User listener Billing/SendInvoiceReceipt --event=Billing/InvoicePaid --queued
 php artisan moduark:make User middleware Admin/EnsureProfileIsComplete
 php artisan moduark:make User migration CreateAuditLogsTable --create=audit_logs
@@ -248,6 +251,12 @@ typed, queued, or typed-queued stub. A relative `--event=Billing/InvoicePaid`
 is validated and qualified below the selected Module's `Events/` namespace;
 external event classes are rejected. Listener generation supports `--force`
 and `--dry-run`, but never creates the referenced event or provider registration.
+
+Jobs use the Module-owned `Jobs/` path and Laravel's native queued, synchronous,
+or batched queued stub. The default is queued; `--sync` selects the synchronous
+stub and `--batched` selects the batch-aware queued stub. The two modes are
+mutually exclusive. Job generation supports `--force` and `--dry-run`, but does
+not create matching tests, queue infrastructure, or batch migrations.
 
 The target Module must already exist and its configured path must be inside the
 Laravel application source root. Other composite Laravel Maker options that

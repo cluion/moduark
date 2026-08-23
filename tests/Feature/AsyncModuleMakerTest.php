@@ -262,6 +262,85 @@ final class AsyncModuleMakerTest extends TestCase
         );
     }
 
+    public function test_it_generates_queued_sync_and_batched_module_owned_jobs(): void
+    {
+        $this->command('moduark:make User job Billing/ProcessInvoice')->assertSuccessful();
+        $this->command('moduark:make User job Billing/SyncInvoice --sync')->assertSuccessful();
+        $this->command(
+            'moduark:make User job Billing/ReconcileInvoices --batched',
+        )->assertSuccessful();
+
+        $queuedPath = $this->temporaryBasePath
+            .'/app/Modules/User/Jobs/Billing/ProcessInvoice.php';
+        $syncPath = $this->temporaryBasePath
+            .'/app/Modules/User/Jobs/Billing/SyncInvoice.php';
+        $batchedPath = $this->temporaryBasePath
+            .'/app/Modules/User/Jobs/Billing/ReconcileInvoices.php';
+        $queued = (string) file_get_contents($queuedPath);
+        $sync = (string) file_get_contents($syncPath);
+        $batched = (string) file_get_contents($batchedPath);
+
+        foreach ([$queued, $sync, $batched] as $job) {
+            self::assertStringContainsString(
+                'namespace MakerFixture\\Modules\\User\\Jobs\\Billing;',
+                $job,
+            );
+        }
+
+        self::assertStringContainsString('class ProcessInvoice implements ShouldQueue', $queued);
+        self::assertStringContainsString('use Queueable;', $queued);
+        self::assertStringContainsString('use Illuminate\\Foundation\\Bus\\Dispatchable;', $sync);
+        self::assertStringContainsString('class SyncInvoice', $sync);
+        self::assertStringNotContainsString('implements ShouldQueue', $sync);
+        self::assertStringContainsString('class ReconcileInvoices implements ShouldQueue', $batched);
+        self::assertStringContainsString('use Batchable, Queueable;', $batched);
+        self::assertStringContainsString('if ($this->batch()->cancelled())', $batched);
+        self::assertDirectoryDoesNotExist($this->temporaryBasePath.'/tests');
+        self::assertDirectoryDoesNotExist($this->temporaryBasePath.'/database');
+    }
+
+    public function test_job_shares_collision_force_and_dry_run_behavior(): void
+    {
+        $relativePath = 'Jobs/Billing/ProcessInvoice.php';
+        $path = $this->temporaryBasePath.'/app/Modules/User/'.$relativePath;
+        $command = 'moduark:make User job Billing/ProcessInvoice';
+
+        $this->command($command.' --dry-run')
+            ->expectsOutputToContain('CREATE '.$relativePath)
+            ->assertSuccessful();
+        self::assertFileDoesNotExist($path);
+
+        $this->command($command)->assertSuccessful();
+        self::assertIsInt(file_put_contents($path, 'existing source'));
+
+        $this->command($command)
+            ->expectsOutputToContain('Job already exists.')
+            ->assertFailed();
+        self::assertSame('existing source', file_get_contents($path));
+
+        $this->command($command.' --force')->assertSuccessful();
+        self::assertNotSame('existing source', file_get_contents($path));
+    }
+
+    public function test_job_rejects_conflicting_or_foreign_options_without_mutation(): void
+    {
+        $this->command('moduark:make User job Billing/ProcessInvoice --sync --batched')
+            ->expectsOutputToContain(
+                'Module Maker failed: The job Maker options [--sync, --batched] cannot be combined.',
+            )
+            ->assertExitCode(2);
+        $this->command('moduark:make User job Billing/ProcessInvoice --event=Billing/InvoicePaid')
+            ->expectsOutputToContain(
+                'Module Maker failed: The --event option is not supported for Maker type [job].',
+            )
+            ->assertExitCode(2);
+
+        self::assertSame(
+            [$this->temporaryBasePath.'/app/Modules/User/UserModule.php'],
+            $this->files(),
+        );
+    }
+
     /** @return list<string> */
     private function files(): array
     {

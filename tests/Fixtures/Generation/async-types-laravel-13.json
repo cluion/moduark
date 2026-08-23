@@ -31,6 +31,24 @@
             "name": "Billing/NotifyAccounting",
             "options": "--event=Billing/InvoicePaid --queued",
             "target": "Listeners/Billing/NotifyAccounting.php"
+        },
+        {
+            "type": "job",
+            "name": "Billing/ProcessInvoice",
+            "options": "",
+            "target": "Jobs/Billing/ProcessInvoice.php"
+        },
+        {
+            "type": "job",
+            "name": "Billing/SyncInvoice",
+            "options": "--sync",
+            "target": "Jobs/Billing/SyncInvoice.php"
+        },
+        {
+            "type": "job",
+            "name": "Billing/ReconcileInvoices",
+            "options": "--batched",
+            "target": "Jobs/Billing/ReconcileInvoices.php"
         }
     ]
 }

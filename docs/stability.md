@@ -99,7 +99,7 @@ The following commands and their documented arguments and options are Stable:
 
 ```text
 moduark:make-module {name}
-moduark:make {module} {type} {name} [--dry-run] [--force] [--factory] [--migration] [--create=] [--table=] [--int] [--string] [--inbound] [--render] [--report] [--collection] [--json-api] [--model=] [--guard=] [--implicit] [--event=] [--queued] [--invokable] [--resource] [--api]
+moduark:make {module} {type} {name} [--dry-run] [--force] [--factory] [--migration] [--create=] [--table=] [--int] [--string] [--inbound] [--render] [--report] [--collection] [--json-api] [--model=] [--guard=] [--implicit] [--event=] [--queued] [--sync] [--batched] [--invokable] [--resource] [--api]
 moduark:list
 moduark:inspect {module}
 moduark:graph [{module}] [--view=module] [--format=text]
@@ -134,6 +134,9 @@ registrations.
 Listeners are generated below `Listeners/` with Laravel's native plain, typed,
 queued, or typed-queued stub. `--event=` accepts only a Module-relative event
 below `Events/`; generation never creates that event or provider registration.
+Jobs are generated below `Jobs/` with Laravel's native queued, synchronous, or
+batched queued stub. `--sync` and `--batched` cannot be combined; generation
+never creates matching tests, queue infrastructure, or batch migrations.
 
 Architecture checks use these process exit codes:
 

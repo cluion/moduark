@@ -55,6 +55,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the Module-owned `listener` Maker below `Listeners/` with Laravel-native
   plain, typed, queued, and typed-queued stubs. Relative `--event` values resolve
   inside the selected Module without creating events or provider registrations.
+- Added the Module-owned `job` Maker below `Jobs/` with Laravel-native queued,
+  synchronous, and batched queued stubs. `--sync` and `--batched` are explicitly
+  mutually exclusive and never create related tests or queue infrastructure.
 
 ## [1.0.1] - 2026-08-23
 

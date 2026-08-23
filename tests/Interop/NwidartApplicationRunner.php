@@ -619,6 +619,8 @@ PHP;
         $this->assertContains('--implicit', $moduark, 'Moduark resource maker lost its rule implicit option.');
         $this->assertContains('--event', $moduark, 'Moduark Module Maker lost its listener event option.');
         $this->assertContains('--queued', $moduark, 'Moduark Module Maker lost its queued listener option.');
+        $this->assertContains('--sync', $moduark, 'Moduark Module Maker lost its synchronous job option.');
+        $this->assertContains('--batched', $moduark, 'Moduark Module Maker lost its batchable job option.');
         $this->assertContains(
             'middleware',
             $moduark,
@@ -627,6 +629,7 @@ PHP;
         $this->assertContains('factory', $moduark, 'Moduark resource maker lost its factory type.');
         $this->assertContains('observer', $moduark, 'Moduark Module Maker lost its observer type.');
         $this->assertContains('event', $moduark, 'Moduark Module Maker lost its event type.');
+        $this->assertContains('job', $moduark, 'Moduark Module Maker lost its job type.');
         $this->assertContains('listener', $moduark, 'Moduark Module Maker lost its listener type.');
         $this->assertContains('policy', $moduark, 'Moduark resource maker lost its policy type.');
         $this->assertContains('rule', $moduark, 'Moduark resource maker lost its rule type.');

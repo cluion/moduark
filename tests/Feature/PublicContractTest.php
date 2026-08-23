@@ -228,6 +228,8 @@ final class PublicContractTest extends TestCase
             'implicit' => false,
             'event' => null,
             'queued' => false,
+            'sync' => false,
+            'batched' => false,
             'invokable' => false,
             'resource' => false,
             'api' => false,

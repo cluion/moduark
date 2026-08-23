@@ -19,6 +19,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     case PhpException = 'exception';
     case Factory = 'factory';
     case PhpInterface = 'interface';
+    case Job = 'job';
     case Listener = 'listener';
     case HttpMiddleware = 'middleware';
     case Migration = 'migration';
@@ -43,6 +44,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpException->value => self::PhpException,
             self::Factory->value => self::Factory,
             self::PhpInterface->value => self::PhpInterface,
+            self::Job->value => self::Job,
             self::Listener->value => self::Listener,
             self::HttpMiddleware->value => self::HttpMiddleware,
             self::Migration->value => self::Migration,
@@ -80,6 +82,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpException => 'Exceptions',
             self::Factory => 'Database\\Factories',
             self::PhpInterface => 'Contracts',
+            self::Job => 'Jobs',
             self::Listener => 'Listeners',
             self::HttpMiddleware => 'Http\\Middleware',
             self::Migration => 'Database\\Migrations',
@@ -113,6 +116,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Event,
             self::PhpException,
             self::PhpInterface,
+            self::Job,
             self::Listener,
             self::HttpMiddleware,
             self::Observer,
@@ -312,6 +316,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Observer => ['model'],
             self::Policy => ['model', 'guard'],
             self::ValidationRule => ['implicit'],
+            self::Job => ['sync', 'batched'],
             self::Listener => ['event', 'queued'],
             self::Event,
             self::PhpInterface,
@@ -329,6 +334,10 @@ enum ModuleMakerType: string implements GeneratorDescriptor
 
         if ($this === self::HttpResource && $options->collection && $options->jsonApi) {
             throw ModuleMakerFailed::conflictingResourceOptions(['collection', 'json-api']);
+        }
+
+        if ($this === self::Job && $options->sync && $options->batched) {
+            throw ModuleMakerFailed::conflictingJobOptions();
         }
 
         $parameters = [
@@ -370,6 +379,9 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             }
 
             $parameters['--queued'] = $options->queued;
+        } elseif ($this === self::Job) {
+            $parameters['--sync'] = $options->sync;
+            $parameters['--batched'] = $options->batched;
         }
 
         return new GenerationPlan([
@@ -411,6 +423,8 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             'implicit' => $options->implicit,
             'event' => $options->event !== null,
             'queued' => $options->queued,
+            'sync' => $options->sync,
+            'batched' => $options->batched,
         ] as $option => $enabled) {
             if ($enabled && ! in_array($option, $allowed, true)) {
                 throw ModuleMakerFailed::unsupportedOption($option, $this->value);
