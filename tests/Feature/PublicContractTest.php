@@ -236,6 +236,10 @@ final class PublicContractTest extends TestCase
             'resource' => false,
             'api' => false,
         ]);
+        $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:make-module'), [
+            'preset' => null,
+            'dry-run' => false,
+        ]);
         $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:graph'), [
             'view' => 'module',
             'format' => 'text',

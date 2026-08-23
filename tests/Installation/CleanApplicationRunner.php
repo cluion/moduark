@@ -229,6 +229,88 @@ final class CleanApplicationRunner
         $this->assertFileExists($modulePath, 'moduark:make-module did not create UserModule.php.');
         $this->assertOnlyGeneratedModuleFile($application.'/app/Modules/User', $modulePath);
 
+        foreach ([
+            'Storefront' => ['preset' => 'web', 'target' => 'Tests/Feature/Web/StorefrontWebTest.php'],
+            'Gateway' => ['preset' => 'api', 'target' => 'Tests/Feature/Api/GatewayApiTest.php'],
+            'Core' => ['preset' => 'domain', 'target' => 'Infrastructure/.gitkeep'],
+        ] as $scaffoldModule => $expectation) {
+            $this->artisan(
+                $application,
+                ['moduark:make-module', $scaffoldModule, '--preset='.$expectation['preset']],
+                $environment,
+            );
+            $this->assertFileExists(
+                $application.'/app/Modules/'.$scaffoldModule.'/'.$expectation['target'],
+                "The {$expectation['preset']} scaffold did not create its representative target.",
+            );
+        }
+
+        $scaffoldDryRun = $this->artisan(
+            $application,
+            ['moduark:make-module', 'Catalog', '--preset=full', '--dry-run'],
+            $environment,
+        );
+
+        foreach ([
+            'CREATE CatalogModule.php',
+            'CREATE routes/web.php',
+            'CREATE Http/Controllers/Api/CatalogController.php',
+            'CREATE Tests/Feature/Api/CatalogApiTest.php',
+            'CREATE Infrastructure/.gitkeep',
+        ] as $plannedTarget) {
+            $this->assertContains(
+                $plannedTarget,
+                $scaffoldDryRun,
+                "moduark:make-module full dry-run omitted [{$plannedTarget}].",
+            );
+        }
+
+        $this->assertFileMissing(
+            $application.'/app/Modules/Catalog/CatalogModule.php',
+            'moduark:make-module full dry-run mutated the application.',
+        );
+        $this->artisan(
+            $application,
+            ['moduark:make-module', 'Catalog', '--preset=full'],
+            $environment,
+        );
+
+        $catalogRoot = $application.'/app/Modules/Catalog';
+        foreach ([
+            'CatalogModule.php',
+            'routes/web.php',
+            'routes/api.php',
+            'Http/Controllers/Web/CatalogController.php',
+            'Http/Controllers/Api/CatalogController.php',
+            'Http/Requests/Api/CatalogRequest.php',
+            'Http/Resources/Api/CatalogResource.php',
+            'resources/views/index.blade.php',
+            'resources/lang/en/messages.php',
+            'Tests/Feature/Web/CatalogWebTest.php',
+            'Tests/Feature/Api/CatalogApiTest.php',
+            'Domain/.gitkeep',
+            'Application/.gitkeep',
+            'Infrastructure/.gitkeep',
+        ] as $relativePath) {
+            $this->assertFileExists(
+                $catalogRoot.'/'.$relativePath,
+                "Full scaffold did not create Module-owned target [{$relativePath}].",
+            );
+        }
+
+        foreach ([
+            $application.'/app/Modules/Storefront/Tests/Feature/Web/StorefrontWebTest.php',
+            $application.'/app/Modules/Gateway/Tests/Feature/Api/GatewayApiTest.php',
+            $catalogRoot.'/Tests/Feature/Web/CatalogWebTest.php',
+            $catalogRoot.'/Tests/Feature/Api/CatalogApiTest.php',
+        ] as $presetTestPath) {
+            $this->command([
+                $application.'/vendor/bin/phpunit',
+                '--colors=never',
+                $presetTestPath,
+            ], $application, $environment);
+        }
+
         $dryRun = $this->artisan(
             $application,
             [
@@ -575,9 +657,9 @@ final class CleanApplicationRunner
         $moduleCachePath = $application.'/bootstrap/cache/moduark.php';
         $moduleCache = $this->artisan($application, ['moduark:cache'], $environment);
         $this->assertContains(
-            'Module cache created successfully: 1 Module cached.',
+            'Module cache created successfully: 5 Modules cached.',
             $moduleCache,
-            'moduark:cache did not report the generated User Module.',
+            'moduark:cache did not report every generated Module.',
         );
         $this->assertFileExists($moduleCachePath, 'moduark:cache did not create its manifest.');
 

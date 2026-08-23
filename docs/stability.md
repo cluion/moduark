@@ -98,7 +98,7 @@ rule semantics.
 The following commands and their documented arguments and options are Stable:
 
 ```text
-moduark:make-module {name}
+moduark:make-module {name} [--preset=minimal|web|api|domain|full] [--dry-run]
 moduark:make {module} {type} {name} [--dry-run] [--force] [--factory] [--migration] [--create=] [--table=] [--int] [--string] [--inbound] [--render] [--report] [--collection] [--json-api] [--model=] [--guard=] [--implicit] [--event=] [--queued] [--sync] [--batched] [--markdown=] [--view=] [--inline] [--path=] [--extension=] [--unit] [--test] [--pest] [--phpunit] [--invokable] [--resource] [--api]
 moduark:list
 moduark:inspect {module}
@@ -113,6 +113,14 @@ Maker options are descriptor-specific. In particular, `middleware` supports
 `--dry-run` but rejects `--force`; Laravel's native Middleware Maker has no
 force option. Its matching-test options add a Module-owned feature test to the
 same atomic Generation Plan.
+
+Module scaffold preset IDs and their ordered Module-owned target manifests are
+Stable. Omitting `--preset` is equivalent to `minimal`; `--dry-run` renders the
+same complete plan used for execution without mutation. Scaffold execution
+preflights every collision, never overwrites an existing target, and rolls back
+all targets after a write failure. Presets do not execute package managers or
+create application-global frontend resources.
+
 Policy `--model` values are Module-relative class names below `Models/`;
 `--guard` retains Laravel's application auth-provider semantics. Neither option
 creates a related model.

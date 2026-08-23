@@ -583,6 +583,11 @@ PHP;
     {
         $nwidart = $this->artisan($application, ['help', 'module:make'], $environment);
         $moduark = $this->artisan($application, ['help', 'moduark:make'], $environment);
+        $moduarkModule = $this->artisan(
+            $application,
+            ['help', 'moduark:make-module'],
+            $environment,
+        );
 
         $this->assertContains('Create a new module.', $nwidart, 'nwidart module:make was overwritten.');
         $this->assertContains('[<name>...]', $nwidart, 'nwidart module:make lost its name list argument.');
@@ -595,6 +600,26 @@ PHP;
             '<module> <type> <name>',
             $moduark,
             'Moduark resource maker lost its required arguments.',
+        );
+        $this->assertContains(
+            'Create a Module from a deterministic scaffold preset',
+            $moduarkModule,
+            'Moduark scaffold maker did not keep its independent command contract.',
+        );
+        $this->assertContains(
+            '<name>',
+            $moduarkModule,
+            'Moduark scaffold maker lost its required Module name.',
+        );
+        $this->assertContains(
+            '--preset',
+            $moduarkModule,
+            'Moduark scaffold maker lost its preset option.',
+        );
+        $this->assertContains(
+            '--dry-run',
+            $moduarkModule,
+            'Moduark scaffold maker lost its dry-run option.',
         );
         $this->assertContains(
             '--dry-run',

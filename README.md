@@ -129,6 +129,27 @@ final class UserModule extends Module
 }
 ```
 
+Choose an additive scaffold preset when the Module needs more than its entry
+class:
+
+```bash
+php artisan moduark:make-module Blog --preset=minimal
+php artisan moduark:make-module Blog --preset=web
+php artisan moduark:make-module Blog --preset=api
+php artisan moduark:make-module Blog --preset=domain
+php artisan moduark:make-module Blog --preset=full
+php artisan moduark:make-module Blog --preset=full --dry-run
+```
+
+`web` adds Module-owned routes, an invokable controller, view, English
+translations, and feature test. `api` adds routes, an invokable controller,
+request, resource, and feature test. `domain` adds tracked `Domain/`,
+`Application/`, and `Infrastructure/` roots. `full` is their deterministic
+union. The command preflights every target before writing, never overwrites an
+existing target, and rolls back the complete scaffold when a write fails.
+`--dry-run` displays the same ordered plan without filesystem mutation. Presets
+do not run a package manager or install frontend dependencies.
+
 Generate classes inside an existing Module through Moduark's single Maker entry
 point:
 
@@ -594,7 +615,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 
 | Command | Current contract |
 |---|---|
-| `moduark:make-module {name}` | Create one minimal, non-overwriting Module entry class |
+| `moduark:make-module {name} [--preset=minimal\|web\|api\|domain\|full] [--dry-run]` | Plan or create a deterministic, non-overwriting, rollback-safe Module scaffold; omitted preset remains minimal |
 | `moduark:make {module} {type} {name} [--dry-run]` | Plan or generate supported Module-owned artifacts and tests, with descriptor-specific options and atomic related targets |
 | `moduark:baseline [--level=0..3] [--force] [--prune]` | Adopt current violations explicitly or safely remove stale baseline debt |
 | `moduark:cache` | Cache deterministic Module discovery and typed metadata |

@@ -58,7 +58,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the application-global `tests/` tree.
 - Added the package-owned planning contract for additive `minimal`, `web`,
   `api`, `domain`, and `full` Module scaffold presets, with deterministic target
-  manifests and shared collision ownership.
+  manifests and shared collision ownership. `moduark:make-module --preset=` now
+  executes those plans with complete collision preflight and rollback-safe
+  writes, while `--dry-run` renders the same targets without mutation and the
+  omitted preset retains the existing minimal scaffold.
 - Added the standalone Module-owned `migration` Maker below
   `Database/Migrations/` with Laravel 12 / 13 compatible plain, create, update,
   name inference, timestamp, collision, and no-force contracts.
