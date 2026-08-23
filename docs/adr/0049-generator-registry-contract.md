@@ -1,6 +1,6 @@
 # ADR-0049: Generator Registry Contract and Laravel Maker Inventory
 
-- Status: Accepted and implemented through `1.1` Slice G5-A
+- Status: Accepted and implemented through `1.1` Slice G5-B
 - Date: 2026-08-23
 
 ## Context
@@ -231,6 +231,10 @@ membership is evidence for planning, not a support claim.
   anonymous-view, and custom-path Blade components. All class and Blade targets
   remain Module-owned; multi-target modes use complete collision preflight and
   executor rollback instead of Laravel's application-global view path.
+- G5-B extends those fixtures with standalone views. Dot, slash, and backslash
+  names normalize to deterministic Module-owned paths; safe custom extensions,
+  collision refusal, force, and dry-run remain single-target contracts while
+  matching-test options stay outside this slice.
 
 ## Consequences
 

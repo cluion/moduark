@@ -153,6 +153,10 @@ Blade components are generated below `View/Components/` and Module-owned
 `resources/views/`. Default class-and-view generation is an atomic composite;
 `--inline` creates only the component class, a value-less `--view` creates only
 an anonymous view, and `--path=` remains constrained to the Module view tree.
+Standalone Blade views are deterministic single targets below Module-owned
+`resources/views/`. Dot, slash, and backslash names normalize to lowercase
+kebab-case paths; `--extension=` is constrained to safe dot-separated suffixes.
+Related test options are not part of this single-target contract.
 
 Architecture checks use these process exit codes:
 

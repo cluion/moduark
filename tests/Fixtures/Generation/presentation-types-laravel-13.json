@@ -3,6 +3,7 @@
     "laravel_major": 13,
     "plans": [
         {
+            "type": "component",
             "name": "Billing/InvoiceCard",
             "options": "",
             "targets": [
@@ -11,6 +12,7 @@
             ]
         },
         {
+            "type": "component",
             "name": "Billing/InlineAlert",
             "options": "--inline",
             "targets": [
@@ -18,6 +20,7 @@
             ]
         },
         {
+            "type": "component",
             "name": "Billing/InvoiceBadge",
             "options": "--view",
             "targets": [
@@ -25,11 +28,28 @@
             ]
         },
         {
+            "type": "component",
             "name": "Billing/InvoicePanel",
             "options": "--path=widgets/admin",
             "targets": [
                 "View/Components/Billing/InvoicePanel.php",
                 "resources/views/widgets/admin/invoice-panel.blade.php"
+            ]
+        },
+        {
+            "type": "view",
+            "name": "billing.invoice-summary",
+            "options": "",
+            "targets": [
+                "resources/views/billing/invoice-summary.blade.php"
+            ]
+        },
+        {
+            "type": "view",
+            "name": "admin/BillingReport",
+            "options": "--extension=html",
+            "targets": [
+                "resources/views/admin/billing-report.html"
             ]
         }
     ]

@@ -16,7 +16,7 @@ final class ModuleMakerFailed extends RuntimeException
     public static function unsupportedType(string $type): self
     {
         return new self(
-            "Maker type [{$type}] is not supported; expected cast, channel, class, component, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, or trait.",
+            "Maker type [{$type}] is not supported; expected cast, channel, class, component, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, trait, or view.",
         );
     }
 
@@ -156,6 +156,20 @@ final class ModuleMakerFailed extends RuntimeException
     {
         return new self(
             "Component path [{$path}] must contain one or more lowercase kebab-case directory segments.",
+        );
+    }
+
+    public static function invalidViewName(string $name): self
+    {
+        return new self(
+            "View name [{$name}] must contain one or more alphanumeric path segments separated by dots or slashes.",
+        );
+    }
+
+    public static function invalidViewExtension(string $extension): self
+    {
+        return new self(
+            "View extension [{$extension}] must contain one or more lowercase alphanumeric segments separated by dots.",
         );
     }
 

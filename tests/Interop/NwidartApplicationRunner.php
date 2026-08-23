@@ -625,6 +625,7 @@ PHP;
         $this->assertContains('--view', $moduark, 'Moduark Module Maker lost its explicit related-view rejection gate.');
         $this->assertContains('--inline', $moduark, 'Moduark Module Maker lost its inline component option.');
         $this->assertContains('--path', $moduark, 'Moduark Module Maker lost its component view path option.');
+        $this->assertContains('--extension', $moduark, 'Moduark Module Maker lost its view extension option.');
         $this->assertContains(
             'middleware',
             $moduark,
@@ -643,6 +644,7 @@ PHP;
         $this->assertContains('policy', $moduark, 'Moduark resource maker lost its policy type.');
         $this->assertContains('rule', $moduark, 'Moduark resource maker lost its rule type.');
         $this->assertContains('seeder', $moduark, 'Moduark resource maker lost its seeder type.');
+        $this->assertContains('view', $moduark, 'Moduark Module Maker lost its view type.');
     }
 
     /** @param array<string, string> $environment */

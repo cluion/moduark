@@ -78,7 +78,8 @@ final class PresentationModuleMakerTest extends TestCase
 
         foreach ($expected['plans'] as $plan) {
             $command = trim(sprintf(
-                'moduark:make User component %s %s --dry-run',
+                'moduark:make User %s %s %s --dry-run',
+                $plan['type'],
                 $plan['name'],
                 $plan['options'],
             ));
@@ -236,7 +237,80 @@ final class PresentationModuleMakerTest extends TestCase
         );
     }
 
-    /** @return array{schema: int, laravel_major: int, plans: list<array{name: string, options: string, targets: list<string>}>} */
+    public function test_it_generates_module_owned_views_from_dot_and_slash_names(): void
+    {
+        $this->command('moduark:make User view billing.invoice-summary')
+            ->assertSuccessful();
+        $this->command('moduark:make User view admin/BillingReport --extension=html')
+            ->assertSuccessful();
+
+        self::assertSame(
+            "<div>\n    <!-- -->\n</div>\n",
+            file_get_contents(
+                $this->temporaryBasePath
+                    .'/app/Modules/User/resources/views/billing/invoice-summary.blade.php',
+            ),
+        );
+        self::assertFileExists(
+            $this->temporaryBasePath
+                .'/app/Modules/User/resources/views/admin/billing-report.html',
+        );
+        self::assertDirectoryDoesNotExist($this->temporaryBasePath.'/resources/views');
+    }
+
+    public function test_view_shares_collision_force_and_dry_run_behavior(): void
+    {
+        $relativePath = 'resources/views/billing/invoice-summary.blade.php';
+        $path = $this->temporaryBasePath.'/app/Modules/User/'.$relativePath;
+        $command = 'moduark:make User view billing.invoice-summary';
+
+        $this->command($command.' --dry-run')
+            ->expectsOutputToContain('CREATE '.$relativePath)
+            ->assertSuccessful();
+        self::assertFileDoesNotExist($path);
+
+        $this->command($command)->assertSuccessful();
+        self::assertIsInt(file_put_contents($path, 'existing view'));
+
+        $this->command($command)
+            ->expectsOutputToContain('View already exists.')
+            ->assertFailed();
+        self::assertSame('existing view', file_get_contents($path));
+
+        $this->command($command.' --force')->assertSuccessful();
+        self::assertNotSame('existing view', file_get_contents($path));
+    }
+
+    public function test_view_rejects_unsafe_names_extensions_and_foreign_options(): void
+    {
+        $this->command('moduark:make User view ../outside')
+            ->expectsOutputToContain(
+                'Module Maker failed: View name [../outside] must contain one or more alphanumeric path segments separated by dots or slashes.',
+            )
+            ->assertExitCode(2);
+        $this->command('moduark:make User view billing.summary --extension=../php')
+            ->expectsOutputToContain(
+                'Module Maker failed: View extension [../php] must contain one or more lowercase alphanumeric segments separated by dots.',
+            )
+            ->assertExitCode(2);
+        $this->command('moduark:make User view billing.summary --inline')
+            ->expectsOutputToContain(
+                'Module Maker failed: The --inline option is not supported for Maker type [view].',
+            )
+            ->assertExitCode(2);
+        $this->command('moduark:make User view billing.summary --view')
+            ->expectsOutputToContain(
+                'Module Maker failed: The --view option is not supported for Maker type [view].',
+            )
+            ->assertExitCode(2);
+
+        self::assertSame(
+            [$this->temporaryBasePath.'/app/Modules/User/UserModule.php'],
+            $this->files(),
+        );
+    }
+
+    /** @return array{schema: int, laravel_major: int, plans: list<array{type: string, name: string, options: string, targets: list<string>}>} */
     private function planFixture(string $path): array
     {
         $contents = file_get_contents($path);
@@ -245,7 +319,7 @@ final class PresentationModuleMakerTest extends TestCase
             throw new RuntimeException("Unable to read presentation plan fixture [{$path}].");
         }
 
-        /** @var array{schema: int, laravel_major: int, plans: list<array{name: string, options: string, targets: list<string>}>} $fixture */
+        /** @var array{schema: int, laravel_major: int, plans: list<array{type: string, name: string, options: string, targets: list<string>}>} $fixture */
         $fixture = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
 
         return $fixture;

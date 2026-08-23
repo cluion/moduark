@@ -22,7 +22,7 @@ final class GeneratorRegistryTest extends TestCase
 
         self::assertSame(ModuleMakerType::Model, $registry->resolve('MODEL'));
         self::assertSame(
-            ['cast', 'channel', 'class', 'component', 'controller', 'enum', 'event', 'exception', 'factory', 'interface', 'job', 'job-middleware', 'listener', 'mail', 'middleware', 'migration', 'model', 'notification', 'observer', 'policy', 'request', 'resource', 'rule', 'scope', 'seeder', 'trait'],
+            ['cast', 'channel', 'class', 'component', 'controller', 'enum', 'event', 'exception', 'factory', 'interface', 'job', 'job-middleware', 'listener', 'mail', 'middleware', 'migration', 'model', 'notification', 'observer', 'policy', 'request', 'resource', 'rule', 'scope', 'seeder', 'trait', 'view'],
             array_map(
                 static fn (GeneratorDescriptor $descriptor): string => $descriptor->id(),
                 $registry->all(),
@@ -54,10 +54,10 @@ final class GeneratorRegistryTest extends TestCase
 
         $this->expectException(ModuleMakerFailed::class);
         $this->expectExceptionMessage(
-            'Maker type [view] is not supported; expected cast, channel, class, component, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, or trait.',
+            'Maker type [verification] is not supported; expected cast, channel, class, component, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, trait, or view.',
         );
 
-        $registry->resolve('view');
+        $registry->resolve('verification');
     }
 
     private function descriptor(string $id): GeneratorDescriptor

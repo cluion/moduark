@@ -36,6 +36,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     case PhpScope = 'scope';
     case Seeder = 'seeder';
     case PhpTrait = 'trait';
+    case View = 'view';
 
     public static function parse(string $type): self
     {
@@ -66,6 +67,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpScope->value => self::PhpScope,
             self::Seeder->value => self::Seeder,
             self::PhpTrait->value => self::PhpTrait,
+            self::View->value => self::View,
             default => throw ModuleMakerFailed::unsupportedType($type),
         };
     }
@@ -109,6 +111,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpScope => 'Models\\Scopes',
             self::Seeder => 'Database\\Seeders',
             self::PhpTrait => 'Concerns',
+            self::View => '',
         };
     }
 
@@ -126,6 +129,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Factory => $this->standaloneFactoryPlan($target, $options),
             self::Migration => $this->standaloneMigrationPlan($target, $options),
             self::Seeder => $this->seederPlan($target, $options),
+            self::View => $this->viewPlan($target, $options),
             self::PhpCast,
             self::Channel,
             self::PhpClass,
@@ -273,6 +277,38 @@ enum ModuleMakerType: string implements GeneratorDescriptor
         return new GenerationPlan($options->inline
             ? [$classTarget]
             : [$classTarget, $viewTarget]);
+    }
+
+    private function viewPlan(
+        ModuleMakerTarget $target,
+        GenerationOptions $options,
+    ): GenerationPlan {
+        $this->rejectUnsupportedOptions($options, ['extension']);
+        $extension = $options->extension ?? 'blade.php';
+
+        if (preg_match('/\A[a-z0-9]+(?:\.[a-z0-9]+)*\z/D', $extension) !== 1) {
+            throw ModuleMakerFailed::invalidViewExtension($extension);
+        }
+
+        $segments = array_map(
+            static fn (string $segment): string => Str::kebab($segment),
+            explode('\\', $target->localName()),
+        );
+        $relativePath = 'resources/views/'.implode('/', $segments).'.'.$extension;
+        $viewName = strtolower($target->moduleName()).'::'.implode('.', $segments);
+
+        return new GenerationPlan([
+            new GenerationTarget(
+                $this->id(),
+                null,
+                $viewName,
+                $target->modulePath().'/'.$relativePath,
+                $relativePath,
+                $options->force,
+                [],
+                new GenerationFileTemplate($this->stubPath('module-component-view.stub'), []),
+            ),
+        ]);
     }
 
     private function standaloneFactoryPlan(
@@ -512,6 +548,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             'view' => $options->view !== null || $options->viewOnly,
             'inline' => $options->inline,
             'path' => $options->path !== null,
+            'extension' => $options->extension !== null,
         ] as $option => $enabled) {
             if ($enabled && ! in_array($option, $allowed, true)) {
                 throw ModuleMakerFailed::unsupportedOption($option, $this->value);

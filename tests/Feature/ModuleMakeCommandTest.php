@@ -326,9 +326,9 @@ final class ModuleMakeCommandTest extends TestCase
 
     public function test_it_rejects_an_unsupported_maker_type(): void
     {
-        $this->command('moduark:make User view ProfileView')
+        $this->command('moduark:make User verification ProfileView')
             ->expectsOutputToContain(
-                'Module Maker failed: Maker type [view] is not supported; expected cast, channel, class, component, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, or trait.',
+                'Module Maker failed: Maker type [verification] is not supported; expected cast, channel, class, component, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, trait, or view.',
             )
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }

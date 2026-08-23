@@ -20,7 +20,7 @@ final class ModuleMakeCommand extends Command
     /** @var string */
     protected $signature = 'moduark:make
         {module : Existing Module name}
-        {type : Maker type: cast, channel, class, component, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, or trait}
+        {type : Maker type: cast, channel, class, component, controller, enum, event, exception, factory, interface, job, job-middleware, listener, mail, middleware, migration, model, notification, observer, policy, request, resource, rule, scope, seeder, trait, or view}
         {name : StudlyCase class name, optionally with nested segments}
         {--dry-run : Display the complete generation plan without writing files}
         {--force : Overwrite an existing generated class}
@@ -46,6 +46,7 @@ final class ModuleMakeCommand extends Command
         {--view= : Related Blade views are not supported by the Module mail Maker}
         {--inline : Generate a Blade component with an inline view}
         {--path= : Module-relative Blade component view directory}
+        {--extension= : File extension for a Module-owned Blade view}
         {--invokable : Generate an invokable class or controller}
         {--resource : Generate a resource controller}
         {--api : Generate an API controller without create and edit methods}';
@@ -103,6 +104,7 @@ final class ModuleMakeCommand extends Command
                     && $this->option('view') === null,
                 inline: $this->option('inline') === true,
                 path: $this->optionalStringOption('path'),
+                extension: $this->optionalStringOption('extension'),
             ));
         } catch (ModuleMakerFailed $exception) {
             $this->components->error('Module Maker failed: '.$exception->getMessage());

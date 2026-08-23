@@ -325,6 +325,7 @@ final class CleanApplicationRunner
             ['scope', 'Visibility/PublishedScope', null, 'Models/Scopes/Visibility/PublishedScope.php'],
             ['seeder', 'Billing/ProfileSeeder', null, 'Database/Seeders/Billing/ProfileSeeder.php'],
             ['trait', 'Serialization/SerializesAttributes', null, 'Concerns/Serialization/SerializesAttributes.php'],
+            ['view', 'billing.invoice-summary', null, 'resources/views/billing/invoice-summary.blade.php'],
         ] as [$type, $name, $option, $relativePath]) {
             $arguments = ['moduark:make', 'User', $type, $name];
 

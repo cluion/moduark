@@ -34,6 +34,7 @@ final readonly class GenerationOptions
         public bool $viewOnly,
         public bool $inline,
         public ?string $path,
+        public ?string $extension,
     ) {
     }
 }

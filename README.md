@@ -289,6 +289,13 @@ rolled back as one atomic operation. `--inline` creates no view, while a
 value-less `--view` creates only an anonymous Blade view. `--path=` accepts only
 Module-relative lowercase kebab-case directory segments.
 
+Standalone Blade views accept nested dot, slash, or backslash names and write a
+single deterministic target below the selected Module's `resources/views/`.
+Names normalize to lowercase kebab-case paths; `--extension=` defaults to
+`blade.php` and accepts only lowercase alphanumeric dot segments. Matching-test
+options remain unavailable until their Module-owned composite contract is
+implemented.
+
 The target Module must already exist and its configured path must be inside the
 Laravel application source root. Other composite Laravel Maker options that
 create controllers, requests, policies, seeds, or tests remain deliberately
