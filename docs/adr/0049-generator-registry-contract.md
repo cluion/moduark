@@ -1,11 +1,12 @@
 # ADR-0049: Generator Registry Contract and Laravel Maker Inventory
 
-- Status: Accepted and implemented through `1.1` Slice G0-C
+- Status: Accepted and implemented through `1.1` Slice G1-B
 - Date: 2026-08-23
 
 ## Context
 
-`moduark:make` currently supports only `model` and `controller`. Its command,
+Before the registry slices, `moduark:make` supported only `model` and
+`controller`. Its command,
 target resolver, option allowlist, collision check, and delegated Laravel Maker
 call are intentionally narrow. Extending that shape directly to every Laravel
 Maker would concentrate framework-version branches and composite side effects
@@ -21,7 +22,10 @@ G0-A established that contract and evidence without changing the current
 `moduark:make` runtime. G0-B makes the boundary executable for the existing
 model and controller types without claiming support for additional Makers. G0-C
 adds the first composite model plan and the executor atomicity contract described
-in ADR-0050.
+in ADR-0050. G1-A adds the first new single-target group: Module-owned `class`,
+`enum`, `interface`, and `trait` descriptors backed by Laravel's native Makers.
+G1-B completes the PHP type group with Module-owned `cast`, `exception`, and
+`scope` descriptors.
 
 ## Decision
 
@@ -53,6 +57,14 @@ in ADR-0050.
   is exposed only when its related targets are represented in the same plan.
 - Existing `model` and `controller` public output, options, and exit codes remain
   unchanged when they move behind the registry in G0-B.
+- G1-A fixes PHP type ownership before native delegation: generic classes use
+  the name-relative Module path, enums use `Enums/`, interfaces use the Level 1
+  `Contracts/` Public API convention, and traits use `Concerns/`. The descriptor
+  allowlists only `--invokable` for classes and `--int` / `--string` for enums.
+- G1-B fixes casts below `Casts/`, exceptions below `Exceptions/`, and scopes
+  below `Models/Scopes/`. Casts allowlist `--inbound`; exceptions allowlist
+  `--render` and `--report`; scopes expose no additional native option. These
+  three descriptors remain single-target plans and do not copy framework stubs.
 
 The concrete PHP interfaces were introduced with executable contract tests in
 G0-B. They remain pre-`1.1` internal extension boundaries until their public API
@@ -112,6 +124,13 @@ membership is evidence for planning, not a support claim.
   factory/migration paths, runtime `Model::factory()` wiring, complete collision
   reporting, new-file cleanup, overwritten-file restoration, and explicit
   rollback-failure reporting.
+- G1-A keeps separate Laravel 12 / 13 plan fixtures and verifies all four PHP
+  types against nested namespaces, native stub semantics, collision refusal,
+  force overwrite, dry-run zero mutation, and clean-application installation.
+- G1-B extends those versioned fixtures and gates to casts, exceptions, and
+  scopes, including inbound cast interface semantics, combined exception
+  render/report methods, the Module-owned scope location, and nwidart command
+  ownership.
 
 ## Consequences
 

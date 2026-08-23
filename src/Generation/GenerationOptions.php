@@ -13,6 +13,11 @@ final readonly class GenerationOptions
         public bool $api,
         public bool $factory,
         public bool $migration,
+        public bool $intBacked,
+        public bool $stringBacked,
+        public bool $inbound,
+        public bool $render,
+        public bool $report,
     ) {
     }
 }

@@ -57,10 +57,15 @@ final readonly class ModuleMakerTargetResolver
             );
         }
 
+        $targetNamespace = trim($descriptor->targetNamespace(), '\\');
+        $relativeClass = $targetNamespace === ''
+            ? $className
+            : $targetNamespace.'\\'.$className;
+
         return new ModuleMakerTarget(
-            $discovered->namespace().'\\'.$descriptor->targetNamespace().'\\'.$className,
-            $modulePath.'/'.str_replace('\\', '/', $descriptor->targetNamespace().'\\'.$className).'.php',
-            str_replace('\\', '/', $descriptor->targetNamespace().'\\'.$className).'.php',
+            $discovered->namespace().'\\'.$relativeClass,
+            $modulePath.'/'.str_replace('\\', '/', $relativeClass).'.php',
+            str_replace('\\', '/', $relativeClass).'.php',
             $modulePath,
             $discovered->namespace(),
             $className,

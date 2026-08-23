@@ -328,7 +328,7 @@ final class ModuleMakeCommandTest extends TestCase
     {
         $this->command('moduark:make User request ProfileRequest')
             ->expectsOutputToContain(
-                'Module Maker failed: Maker type [request] is not supported; expected model or controller.',
+                'Module Maker failed: Maker type [request] is not supported; expected cast, class, controller, enum, exception, interface, model, scope, or trait.',
             )
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }

@@ -297,6 +297,44 @@ final class CleanApplicationRunner
             'moduark:make did not create the User ProfileController.',
         );
 
+        foreach ([
+            ['class', 'Support/InvokableTask', '--invokable', 'Support/InvokableTask.php'],
+            ['cast', 'Money/AmountCast', '--inbound', 'Casts/Money/AmountCast.php'],
+            ['enum', 'Workflow/Status', '--string', 'Enums/Workflow/Status.php'],
+            ['exception', 'Billing/PaymentFailed', '--render', 'Exceptions/Billing/PaymentFailed.php'],
+            ['interface', 'Lookup/UserLookup', null, 'Contracts/Lookup/UserLookup.php'],
+            ['scope', 'Visibility/PublishedScope', null, 'Models/Scopes/Visibility/PublishedScope.php'],
+            ['trait', 'Serialization/SerializesAttributes', null, 'Concerns/Serialization/SerializesAttributes.php'],
+        ] as [$type, $name, $option, $relativePath]) {
+            $arguments = ['moduark:make', 'User', $type, $name];
+
+            if ($option !== null) {
+                $arguments[] = $option;
+            }
+
+            $dryRun = $this->artisan(
+                $application,
+                [...$arguments, '--dry-run'],
+                $environment,
+            );
+            $this->assertContains(
+                'CREATE '.$relativePath,
+                $dryRun,
+                "moduark:make {$type} --dry-run omitted its Module-relative target.",
+            );
+            $target = $application.'/app/Modules/User/'.$relativePath;
+            $this->assertFileMissing(
+                $target,
+                "moduark:make {$type} --dry-run wrote its planned target.",
+            );
+
+            $this->artisan($application, $arguments, $environment);
+            $this->assertFileExists(
+                $target,
+                "moduark:make {$type} did not create its Module-owned target.",
+            );
+        }
+
         $list = $this->artisan($application, ['moduark:list'], $environment);
         $this->assertContains('User', $list, 'moduark:list did not report the generated User Module.');
         $this->assertContains('| 1', $list, 'moduark:list did not use the default Level 1 configuration.');

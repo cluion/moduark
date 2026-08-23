@@ -139,6 +139,13 @@ php artisan moduark:make User controller ProfileController --invokable
 php artisan moduark:make User controller ProfileController --resource --api
 php artisan moduark:make User model Profile --dry-run
 php artisan moduark:make User model Profile --factory --migration
+php artisan moduark:make User class Support/InvokableTask --invokable
+php artisan moduark:make User cast Money/AmountCast --inbound
+php artisan moduark:make User enum Workflow/Status --string
+php artisan moduark:make User exception Billing/PaymentFailed --render --report
+php artisan moduark:make User interface Lookup/UserLookup
+php artisan moduark:make User scope Visibility/PublishedScope
+php artisan moduark:make User trait Serialization/SerializesAttributes
 ```
 
 Models are generated below `Models/`; controllers are generated below
@@ -156,6 +163,15 @@ commit the complete plan through one rollback-capable executor. Any preflight
 collision prevents every write. If a later write fails, newly created targets
 are removed and overwritten targets are restored; an incomplete rollback is
 reported as a tool error rather than claimed as atomic success.
+
+The PHP type Makers delegate to Laravel's native stubs while fixing their Module
+ownership before execution. Generic classes use the name-relative Module path;
+casts use `Casts/`, enums use `Enums/`, exceptions use `Exceptions/`, interfaces
+use the Level 1 Public API convention `Contracts/`, scopes use `Models/Scopes/`,
+and traits use `Concerns/`. Classes support `--invokable`; casts support
+`--inbound`; enums support `--int` and `--string`; exceptions support `--render`
+and `--report`. All seven PHP types support nested names, `--force`, and
+`--dry-run` through the same plan and collision preflight.
 
 The target Module must already exist and its configured path must be inside the
 Laravel application source root. Other composite Laravel Maker options that
@@ -444,7 +460,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | Command | Current contract |
 |---|---|
 | `moduark:make-module {name}` | Create one minimal, non-overwriting Module entry class |
-| `moduark:make {module} {type} {name} [--dry-run]` | Plan or generate a model or controller, with optional Module-owned model factory and migration |
+| `moduark:make {module} {type} {name} [--dry-run]` | Plan or generate supported Module-owned PHP types, models, and controllers, with descriptor-specific options and optional model factory/migration |
 | `moduark:baseline [--level=0..3] [--force] [--prune]` | Adopt current violations explicitly or safely remove stale baseline debt |
 | `moduark:cache` | Cache deterministic Module discovery and typed metadata |
 | `moduark:clear` | Remove cached Module metadata and incremental source analysis |

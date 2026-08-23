@@ -9,14 +9,28 @@ use Illuminate\Support\Str;
 
 enum ModuleMakerType: string implements GeneratorDescriptor
 {
+    case PhpCast = 'cast';
+    case PhpClass = 'class';
     case Model = 'model';
     case Controller = 'controller';
+    case PhpEnum = 'enum';
+    case PhpException = 'exception';
+    case PhpInterface = 'interface';
+    case PhpScope = 'scope';
+    case PhpTrait = 'trait';
 
     public static function parse(string $type): self
     {
         return match (strtolower($type)) {
+            self::PhpCast->value => self::PhpCast,
+            self::PhpClass->value => self::PhpClass,
             self::Model->value => self::Model,
             self::Controller->value => self::Controller,
+            self::PhpEnum->value => self::PhpEnum,
+            self::PhpException->value => self::PhpException,
+            self::PhpInterface->value => self::PhpInterface,
+            self::PhpScope->value => self::PhpScope,
+            self::PhpTrait->value => self::PhpTrait,
             default => throw ModuleMakerFailed::unsupportedType($type),
         };
     }
@@ -34,8 +48,15 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     public function namespace(): string
     {
         return match ($this) {
+            self::PhpCast => 'Casts',
+            self::PhpClass => '',
             self::Model => 'Models',
             self::Controller => 'Http\\Controllers',
+            self::PhpEnum => 'Enums',
+            self::PhpException => 'Exceptions',
+            self::PhpInterface => 'Contracts',
+            self::PhpScope => 'Models\\Scopes',
+            self::PhpTrait => 'Concerns',
         };
     }
 
@@ -46,31 +67,44 @@ enum ModuleMakerType: string implements GeneratorDescriptor
 
     public function plan(ModuleMakerTarget $target, GenerationOptions $options): GenerationPlan
     {
-        if ($this === self::Model) {
-            foreach (
-                [
-                    'invokable' => $options->invokable,
-                    'resource' => $options->resource,
-                    'api' => $options->api,
-                ] as $option => $enabled
-            ) {
-                if ($enabled) {
-                    throw ModuleMakerFailed::unsupportedOption($option, $this->value);
-                }
-            }
+        return match ($this) {
+            self::Model => $this->modelPlan($target, $options),
+            self::Controller => $this->controllerPlan($target, $options),
+            self::PhpCast,
+            self::PhpClass,
+            self::PhpEnum,
+            self::PhpException,
+            self::PhpInterface,
+            self::PhpScope,
+            self::PhpTrait => $this->phpTypePlan($target, $options),
+        };
+    }
 
-            $targets = [$this->modelTarget($target, $options)];
+    private function modelPlan(
+        ModuleMakerTarget $target,
+        GenerationOptions $options,
+    ): GenerationPlan {
+        $this->rejectUnsupportedOptions($options, ['factory', 'migration']);
+        $targets = [$this->modelTarget($target, $options)];
 
-            if ($options->factory) {
-                $targets[] = $this->factoryTarget($target, $options);
-            }
+        if ($options->factory) {
+            $targets[] = $this->factoryTarget($target, $options);
+        }
 
-            if ($options->migration) {
-                $targets[] = $this->migrationTarget($target, $options);
-            }
+        if ($options->migration) {
+            $targets[] = $this->migrationTarget($target, $options);
+        }
 
-            return new GenerationPlan($targets);
-        } elseif ($options->invokable && ($options->resource || $options->api)) {
+        return new GenerationPlan($targets);
+    }
+
+    private function controllerPlan(
+        ModuleMakerTarget $target,
+        GenerationOptions $options,
+    ): GenerationPlan {
+        $this->rejectUnsupportedOptions($options, ['invokable', 'resource', 'api']);
+
+        if ($options->invokable && ($options->resource || $options->api)) {
             $conflicts = ['invokable'];
 
             if ($options->resource) {
@@ -82,12 +116,6 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             }
 
             throw ModuleMakerFailed::conflictingOptions($conflicts);
-        }
-
-        foreach (['factory' => $options->factory, 'migration' => $options->migration] as $option => $enabled) {
-            if ($enabled) {
-                throw ModuleMakerFailed::unsupportedOption($option, $this->value);
-            }
         }
 
         $parameters = [
@@ -117,6 +145,74 @@ enum ModuleMakerType: string implements GeneratorDescriptor
                 ),
             ),
         ]);
+    }
+
+    private function phpTypePlan(
+        ModuleMakerTarget $target,
+        GenerationOptions $options,
+    ): GenerationPlan {
+        $allowed = match ($this) {
+            self::PhpCast => ['inbound'],
+            self::PhpClass => ['invokable'],
+            self::PhpEnum => ['int', 'string'],
+            self::PhpException => ['render', 'report'],
+            self::PhpInterface, self::PhpScope, self::PhpTrait => [],
+            default => [],
+        };
+        $this->rejectUnsupportedOptions($options, $allowed);
+        $parameters = [
+            'name' => $target->className(),
+            '--force' => $options->force,
+            '--no-interaction' => true,
+        ];
+
+        if ($this === self::PhpCast) {
+            $parameters['--inbound'] = $options->inbound;
+        } elseif ($this === self::PhpClass) {
+            $parameters['--invokable'] = $options->invokable;
+        } elseif ($this === self::PhpEnum) {
+            $parameters['--int'] = $options->intBacked;
+            $parameters['--string'] = $options->stringBacked;
+        } elseif ($this === self::PhpException) {
+            $parameters['--render'] = $options->render;
+            $parameters['--report'] = $options->report;
+        }
+
+        return new GenerationPlan([
+            new GenerationTarget(
+                $this->id(),
+                $this->command(),
+                $target->className(),
+                $target->filePath(),
+                $target->moduleRelativePath(),
+                $options->force,
+                array_filter(
+                    $parameters,
+                    static fn (bool|string $value): bool => $value !== false,
+                ),
+            ),
+        ]);
+    }
+
+    /** @param list<string> $allowed */
+    private function rejectUnsupportedOptions(GenerationOptions $options, array $allowed): void
+    {
+        foreach ([
+            'invokable' => $options->invokable,
+            'resource' => $options->resource,
+            'api' => $options->api,
+            'factory' => $options->factory,
+            'migration' => $options->migration,
+            'int' => $options->intBacked,
+            'string' => $options->stringBacked,
+            'inbound' => $options->inbound,
+            'render' => $options->render,
+            'report' => $options->report,
+        ] as $option => $enabled) {
+            if ($enabled && ! in_array($option, $allowed, true)) {
+                throw ModuleMakerFailed::unsupportedOption($option, $this->value);
+            }
+        }
     }
 
     private function modelTarget(

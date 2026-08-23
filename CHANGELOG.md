@@ -21,6 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   targets, complete collision preflight, runtime factory wiring, and executor
   rollback for newly created or overwritten files. Rollback failures are
   surfaced explicitly instead of being reported as atomic success.
+- Added Module-owned `class`, `enum`, `interface`, and `trait` Maker descriptors
+  with Laravel-native stubs, fixed Laravel 12 / 13 plan fixtures, nested
+  namespaces, descriptor-specific option allowlists, and shared dry-run,
+  collision, and force behavior.
+- Added Module-owned `cast`, `exception`, and `scope` Maker descriptors with
+  Laravel-native stubs and reviewed `--inbound`, `--render`, and `--report`
+  option ownership across the Laravel 12 / 13 regression matrix.
 
 ## [1.0.1] - 2026-08-23
 

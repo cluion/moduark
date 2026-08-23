@@ -18,14 +18,11 @@ final class GeneratorRegistryTest extends TestCase
 {
     public function test_it_resolves_case_insensitively_and_lists_canonical_ids_in_order(): void
     {
-        $registry = new GeneratorRegistry([
-            ModuleMakerType::Model,
-            ModuleMakerType::Controller,
-        ]);
+        $registry = new GeneratorRegistry(ModuleMakerType::cases());
 
         self::assertSame(ModuleMakerType::Model, $registry->resolve('MODEL'));
         self::assertSame(
-            ['controller', 'model'],
+            ['cast', 'class', 'controller', 'enum', 'exception', 'interface', 'model', 'scope', 'trait'],
             array_map(
                 static fn (GeneratorDescriptor $descriptor): string => $descriptor->id(),
                 $registry->all(),
@@ -57,7 +54,7 @@ final class GeneratorRegistryTest extends TestCase
 
         $this->expectException(ModuleMakerFailed::class);
         $this->expectExceptionMessage(
-            'Maker type [request] is not supported; expected model or controller.',
+            'Maker type [request] is not supported; expected cast, class, controller, enum, exception, interface, model, scope, or trait.',
         );
 
         $registry->resolve('request');

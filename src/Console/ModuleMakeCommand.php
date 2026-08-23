@@ -20,18 +20,23 @@ final class ModuleMakeCommand extends Command
     /** @var string */
     protected $signature = 'moduark:make
         {module : Existing Module name}
-        {type : Maker type: model or controller}
+        {type : Maker type: cast, class, controller, enum, exception, interface, model, scope, or trait}
         {name : StudlyCase class name, optionally with nested segments}
         {--dry-run : Display the complete generation plan without writing files}
         {--force : Overwrite an existing generated class}
         {--factory : Generate a Module-owned factory for a model}
         {--migration : Generate a Module-owned create-table migration for a model}
-        {--invokable : Generate an invokable controller}
+        {--int : Generate an integer-backed enum}
+        {--string : Generate a string-backed enum}
+        {--inbound : Generate an inbound Eloquent cast}
+        {--render : Generate an exception with an empty render method}
+        {--report : Generate an exception with an empty report method}
+        {--invokable : Generate an invokable class or controller}
         {--resource : Generate a resource controller}
         {--api : Generate an API controller without create and edit methods}';
 
     /** @var string */
-    protected $description = 'Generate a model or controller inside an existing Module';
+    protected $description = 'Generate a supported Laravel artifact inside an existing Module';
 
     public function __construct(
         private readonly GenerationPlanner $planner,
@@ -61,6 +66,11 @@ final class ModuleMakeCommand extends Command
                 api: $this->option('api') === true,
                 factory: $this->option('factory') === true,
                 migration: $this->option('migration') === true,
+                intBacked: $this->option('int') === true,
+                stringBacked: $this->option('string') === true,
+                inbound: $this->option('inbound') === true,
+                render: $this->option('render') === true,
+                report: $this->option('report') === true,
             ));
         } catch (ModuleMakerFailed $exception) {
             $this->components->error('Module Maker failed: '.$exception->getMessage());

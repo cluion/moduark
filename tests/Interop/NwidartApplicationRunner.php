@@ -587,7 +587,7 @@ PHP;
         $this->assertContains('Create a new module.', $nwidart, 'nwidart module:make was overwritten.');
         $this->assertContains('[<name>...]', $nwidart, 'nwidart module:make lost its name list argument.');
         $this->assertContains(
-            'Generate a model or controller inside an existing Module',
+            'Generate a supported Laravel artifact inside an existing Module',
             $moduark,
             'Moduark resource maker did not keep its independent command contract.',
         );
@@ -607,6 +607,11 @@ PHP;
             $moduark,
             'Moduark resource maker lost its migration option.',
         );
+        $this->assertContains('--int', $moduark, 'Moduark resource maker lost its enum int option.');
+        $this->assertContains('--string', $moduark, 'Moduark resource maker lost its enum string option.');
+        $this->assertContains('--inbound', $moduark, 'Moduark resource maker lost its cast inbound option.');
+        $this->assertContains('--render', $moduark, 'Moduark resource maker lost its exception render option.');
+        $this->assertContains('--report', $moduark, 'Moduark resource maker lost its exception report option.');
     }
 
     /** @param array<string, string> $environment */

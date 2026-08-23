@@ -1,0 +1,48 @@
+{
+    "schema": 1,
+    "laravel_major": 12,
+    "plans": [
+        {
+            "type": "class",
+            "name": "Support/InvokableTask",
+            "options": "--invokable",
+            "target": "Support/InvokableTask.php"
+        },
+        {
+            "type": "cast",
+            "name": "Money/AmountCast",
+            "options": "--inbound",
+            "target": "Casts/Money/AmountCast.php"
+        },
+        {
+            "type": "enum",
+            "name": "Workflow/Status",
+            "options": "--string",
+            "target": "Enums/Workflow/Status.php"
+        },
+        {
+            "type": "exception",
+            "name": "Billing/PaymentFailed",
+            "options": "--render --report",
+            "target": "Exceptions/Billing/PaymentFailed.php"
+        },
+        {
+            "type": "interface",
+            "name": "Lookup/UserLookup",
+            "options": "",
+            "target": "Contracts/Lookup/UserLookup.php"
+        },
+        {
+            "type": "scope",
+            "name": "Visibility/PublishedScope",
+            "options": "",
+            "target": "Models/Scopes/Visibility/PublishedScope.php"
+        },
+        {
+            "type": "trait",
+            "name": "Serialization/SerializesAttributes",
+            "options": "",
+            "target": "Concerns/Serialization/SerializesAttributes.php"
+        }
+    ]
+}
