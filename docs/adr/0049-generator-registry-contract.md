@@ -1,6 +1,6 @@
 # ADR-0049: Generator Registry Contract and Laravel Maker Inventory
 
-- Status: Accepted and implemented through `1.1` Slice G2-B
+- Status: Accepted and implemented through `1.1` Slice G2-C
 - Date: 2026-08-23
 
 ## Context
@@ -30,6 +30,8 @@ G2-A begins the HTTP group with Module-owned `request` and `resource`
 descriptors, including the native Resource Collection and JSON:API variants.
 G2-B adds the Module-owned `middleware` descriptor while preserving its
 single-target native contract.
+G2-C adds the Module-owned `policy` descriptor with explicit model and auth-user
+ownership semantics.
 
 ## Decision
 
@@ -78,6 +80,11 @@ single-target native contract.
   `--force` before execution. Native `--test`, `--pest`, and `--phpunit` modes
   remain unexposed because their related targets are not represented by the
   single-target Module plan.
+- G2-C fixes policies below `Policies/` and keeps native plain/model-aware
+  delegation. Relative `--model` values are validated as StudlyCase paths and
+  qualified below the selected Module's `Models/` namespace; external FQCNs are
+  rejected. `--guard` retains Laravel's application auth-provider lookup. These
+  options change only the policy stub and never create a related model.
 
 The concrete PHP interfaces were introduced with executable contract tests in
 G0-B. They remain pre-`1.1` internal extension boundaries until their public API
@@ -151,6 +158,10 @@ membership is evidence for planning, not a support claim.
 - G2-B extends both HTTP fixtures with nested Middleware ownership and verifies
   the native stub, collision refusal, explicit unsupported-force behavior,
   dry-run zero mutation, clean installation, and nwidart command ownership.
+- G2-C adds separate Laravel 12 / 13 Policy plan fixtures and verifies plain and
+  Module-model stubs, guard-selected user types, external-model refusal,
+  collision/force parity, invalid-guard cleanup, clean installation, and
+  nwidart command ownership.
 
 ## Consequences
 

@@ -99,7 +99,7 @@ The following commands and their documented arguments and options are Stable:
 
 ```text
 moduark:make-module {name}
-moduark:make {module} {type} {name} [--dry-run] [--force] [--factory] [--migration] [--int] [--string] [--inbound] [--render] [--report] [--collection] [--json-api] [--invokable] [--resource] [--api]
+moduark:make {module} {type} {name} [--dry-run] [--force] [--factory] [--migration] [--int] [--string] [--inbound] [--render] [--report] [--collection] [--json-api] [--model=] [--guard=] [--invokable] [--resource] [--api]
 moduark:list
 moduark:inspect {module}
 moduark:graph [{module}] [--view=module] [--format=text]
@@ -113,6 +113,9 @@ Maker options are descriptor-specific. In particular, `middleware` supports
 `--dry-run` but rejects `--force`; Laravel's native Middleware Maker has no
 force option. Its native matching-test options remain outside the Stable
 single-target Module ownership contract.
+Policy `--model` values are Module-relative class names below `Models/`;
+`--guard` retains Laravel's application auth-provider semantics. Neither option
+creates a related model.
 
 Architecture checks use these process exit codes:
 

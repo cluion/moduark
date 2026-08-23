@@ -34,6 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the Module-owned `middleware` Maker below `Http/Middleware/` with its
   Laravel-native stub and explicit refusal of unsupported force or related-test
   generation rather than writing outside the single-target Module plan.
+- Added the Module-owned `policy` Maker below `Policies/` with native plain and
+  model-aware stubs. Relative `--model` values resolve inside the selected
+  Module, while `--guard` retains Laravel's application auth-provider semantics.
 
 ## [1.0.1] - 2026-08-23
 

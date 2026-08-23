@@ -16,7 +16,7 @@ final class ModuleMakerFailed extends RuntimeException
     public static function unsupportedType(string $type): self
     {
         return new self(
-            "Maker type [{$type}] is not supported; expected cast, class, controller, enum, exception, interface, middleware, model, request, resource, scope, or trait.",
+            "Maker type [{$type}] is not supported; expected cast, class, controller, enum, exception, interface, middleware, model, policy, request, resource, scope, or trait.",
         );
     }
 
@@ -59,6 +59,18 @@ final class ModuleMakerFailed extends RuntimeException
     public static function unsupportedOption(string $option, string $type): self
     {
         return new self("The --{$option} option is not supported for Maker type [{$type}].");
+    }
+
+    public static function invalidOptionValue(string $option): self
+    {
+        return new self("The --{$option} option must be a non-empty string when provided.");
+    }
+
+    public static function invalidPolicyModel(string $model): self
+    {
+        return new self(
+            "Policy model [{$model}] must contain one or more StudlyCase class segments relative to the Module Models namespace.",
+        );
     }
 
     /** @param list<string> $options */

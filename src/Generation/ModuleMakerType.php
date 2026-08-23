@@ -6,6 +6,7 @@ namespace Cluion\Moduark\Generation;
 
 use Cluion\Moduark\Exceptions\ModuleMakerFailed;
 use Illuminate\Support\Str;
+use ParseError;
 
 enum ModuleMakerType: string implements GeneratorDescriptor
 {
@@ -17,6 +18,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     case PhpException = 'exception';
     case PhpInterface = 'interface';
     case HttpMiddleware = 'middleware';
+    case Policy = 'policy';
     case HttpRequest = 'request';
     case HttpResource = 'resource';
     case PhpScope = 'scope';
@@ -33,6 +35,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpException->value => self::PhpException,
             self::PhpInterface->value => self::PhpInterface,
             self::HttpMiddleware->value => self::HttpMiddleware,
+            self::Policy->value => self::Policy,
             self::HttpRequest->value => self::HttpRequest,
             self::HttpResource->value => self::HttpResource,
             self::PhpScope->value => self::PhpScope,
@@ -62,6 +65,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpException => 'Exceptions',
             self::PhpInterface => 'Contracts',
             self::HttpMiddleware => 'Http\\Middleware',
+            self::Policy => 'Policies',
             self::HttpRequest => 'Http\\Requests',
             self::HttpResource => 'Http\\Resources',
             self::PhpScope => 'Models\\Scopes',
@@ -85,6 +89,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpException,
             self::PhpInterface,
             self::HttpMiddleware,
+            self::Policy,
             self::HttpRequest,
             self::HttpResource,
             self::PhpScope,
@@ -169,6 +174,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpEnum => ['int', 'string'],
             self::PhpException => ['render', 'report'],
             self::HttpResource => ['collection', 'json-api'],
+            self::Policy => ['model', 'guard'],
             self::PhpInterface,
             self::HttpMiddleware,
             self::HttpRequest,
@@ -205,6 +211,14 @@ enum ModuleMakerType: string implements GeneratorDescriptor
         } elseif ($this === self::HttpResource) {
             $parameters['--collection'] = $options->collection;
             $parameters['--json-api'] = $options->jsonApi;
+        } elseif ($this === self::Policy) {
+            if ($options->model !== null) {
+                $parameters['--model'] = $this->policyModel($target, $options->model);
+            }
+
+            if ($options->guard !== null) {
+                $parameters['--guard'] = $options->guard;
+            }
         }
 
         return new GenerationPlan([
@@ -239,11 +253,37 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             'report' => $options->report,
             'collection' => $options->collection,
             'json-api' => $options->jsonApi,
+            'model' => $options->model !== null,
+            'guard' => $options->guard !== null,
         ] as $option => $enabled) {
             if ($enabled && ! in_array($option, $allowed, true)) {
                 throw ModuleMakerFailed::unsupportedOption($option, $this->value);
             }
         }
+    }
+
+    private function policyModel(ModuleMakerTarget $target, string $model): string
+    {
+        $normalized = str_replace('\\', '/', $model);
+
+        if (preg_match('/\A[A-Z][A-Za-z0-9]*(?:\/[A-Z][A-Za-z0-9]*)*\z/D', $normalized) !== 1) {
+            throw ModuleMakerFailed::invalidPolicyModel($model);
+        }
+
+        $segments = explode('/', $normalized);
+        $shortName = end($segments);
+
+        try {
+            $tokens = token_get_all("<?php class {$shortName} {}", TOKEN_PARSE);
+
+            if ($tokens === []) {
+                throw ModuleMakerFailed::invalidPolicyModel($model);
+            }
+        } catch (ParseError) {
+            throw ModuleMakerFailed::invalidPolicyModel($model);
+        }
+
+        return '\\'.$target->moduleNamespace().'\\Models\\'.str_replace('/', '\\', $normalized);
     }
 
     private function modelTarget(

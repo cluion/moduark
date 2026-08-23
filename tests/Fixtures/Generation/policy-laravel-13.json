@@ -1,0 +1,18 @@
+{
+    "schema": 1,
+    "laravel_major": 13,
+    "plans": [
+        {
+            "type": "policy",
+            "name": "Admin/ManageProfiles",
+            "options": "",
+            "target": "Policies/Admin/ManageProfiles.php"
+        },
+        {
+            "type": "policy",
+            "name": "Profile/ProfilePolicy",
+            "options": "--model=Profile --guard=web",
+            "target": "Policies/Profile/ProfilePolicy.php"
+        }
+    ]
+}

@@ -304,6 +304,7 @@ final class CleanApplicationRunner
             ['exception', 'Billing/PaymentFailed', '--render', 'Exceptions/Billing/PaymentFailed.php'],
             ['interface', 'Lookup/UserLookup', null, 'Contracts/Lookup/UserLookup.php'],
             ['middleware', 'Admin/EnsureProfileIsComplete', null, 'Http/Middleware/Admin/EnsureProfileIsComplete.php'],
+            ['policy', 'Profile/ProfilePolicy', '--model=Profile', 'Policies/Profile/ProfilePolicy.php'],
             ['request', 'Profile/StoreProfileRequest', null, 'Http/Requests/Profile/StoreProfileRequest.php'],
             ['resource', 'Profile/ProfileResource', null, 'Http/Resources/Profile/ProfileResource.php'],
             ['resource', 'Profile/ProfileCollection', '--collection', 'Http/Resources/Profile/ProfileCollection.php'],

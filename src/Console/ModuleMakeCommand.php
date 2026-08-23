@@ -20,7 +20,7 @@ final class ModuleMakeCommand extends Command
     /** @var string */
     protected $signature = 'moduark:make
         {module : Existing Module name}
-        {type : Maker type: cast, class, controller, enum, exception, interface, middleware, model, request, resource, scope, or trait}
+        {type : Maker type: cast, class, controller, enum, exception, interface, middleware, model, policy, request, resource, scope, or trait}
         {name : StudlyCase class name, optionally with nested segments}
         {--dry-run : Display the complete generation plan without writing files}
         {--force : Overwrite an existing generated class}
@@ -33,6 +33,8 @@ final class ModuleMakeCommand extends Command
         {--report : Generate an exception with an empty report method}
         {--collection : Generate a resource collection}
         {--json-api : Generate a JSON:API resource}
+        {--model= : Module-owned model that a policy applies to}
+        {--guard= : Laravel authentication guard that a policy relies on}
         {--invokable : Generate an invokable class or controller}
         {--resource : Generate a resource controller}
         {--api : Generate an API controller without create and edit methods}';
@@ -75,6 +77,8 @@ final class ModuleMakeCommand extends Command
                 report: $this->option('report') === true,
                 collection: $this->option('collection') === true,
                 jsonApi: $this->option('json-api') === true,
+                model: $this->optionalStringOption('model'),
+                guard: $this->optionalStringOption('guard'),
             ));
         } catch (ModuleMakerFailed $exception) {
             $this->components->error('Module Maker failed: '.$exception->getMessage());
@@ -157,5 +161,20 @@ final class ModuleMakeCommand extends Command
         return $target->overwrite() && (file_exists($target->filePath()) || is_link($target->filePath()))
             ? 'OVERWRITE'
             : 'CREATE';
+    }
+
+    private function optionalStringOption(string $name): ?string
+    {
+        $value = $this->option($name);
+
+        if ($value === null) {
+            return null;
+        }
+
+        if (! is_string($value) || trim($value) === '') {
+            throw ModuleMakerFailed::invalidOptionValue($name);
+        }
+
+        return trim($value);
     }
 }

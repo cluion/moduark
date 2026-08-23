@@ -20,6 +20,8 @@ final readonly class GenerationOptions
         public bool $report,
         public bool $collection,
         public bool $jsonApi,
+        public ?string $model,
+        public ?string $guard,
     ) {
     }
 }

@@ -328,7 +328,7 @@ final class ModuleMakeCommandTest extends TestCase
     {
         $this->command('moduark:make User rule ProfileRule')
             ->expectsOutputToContain(
-                'Module Maker failed: Maker type [rule] is not supported; expected cast, class, controller, enum, exception, interface, middleware, model, request, resource, scope, or trait.',
+                'Module Maker failed: Maker type [rule] is not supported; expected cast, class, controller, enum, exception, interface, middleware, model, policy, request, resource, scope, or trait.',
             )
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }

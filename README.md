@@ -145,6 +145,8 @@ php artisan moduark:make User enum Workflow/Status --string
 php artisan moduark:make User exception Billing/PaymentFailed --render --report
 php artisan moduark:make User interface Lookup/UserLookup
 php artisan moduark:make User middleware Admin/EnsureProfileIsComplete
+php artisan moduark:make User policy Admin/ManageProfiles
+php artisan moduark:make User policy Profile/ProfilePolicy --model=Profile --guard=web
 php artisan moduark:make User request Profile/StoreProfileRequest
 php artisan moduark:make User resource Profile/ProfileResource
 php artisan moduark:make User resource Profile/ProfileCollection --collection
@@ -190,6 +192,13 @@ stub. It supports nested names and `--dry-run`. Laravel's Middleware Maker does
 not expose `--force`, so Moduark rejects that option instead of emulating an
 overwrite. Native `--test`, `--pest`, and `--phpunit` modes remain unexposed
 because their related targets are outside the Module-owned single-file plan.
+
+Policies use the Module-owned `Policies/` path and Laravel's native plain or
+model-aware stubs. A relative `--model=Profile` is intentionally resolved as
+the selected Module's `Models\Profile`; external fully qualified model names
+are rejected. `--guard` selects Laravel's application auth user provider and
+does not create another user or model. Policy generation remains a single-file
+plan and supports `--force` and `--dry-run`.
 
 The target Module must already exist and its configured path must be inside the
 Laravel application source root. Other composite Laravel Maker options that
