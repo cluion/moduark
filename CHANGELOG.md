@@ -13,6 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   constraint to the published stable `cluion/moduark-phpstan:^0.2` line after
   Laravel 12 / 13 published-distribution acceptance.
 
+### Fixed
+
+- Made nwidart's enabled Module set authoritative when Moduark automatically
+  follows its Module root. Registry consumers, analysis, graphs, lifecycle
+  providers, Capability bindings, native resources, and the version `4`
+  metadata cache now exclude disabled Modules and restore them after enable;
+  the permanent regression matrix covers Laravel 12 with nwidart 12 and
+  Laravel 13 with nwidart 13.
+
 ## [1.0.0] - 2026-08-23
 
 This first stable release promotes the publicly reviewed RC.2 contract without

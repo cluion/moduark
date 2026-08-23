@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use Cluion\Moduark\Discovery\DiscoveredModule;
+use Cluion\Moduark\Discovery\ModuleActivationSet;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
 use Cluion\Moduark\Exceptions\ModuleDiscoveryFailed;
 use Cluion\Moduark\Registry\ModuleRegistry;
@@ -62,6 +63,26 @@ final class ModuleDiscovererTest extends TestCase
 
         self::assertSame([NwidartUserModule::class], $registry->moduleClasses());
         self::assertSame($root.'/User/app/UserModule.php', $registry->all()[0]->path());
+    }
+
+    public function test_only_active_modules_are_inspected(): void
+    {
+        $registry = $this->discoverer->discover(
+            $this->fixturePath('Valid/Modules'),
+            ModuleActivationSet::only(['Zeta']),
+        );
+
+        self::assertSame([ZetaModule::class], $registry->moduleClasses());
+    }
+
+    public function test_inactive_entry_files_are_filtered_before_validation(): void
+    {
+        $registry = $this->discoverer->discover(
+            $this->fixturePath('InvalidFileName/Modules'),
+            ModuleActivationSet::only([]),
+        );
+
+        self::assertSame([], $registry->all());
     }
 
     public function test_entry_file_must_match_its_module_directory(): void

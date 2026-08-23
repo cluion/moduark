@@ -132,10 +132,14 @@ the blocking GitHub Actions matrix does. The two installation commands run the
 current checkout on Laravel 12 and 13, first without and then with Laravel
 Boost Skill synchronization.
 
-`composer test:interop` creates a fresh Laravel 13 application with
-`nwidart/laravel-modules`, installs the current checkout, and verifies that the
-two packages retain independent command/configuration namespaces while sharing
-the nwidart Module root safely.
+`composer test:interop` creates fresh Laravel 12 and 13 applications with the
+matching `nwidart/laravel-modules` majors, installs the current checkout, and
+verifies that the two packages retain independent command/configuration
+namespaces while sharing the nwidart Module root safely. The same assertions
+disable and re-enable a cached Module in both applications and verify registry,
+analysis, graphs, providers, Capability bindings, routes, and metadata cache
+against the same active Module set. Use `-- --laravel=12` or
+`-- --laravel=13` to run one matrix member.
 
 The full suite must include passing documentation-link, public-contract,
 repository-policy, upgrade-policy, Boost Skill, and Level 3 go/no-go tests. Run
@@ -243,13 +247,13 @@ composer test:installation -- --package="${MODUARK_RELEASE_VERSION}" --boost
 composer test:interop -- --package="${MODUARK_RELEASE_VERSION}"
 ```
 
-Laravel 12 and 13 must pass the clean installation matrix, and Laravel 13 with
-`nwidart/laravel-modules` must pass the interoperability fixture. Together they
-cover package discovery, command behavior and ownership, archive layout,
-configuration and Module caches, machine output, baseline/suppression audit,
-optimization behavior, and Laravel Boost Skill synchronization. Confirm the
-installed archive contains public policy and Skill files while excluding
-repository-only tests, tools, workbench files, and automation.
+Laravel 12 and 13 must pass the clean installation matrix and the matching
+nwidart 12 / 13 interoperability fixtures. Together they cover package
+discovery, command behavior and ownership, archive layout, configuration and
+Module caches, machine output, baseline/suppression audit, optimization
+behavior, and Laravel Boost Skill synchronization. Confirm the installed
+archive contains public policy and Skill files while excluding repository-only
+tests, tools, workbench files, and automation.
 
 Only after this stage may the release be described as publicly verified.
 

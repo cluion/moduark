@@ -12,8 +12,13 @@ use ReflectionClass;
 
 final class ModuleDiscoverer
 {
-    public function discover(string $rootPath): ModuleRegistry
+    public function discover(
+        string $rootPath,
+        ?ModuleActivationSet $activationSet = null,
+    ): ModuleRegistry
     {
+        $activationSet ??= ModuleActivationSet::all();
+
         if (! is_dir($rootPath)) {
             return new ModuleRegistry([]);
         }
@@ -36,7 +41,7 @@ final class ModuleDiscoverer
             }
 
             foreach ($matches as $match) {
-                if (is_file($match)) {
+                if (is_file($match) && $activationSet->includes($this->moduleName($match))) {
                     $files[$match] = $match;
                 }
             }
@@ -51,13 +56,19 @@ final class ModuleDiscoverer
         ));
     }
 
-    private function inspect(string $path): DiscoveredModule
+    private function moduleName(string $path): string
     {
         $entryDirectory = dirname($path);
         $moduleDirectory = basename($entryDirectory) === 'app'
             ? dirname($entryDirectory)
             : $entryDirectory;
-        $moduleName = basename($moduleDirectory);
+
+        return basename($moduleDirectory);
+    }
+
+    private function inspect(string $path): DiscoveredModule
+    {
+        $moduleName = $this->moduleName($path);
         $expectedClassName = $moduleName.'Module';
         $expectedFileName = $expectedClassName.'.php';
 

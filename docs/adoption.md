@@ -23,6 +23,17 @@ Moduark's default path is `app/Modules`. A custom path must remain inside a
 registered Composer PSR-4 mapping so generated and discovered entry classes are
 autoloadable. When `nwidart/laravel-modules` is installed and `moduark.path`
 is `null` or absent, Moduark follows nwidart's `modules.paths.modules` root.
+It also treats nwidart's active Module set as authoritative for discovery,
+analysis, graphs, cache, lifecycle providers, Capability bindings, and native
+Module resources. `module:disable <Name>` removes that Module from every one of
+those Moduark surfaces on the next application process; `module:enable <Name>`
+restores it. The metadata cache detects this transition from its active-set
+fingerprint, so a stale manifest is bypassed automatically.
+
+Setting an explicit non-empty `moduark.path` opts out of this activation-state
+integration, even if the configured path happens to equal nwidart's root. See
+[ADR-0048](adr/0048-nwidart-active-module-set.md) for the boundary and cache
+decision.
 
 For a nwidart layout, place the Moduark entry below the generated `app` source
 root and keep its namespace in the application's Composer mapping:

@@ -7,6 +7,7 @@ namespace Tests\Unit;
 use Cluion\Moduark\Cache\ModuleCacheManifest;
 use Cluion\Moduark\Cache\ModuleCacheStore;
 use Cluion\Moduark\Discovery\DiscoveredModule;
+use Cluion\Moduark\Discovery\ModuleActivationSet;
 use Cluion\Moduark\Exceptions\ModuleCacheFailed;
 use Cluion\Moduark\Metadata\ModuleDescriptor;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
@@ -51,7 +52,7 @@ final class ModuleCacheStoreTest extends TestCase
         self::assertSame($first, $second);
         self::assertStringStartsWith("<?php\n\ndeclare(strict_types=1);\n\nreturn ", $first);
 
-        $loaded = $store->load('/workspace/app/Modules');
+        $loaded = $store->load('/workspace/app/Modules', $this->fingerprint());
 
         self::assertNotNull($loaded);
         self::assertSame($manifest->toArray(), $loaded->toArray());
@@ -76,7 +77,18 @@ final class ModuleCacheStoreTest extends TestCase
         $store = new ModuleCacheStore($this->path);
         $store->write($this->manifest());
 
-        self::assertNull($store->load('/different/app/Modules'));
+        self::assertNull($store->load('/different/app/Modules', $this->fingerprint()));
+    }
+
+    public function test_manifest_for_another_activation_set_is_not_used(): void
+    {
+        $store = new ModuleCacheStore($this->path);
+        $store->write($this->manifest());
+
+        self::assertNull($store->load(
+            '/workspace/app/Modules',
+            ModuleActivationSet::only(['CacheAlpha'])->fingerprint(),
+        ));
     }
 
     public function test_manifest_with_an_unknown_schema_is_not_used(): void
@@ -84,7 +96,10 @@ final class ModuleCacheStoreTest extends TestCase
         mkdir($this->directory, 0777, true);
         file_put_contents($this->path, "<?php\n\nreturn ['schema_version' => 999];\n");
 
-        self::assertNull((new ModuleCacheStore($this->path))->load('/workspace/app/Modules'));
+        self::assertNull((new ModuleCacheStore($this->path))->load(
+            '/workspace/app/Modules',
+            $this->fingerprint(),
+        ));
     }
 
     public function test_older_manifests_are_bypassed_after_export_metadata_is_added(): void
@@ -92,18 +107,24 @@ final class ModuleCacheStoreTest extends TestCase
         mkdir($this->directory, 0777, true);
         file_put_contents($this->path, "<?php\n\nreturn ['schema_version' => 2];\n");
 
-        self::assertNull((new ModuleCacheStore($this->path))->load('/workspace/app/Modules'));
+        self::assertNull((new ModuleCacheStore($this->path))->load(
+            '/workspace/app/Modules',
+            $this->fingerprint(),
+        ));
     }
 
     public function test_invalid_cache_payload_fails_with_the_cache_path(): void
     {
         mkdir($this->directory, 0777, true);
-        file_put_contents($this->path, "<?php\n\nreturn ['schema_version' => 3];\n");
+        file_put_contents(
+            $this->path,
+            "<?php\n\nreturn ['schema_version' => ".ModuleCacheManifest::SCHEMA_VERSION."];\n",
+        );
 
         $this->expectException(ModuleCacheFailed::class);
         $this->expectExceptionMessage("Module cache [{$this->path}] is invalid.");
 
-        (new ModuleCacheStore($this->path))->load('/workspace/app/Modules');
+        (new ModuleCacheStore($this->path))->load('/workspace/app/Modules', $this->fingerprint());
     }
 
     public function test_current_cache_schema_revalidates_canonical_table_metadata(): void
@@ -119,7 +140,7 @@ final class ModuleCacheStoreTest extends TestCase
         $this->expectException(ModuleCacheFailed::class);
         $this->expectExceptionMessage("Module cache [{$this->path}] is invalid.");
 
-        (new ModuleCacheStore($this->path))->load('/workspace/app/Modules');
+        (new ModuleCacheStore($this->path))->load('/workspace/app/Modules', $this->fingerprint());
     }
 
     public function test_current_cache_schema_rejects_malformed_export_metadata(): void
@@ -135,7 +156,7 @@ final class ModuleCacheStoreTest extends TestCase
         $this->expectException(ModuleCacheFailed::class);
         $this->expectExceptionMessage("Module cache [{$this->path}] is invalid.");
 
-        (new ModuleCacheStore($this->path))->load('/workspace/app/Modules');
+        (new ModuleCacheStore($this->path))->load('/workspace/app/Modules', $this->fingerprint());
     }
 
     public function test_clear_is_idempotent(): void
@@ -176,9 +197,15 @@ final class ModuleCacheStoreTest extends TestCase
 
         return new ModuleCacheManifest(
             '/workspace/app/Modules',
+            $this->fingerprint(),
             $registry,
             (new ModuleMetadataCompiler)->compileAll($registry->moduleClasses()),
         );
+    }
+
+    private function fingerprint(): string
+    {
+        return ModuleActivationSet::only(['CacheAlpha', 'CacheBeta'])->fingerprint();
     }
 }
 

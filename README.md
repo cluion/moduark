@@ -32,7 +32,12 @@ When `nwidart/laravel-modules` is installed, Moduark keeps nwidart's
 follows nwidart's configured Module root when that package is present and uses
 `app/Modules` otherwise; set a non-empty path to override auto-detection. Moduark
 discovers entry classes at either `<Module>/<Module>Module.php` or
-`<Module>/app/<Module>Module.php`. Publish Moduark settings independently with:
+`<Module>/app/<Module>Module.php`. In this automatic mode, nwidart's active
+Module set is authoritative: disabling a Module removes it from Moduark's
+registry, analysis, graphs, cache, providers, Capability bindings, and native
+resources; re-enabling it restores those surfaces. An explicit non-empty
+`moduark.path` remains independent of nwidart activation state. Publish Moduark
+settings independently with:
 
 ```bash
 php artisan vendor:publish --tag=moduark-config
@@ -50,7 +55,8 @@ commands target Modules inside Laravel's application source root; in
 particular, `moduark:make` intentionally rejects an external Module path. See
 [Adopting Moduark](docs/adoption.md) for the complete setup.
 
-See [ADR-0047](docs/adr/0047-nwidart-interoperability.md) and the
+See [ADR-0047](docs/adr/0047-nwidart-interoperability.md),
+[ADR-0048](docs/adr/0048-nwidart-active-module-set.md), and the
 [upgrade guide](UPGRADING.md) for the RC.1 namespace migration.
 
 The optional `cluion/moduark-phpstan` `v0.2.0` companion supports the Moduark
@@ -602,9 +608,10 @@ php artisan moduark:clear
 php artisan optimize:clear
 ```
 
-An unknown cache schema or a manifest for another configured Module root is
-ignored safely. A malformed current-schema manifest fails with its exact cache
-path instead of silently booting from ambiguous metadata. See
+An unknown cache schema, a manifest for another configured Module root, or a
+manifest for another nwidart active Module set is ignored safely. A malformed
+current-schema manifest fails with its exact cache path instead of silently
+booting from ambiguous metadata. See
 [ADR-0030](docs/adr/0030-module-metadata-cache.md). This integration is included
 in `v0.3.0-beta.2`.
 

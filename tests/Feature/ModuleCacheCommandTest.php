@@ -51,6 +51,7 @@ final class ModuleCacheCommandTest extends TestCase
 
         self::assertIsArray($payload);
         self::assertSame(ModuleCacheManifest::SCHEMA_VERSION, $payload['schema_version']);
+        self::assertSame('all:v1', $payload['activation_fingerprint']);
         self::assertIsArray($payload['registry']);
         self::assertCount(3, $payload['registry']);
         self::assertIsArray($payload['descriptors']);

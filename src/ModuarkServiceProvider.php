@@ -50,7 +50,9 @@ use Cluion\Moduark\Console\ModuleGraphCommand;
 use Cluion\Moduark\Console\ModuleInspectCommand;
 use Cluion\Moduark\Console\ModuleListCommand;
 use Cluion\Moduark\Console\ModuleMakeCommand;
+use Cluion\Moduark\Discovery\ModuleActivationSet;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
+use Cluion\Moduark\Discovery\NwidartModuleActivationResolver;
 use Cluion\Moduark\Graph\CapabilityGraphBuilder;
 use Cluion\Moduark\Graph\CombinedGraphBuilder;
 use Cluion\Moduark\Graph\Export\MermaidCapabilityGraphExporter;
@@ -73,6 +75,7 @@ use Cluion\Moduark\Resources\ModuleResourceServiceProvider;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
+use RuntimeException;
 
 final class ModuarkServiceProvider extends ServiceProvider
 {
@@ -101,18 +104,25 @@ final class ModuarkServiceProvider extends ServiceProvider
             throw new InvalidArgumentException('The moduark configuration must be an array.');
         }
 
+        $followsNwidart = false;
+
         if (
             ! array_key_exists('path', $applicationConfiguration)
             || $applicationConfiguration['path'] === null
         ) {
-            $configured['path'] = $this->nwidartModulesPath($repository)
-                ?? app_path('Modules');
+            $nwidartPath = $this->nwidartModulesPath($repository);
+            $configured['path'] = $nwidartPath ?? app_path('Modules');
+            $followsNwidart = $nwidartPath !== null;
         }
 
         $configuration = ModulesConfig::from($defaults, $configured);
 
         $repository->set('moduark', $configuration->all());
         $this->app->instance(ModulesConfig::class, $configuration);
+        $activationSet = $followsNwidart
+            ? $this->nwidartActivationSet($repository, $configuration->path())
+            : ModuleActivationSet::all();
+        $this->app->instance(ModuleActivationSet::class, $activationSet);
         $this->app->singleton(RulePresets::class);
         $this->app->singleton(RuleResolver::class);
         $this->app->singleton(PublicApi::class, ConventionPublicApi::class);
@@ -125,13 +135,19 @@ final class ModuarkServiceProvider extends ServiceProvider
             ModuleCacheStore::class,
             fn (): ModuleCacheStore => new ModuleCacheStore($this->app->bootstrapPath('cache/moduark.php')),
         );
-        $manifest = $this->app->make(ModuleCacheStore::class)->load($configuration->path());
+        $manifest = $this->app->make(ModuleCacheStore::class)->load(
+            $configuration->path(),
+            $activationSet->fingerprint(),
+        );
 
         if ($manifest === null) {
             $this->app->singleton(
                 ModuleRegistry::class,
                 fn (): ModuleRegistry => $this->app->make(ModuleDiscoverer::class)
-                    ->discover($this->app->make(ModulesConfig::class)->path()),
+                    ->discover(
+                        $this->app->make(ModulesConfig::class)->path(),
+                        $this->app->make(ModuleActivationSet::class),
+                    ),
             );
             $this->app->singleton(ModuleMetadataCompiler::class);
         } else {
@@ -272,5 +288,60 @@ final class ModuarkServiceProvider extends ServiceProvider
         $path = $repository->get('modules.paths.modules', $this->app->basePath('Modules'));
 
         return is_string($path) && $path !== '' ? $path : null;
+    }
+
+    private function nwidartActivationSet(
+        Repository $repository,
+        string $modulesPath,
+    ): ModuleActivationSet
+    {
+        $resolver = new NwidartModuleActivationResolver;
+        $activator = $repository->get('modules.activator');
+
+        if ($activator === null) {
+            return $resolver->resolveFile(
+                $this->app->basePath('modules_statuses.json'),
+                $modulesPath,
+            );
+        }
+
+        if (! is_string($activator) || $activator === '') {
+            throw new RuntimeException('The nwidart Module activator is not configured.');
+        }
+
+        $configuration = $repository->get('modules.activators.'.$activator);
+
+        if (! is_array($configuration)) {
+            if ($activator === 'file') {
+                return $resolver->resolveFile(
+                    $this->app->basePath('modules_statuses.json'),
+                    $modulesPath,
+                );
+            }
+
+            throw new RuntimeException("The nwidart Module activator [{$activator}] is invalid.");
+        }
+
+        $class = $configuration['class'] ?? null;
+
+        if ($activator === 'file'
+            && ($class === null || $class === 'Nwidart\\Modules\\Activators\\FileActivator')) {
+            $statusesPath = $configuration['statuses-file'] ?? null;
+
+            return $resolver->resolveFile(
+                is_string($statusesPath) && $statusesPath !== ''
+                    ? $statusesPath
+                    : $this->app->basePath('modules_statuses.json'),
+                $modulesPath,
+            );
+        }
+
+        if (! is_string($class) || $class === '' || ! class_exists($class)) {
+            throw new RuntimeException("The nwidart Module activator [{$activator}] is invalid.");
+        }
+
+        $instance = new $class($this->app);
+
+        return $resolver->resolve($instance, $modulesPath);
     }
 }

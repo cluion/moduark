@@ -22,7 +22,10 @@ final readonly class ModuleCacheStore
         return $this->path;
     }
 
-    public function load(string $expectedModulesPath): ?ModuleCacheManifest
+    public function load(
+        string $expectedModulesPath,
+        string $expectedActivationFingerprint,
+    ): ?ModuleCacheManifest
     {
         if (! is_file($this->path)) {
             return null;
@@ -48,7 +51,10 @@ final readonly class ModuleCacheStore
             throw ModuleCacheFailed::invalid($this->path, $exception);
         }
 
-        return $manifest->modulesPath() === $expectedModulesPath ? $manifest : null;
+        return $manifest->modulesPath() === $expectedModulesPath
+            && $manifest->activationFingerprint() === $expectedActivationFingerprint
+                ? $manifest
+                : null;
     }
 
     public function write(ModuleCacheManifest $manifest): void

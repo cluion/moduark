@@ -13,18 +13,23 @@ use InvalidArgumentException;
 
 final readonly class ModuleCacheManifest
 {
-    public const SCHEMA_VERSION = 3;
+    public const SCHEMA_VERSION = 4;
 
     /**
      * @param list<ModuleDescriptor> $descriptors
      */
     public function __construct(
         private string $modulesPath,
+        private string $activationFingerprint,
         private ModuleRegistry $registry,
         private array $descriptors,
     ) {
         if ($this->modulesPath === '') {
             throw new InvalidArgumentException('The cached Module path must be a non-empty string.');
+        }
+
+        if ($this->activationFingerprint === '') {
+            throw new InvalidArgumentException('The cached Module activation fingerprint must be a non-empty string.');
         }
 
         $registryClasses = $this->registry->moduleClasses();
@@ -57,10 +62,12 @@ final readonly class ModuleCacheManifest
         }
 
         $modulesPath = $payload['modules_path'] ?? null;
+        $activationFingerprint = $payload['activation_fingerprint'] ?? null;
         $registryRows = $payload['registry'] ?? null;
         $descriptorRows = $payload['descriptors'] ?? null;
 
         if (! is_string($modulesPath) || $modulesPath === ''
+            || ! is_string($activationFingerprint) || $activationFingerprint === ''
             || ! is_array($registryRows)
             || ! is_array($descriptorRows)) {
             throw new InvalidArgumentException('The Module cache payload is invalid.');
@@ -117,12 +124,22 @@ final readonly class ModuleCacheManifest
             $descriptors[] = ModuleDescriptor::fromArray($row);
         }
 
-        return new self($modulesPath, new ModuleRegistry($modules), $descriptors);
+        return new self(
+            $modulesPath,
+            $activationFingerprint,
+            new ModuleRegistry($modules),
+            $descriptors,
+        );
     }
 
     public function modulesPath(): string
     {
         return $this->modulesPath;
+    }
+
+    public function activationFingerprint(): string
+    {
+        return $this->activationFingerprint;
     }
 
     public function registry(): ModuleRegistry
@@ -142,6 +159,7 @@ final readonly class ModuleCacheManifest
      * @return array{
      *     schema_version: int,
      *     modules_path: string,
+     *     activation_fingerprint: string,
      *     registry: list<array{name: string, class: class-string<Module>, path: string, namespace: string}>,
      *     descriptors: list<array<string, mixed>>
      * }
@@ -151,6 +169,7 @@ final readonly class ModuleCacheManifest
         return [
             'schema_version' => self::SCHEMA_VERSION,
             'modules_path' => $this->modulesPath,
+            'activation_fingerprint' => $this->activationFingerprint,
             'registry' => $this->registry->toArray(),
             'descriptors' => array_map(
                 static fn (ModuleDescriptor $descriptor): array => $descriptor->toArray(),

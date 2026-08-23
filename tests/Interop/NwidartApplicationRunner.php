@@ -51,10 +51,43 @@ final class NwidartApplicationRunner
         return $value;
     }
 
-    public function run(): string
+    /**
+     * @return list<int>
+     */
+    public static function parseMajors(mixed $value): array
     {
+        $value = $value === false ? '12,13' : $value;
+
+        if (! is_string($value) || preg_match('/\A(?:12|13)(?:,(?:12|13))*\z/', $value) !== 1) {
+            throw new RuntimeException('The --laravel option must contain 12, 13, or 12,13.');
+        }
+
+        $majors = [];
+
+        foreach (explode(',', $value) as $major) {
+            $majors[(int) $major] = (int) $major;
+        }
+
+        return array_values($majors);
+    }
+
+    /**
+     * @param list<int> $majors
+     * @return list<array{major: int, laravel: string, nwidart: string}>
+     */
+    public function run(array $majors): array
+    {
+        if ($majors === []) {
+            throw new RuntimeException('At least one Laravel major is required.');
+        }
+
+        foreach ($majors as $major) {
+            if (! in_array($major, [12, 13], true)) {
+                throw new RuntimeException("Laravel major [{$major}] is outside the interoperability matrix.");
+            }
+        }
+
         $root = sys_get_temp_dir().'/moduark-nwidart-interop-'.bin2hex(random_bytes(8));
-        $application = $root.'/laravel-13';
 
         if (! mkdir($root, 0755, true)) {
             throw new RuntimeException("Unable to create interoperability root [{$root}].");
@@ -76,36 +109,14 @@ final class NwidartApplicationRunner
         echo $this->packageVersion === null
             ? "Package source: current checkout as cluion/moduark:dev-main\n"
             : "Package source: Packagist cluion/moduark:{$this->packageVersion}\n";
+        $results = [];
 
         try {
-            $this->command([
-                'composer',
-                'create-project',
-                'laravel/laravel:^13.0',
-                $application,
-                '--no-interaction',
-                '--no-progress',
-                '--prefer-dist',
-            ], $root, $environment);
-
-            $this->installPackages($application, $environment);
-            $this->publishAndVerifyConfigIsolation($application, $environment);
-            $this->createNwidartModules($application, $environment);
-            $this->installInteropSources($application);
-            $this->command(['composer', 'dump-autoload', '--no-interaction'], $application, $environment);
-            $this->installProbeCommand($application);
-            $this->verifyCommandOwnership($application, $environment);
-            $this->verifyEffectiveConfiguration($application, $environment);
-            $this->verifyDiscoveryAndAnalysis($application, $environment);
-            $this->verifyCacheAndRoutes($application, $environment);
-
-            $versionOutput = $this->artisan($application, ['--version'], $environment);
-
-            if (preg_match('/Laravel Framework ([^\s]+)/', $versionOutput, $match) !== 1) {
-                throw new RuntimeException('Unable to determine the installed Laravel framework version.');
+            foreach ($majors as $major) {
+                $results[] = $this->runMajor($root, $major, $environment);
             }
 
-            return $match[1];
+            return $results;
         } finally {
             if ($this->keep) {
                 echo "Preserved interoperability root: {$root}\n";
@@ -116,8 +127,52 @@ final class NwidartApplicationRunner
         }
     }
 
+    /**
+     * @param array<string, string> $environment
+     * @return array{major: int, laravel: string, nwidart: string}
+     */
+    private function runMajor(string $root, int $major, array $environment): array
+    {
+        $application = $root.'/laravel-'.$major;
+
+        echo "\n== Laravel {$major} + nwidart {$major} interoperability ==\n";
+        $this->command([
+            'composer',
+            'create-project',
+            "laravel/laravel:^{$major}.0",
+            $application,
+            '--no-interaction',
+            '--no-progress',
+            '--prefer-dist',
+        ], $root, $environment);
+
+        $this->installPackages($application, $major, $environment);
+        $this->publishAndVerifyConfigIsolation($application, $environment);
+        $this->createNwidartModules($application, $environment);
+        $this->installInteropSources($application);
+        $this->command(['composer', 'dump-autoload', '--no-interaction'], $application, $environment);
+        $this->installProbeCommand($application);
+        $this->verifyCommandOwnership($application, $environment);
+        $this->verifyEffectiveConfiguration($application, $environment);
+        $this->verifyDiscoveryAndAnalysis($application, $environment);
+        $this->verifyCacheAndRoutes($application, $environment);
+        $this->verifyEnabledStateTransitions($application, $environment);
+
+        $versionOutput = $this->artisan($application, ['--version'], $environment);
+
+        if (preg_match('/Laravel Framework ([^\s]+)/', $versionOutput, $match) !== 1) {
+            throw new RuntimeException('Unable to determine the installed Laravel framework version.');
+        }
+
+        return [
+            'major' => $major,
+            'laravel' => $match[1],
+            'nwidart' => $this->installedPackageVersion($application, 'nwidart/laravel-modules'),
+        ];
+    }
+
     /** @param array<string, string> $environment */
-    private function installPackages(string $application, array $environment): void
+    private function installPackages(string $application, int $major, array $environment): void
     {
         $constraint = $this->packageVersion ?? 'dev-main';
 
@@ -150,12 +205,48 @@ final class NwidartApplicationRunner
         $this->command([
             'composer',
             'require',
-            'nwidart/laravel-modules:^13.0',
+            "nwidart/laravel-modules:^{$major}.0",
             'cluion/moduark:'.$constraint,
             '--no-interaction',
             '--no-progress',
             '--prefer-dist',
         ], $application, $environment);
+    }
+
+    private function installedPackageVersion(string $application, string $package): string
+    {
+        $lock = json_decode(
+            $this->contents($application.'/composer.lock'),
+            true,
+            512,
+            JSON_THROW_ON_ERROR,
+        );
+
+        if (! is_array($lock)) {
+            throw new RuntimeException('The interoperability composer.lock is invalid.');
+        }
+
+        foreach (['packages', 'packages-dev'] as $section) {
+            $packages = $lock[$section] ?? null;
+
+            if (! is_array($packages)) {
+                continue;
+            }
+
+            foreach ($packages as $installed) {
+                if (! is_array($installed) || ($installed['name'] ?? null) !== $package) {
+                    continue;
+                }
+
+                $version = $installed['version'] ?? null;
+
+                if (is_string($version)) {
+                    return ltrim($version, 'v');
+                }
+            }
+        }
+
+        throw new RuntimeException("Unable to determine installed package version [{$package}].");
     }
 
     /** @param array<string, string> $environment */
@@ -264,9 +355,29 @@ declare(strict_types=1);
 
 namespace Modules\User;
 
+use Cluion\Moduark\Capability;
 use Cluion\Moduark\Module;
+use Modules\User\Contracts\UserLookupCapability;
 
 final class UserModule extends Module
+{
+    /** @return list<class-string<Capability>> */
+    public function provides(): array
+    {
+        return [UserLookupCapability::class];
+    }
+}
+PHP,
+            self::MODULE_DIRECTORY.'/User/app/Contracts/UserLookupCapability.php' => <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\User\Contracts;
+
+use Cluion\Moduark\Capability;
+
+interface UserLookupCapability extends Capability
 {
 }
 PHP,
@@ -310,7 +421,13 @@ declare(strict_types=1);
 
 namespace Modules\Order;
 
+use Cluion\Moduark\CapabilityRequirement;
 use Cluion\Moduark\Module;
+use Illuminate\Support\ServiceProvider;
+use Modules\Order\Adapters\User\UserLookupAdapter;
+use Modules\Order\Ports\UserLookup as UserLookupPort;
+use Modules\Order\Providers\OrderProbeServiceProvider;
+use Modules\User\Contracts\UserLookupCapability;
 use Modules\User\UserModule;
 
 final class OrderModule extends Module
@@ -319,7 +436,88 @@ final class OrderModule extends Module
     {
         return [UserModule::class];
     }
+
+    /** @return list<class-string<ServiceProvider>> */
+    public function providers(): array
+    {
+        return [OrderProbeServiceProvider::class];
+    }
+
+    /** @return list<CapabilityRequirement> */
+    public function requires(): array
+    {
+        return [new CapabilityRequirement(
+            UserLookupCapability::class,
+            UserLookupPort::class,
+            UserLookupAdapter::class,
+        )];
+    }
 }
+PHP,
+            self::MODULE_DIRECTORY.'/Order/app/Ports/UserLookup.php' => <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Order\Ports;
+
+interface UserLookup
+{
+}
+PHP,
+            self::MODULE_DIRECTORY.'/Order/app/Adapters/User/UserLookupAdapter.php' => <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Order\Adapters\User;
+
+use Modules\Order\Ports\UserLookup;
+
+final class UserLookupAdapter implements UserLookup
+{
+}
+PHP,
+            self::MODULE_DIRECTORY.'/Order/app/Providers/OrderProbeServiceProvider.php' => <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Order\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+final class OrderProbeServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        $this->app->instance('moduark.interop.order-provider', true);
+    }
+}
+PHP,
+            self::MODULE_DIRECTORY.'/Order/app/Http/Controllers/OrderProbeController.php' => <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Order\Http\Controllers;
+
+final class OrderProbeController
+{
+    public function __invoke(): string
+    {
+        return 'order';
+    }
+}
+PHP,
+            self::MODULE_DIRECTORY.'/Order/app/routes/web.php' => <<<'PHP'
+<?php
+
+use Illuminate\Support\Facades\Route;
+use Modules\Order\Http\Controllers\OrderProbeController;
+
+Route::get('/moduark-order-resource', OrderProbeController::class)
+    ->name('moduark.interop.order');
 PHP,
             self::MODULE_DIRECTORY.'/Order/app/Actions/ObserveUser.php' => <<<'PHP'
 <?php
@@ -369,6 +567,8 @@ Artisan::command('__moduark:interop-probe', function (): void {
     $this->line(json_encode([
         'moduark_path' => config('moduark.path'),
         'nwidart_path' => config('modules.paths.modules'),
+        'order_provider_loaded' => app()->bound('moduark.interop.order-provider'),
+        'order_capability_bound' => app()->bound(Modules\Order\Ports\UserLookup::class),
     ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES));
 });
 PHP;
@@ -524,6 +724,120 @@ PHP;
         $this->artisan($application, ['optimize:clear'], $environment);
     }
 
+    /** @param array<string, string> $environment */
+    private function verifyEnabledStateTransitions(string $application, array $environment): void
+    {
+        $cache = $this->artisan($application, ['moduark:cache'], $environment);
+        $this->assertContains('2 Modules cached', $cache, 'The enabled-state fixture did not start with two cached Modules.');
+
+        $this->artisan($application, ['module:disable', 'Order'], $environment);
+
+        $nwidartList = $this->artisan($application, ['module:list'], $environment);
+        $this->assertContains('Order', $nwidartList, 'nwidart omitted the disabled Order Module.');
+        $this->assertContains('Disabled', $nwidartList, 'nwidart did not report Order as disabled.');
+
+        $moduarkList = $this->artisan($application, ['moduark:list'], $environment);
+        $this->assertContains('User', $moduarkList, 'Moduark omitted the active User Module.');
+        $this->assertNotContains('Order', $moduarkList, 'Moduark retained the disabled Order Module.');
+
+        $inspection = $this->artisanResult(
+            $application,
+            ['moduark:inspect', 'Order'],
+            $environment,
+            [2],
+        );
+        $this->assertContains(
+            'Module inspection failed',
+            $inspection['output'],
+            'The disabled Order Module remained inspectable.',
+        );
+
+        $graph = $this->artisan($application, ['moduark:graph'], $environment);
+        $this->assertContains('User', $graph, 'The active User Module was omitted from the graph.');
+        $this->assertNotContains('Order', $graph, 'The disabled Order Module remained in the graph.');
+
+        $check = $this->artisan(
+            $application,
+            ['moduark:check', '--level=1', '--format=json'],
+            $environment,
+        );
+        $checkPayload = json_decode(trim($check), true, 512, JSON_THROW_ON_ERROR);
+
+        if (! is_array($checkPayload)
+            || ($checkPayload['status'] ?? null) !== 'passed'
+            || ($checkPayload['complete'] ?? null) !== true) {
+            throw new RuntimeException('Analysis retained source from the disabled Order Module.');
+        }
+
+        $disabledProbe = $this->interopProbe($application, $environment);
+
+        if (($disabledProbe['order_provider_loaded'] ?? null) !== false
+            || ($disabledProbe['order_capability_bound'] ?? null) !== false) {
+            throw new RuntimeException('A provider or Capability from the disabled Order Module remained active.');
+        }
+
+        $this->assertNotContains(
+            'moduark-order-resource',
+            implode("\n", $this->routeInventory($application, $environment)),
+            'A route resource from the disabled Order Module remained active.',
+        );
+
+        $disabledCache = $this->artisan($application, ['moduark:cache'], $environment);
+        $this->assertContains('1 Module cached', $disabledCache, 'The disabled Module remained in the cache manifest.');
+
+        $this->artisan($application, ['module:enable', 'Order'], $environment);
+
+        $restoredList = $this->artisan($application, ['moduark:list'], $environment);
+        $this->assertContains('Order', $restoredList, 'The re-enabled Order Module was not restored.');
+        $this->assertContains('User', $restoredList, 'The active User Module was not retained.');
+
+        $restoredGraph = $this->artisan($application, ['moduark:graph'], $environment);
+        $this->assertContains('Order', $restoredGraph, 'The re-enabled Order Module was not restored to the graph.');
+
+        $restoredProbe = $this->interopProbe($application, $environment);
+
+        if (($restoredProbe['order_provider_loaded'] ?? null) !== true
+            || ($restoredProbe['order_capability_bound'] ?? null) !== true) {
+            throw new RuntimeException('The re-enabled Order provider or Capability was not restored.');
+        }
+
+        $this->assertContains(
+            'moduark-order-resource',
+            implode("\n", $this->routeInventory($application, $environment)),
+            'The re-enabled Order route resource was not restored.',
+        );
+
+        $restoredCache = $this->artisan($application, ['moduark:cache'], $environment);
+        $this->assertContains('2 Modules cached', $restoredCache, 'The re-enabled Module was not restored to the cache manifest.');
+        $this->artisan($application, ['moduark:clear'], $environment);
+    }
+
+    /**
+     * @param array<string, string> $environment
+     * @return array<string, mixed>
+     */
+    private function interopProbe(string $application, array $environment): array
+    {
+        $output = $this->artisan($application, ['__moduark:interop-probe'], $environment);
+        $payload = json_decode(trim($output), true, 512, JSON_THROW_ON_ERROR);
+
+        if (! is_array($payload)) {
+            throw new RuntimeException('The interoperability runtime probe did not return an object.');
+        }
+
+        $result = [];
+
+        foreach ($payload as $key => $value) {
+            if (! is_string($key)) {
+                throw new RuntimeException('The interoperability runtime probe returned an invalid key.');
+            }
+
+            $result[$key] = $value;
+        }
+
+        return $result;
+    }
+
     /**
      * @param array<string, string> $environment
      * @return list<string>
@@ -677,6 +991,13 @@ PHP;
     private function assertContains(string $expected, string $actual, string $message): void
     {
         if (! str_contains($actual, $expected)) {
+            throw new RuntimeException($message);
+        }
+    }
+
+    private function assertNotContains(string $expected, string $actual, string $message): void
+    {
+        if (str_contains($actual, $expected)) {
             throw new RuntimeException($message);
         }
     }

@@ -71,3 +71,6 @@ and the
 - Schema `3` retains explicit class-like `exports()` metadata for
   `explicit_public_exports` in
   [ADR-0041](0041-explicit-public-exports-rule.md).
+- Schema `4` adds the nwidart active-set fingerprint so enable/disable changes
+  bypass stale Module metadata, as recorded in
+  [ADR-0048](0048-nwidart-active-module-set.md).
