@@ -151,6 +151,8 @@ php artisan moduark:make User request Profile/StoreProfileRequest
 php artisan moduark:make User resource Profile/ProfileResource
 php artisan moduark:make User resource Profile/ProfileCollection --collection
 php artisan moduark:make User resource Profile/ProfileJsonApiResource --json-api
+php artisan moduark:make User rule Profile/ValidDisplayName
+php artisan moduark:make User rule Profile/RequiredProfile --implicit
 php artisan moduark:make User scope Visibility/PublishedScope
 php artisan moduark:make User trait Serialization/SerializesAttributes
 ```
@@ -199,6 +201,11 @@ the selected Module's `Models\Profile`; external fully qualified model names
 are rejected. `--guard` selects Laravel's application auth user provider and
 does not create another user or model. Policy generation remains a single-file
 plan and supports `--force` and `--dry-run`.
+
+Validation rules use the Module-owned `Rules/` path and Laravel's native
+`ValidationRule` stub. `--implicit` selects Laravel's implicit-rule variant;
+both modes remain single-file plans and support nested names, `--force`, and
+`--dry-run` without creating requests, policies, or other related artifacts.
 
 The target Module must already exist and its configured path must be inside the
 Laravel application source root. Other composite Laravel Maker options that

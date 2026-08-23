@@ -22,6 +22,7 @@ final readonly class GenerationOptions
         public bool $jsonApi,
         public ?string $model,
         public ?string $guard,
+        public bool $implicit,
     ) {
     }
 }

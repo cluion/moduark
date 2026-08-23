@@ -1,0 +1,18 @@
+{
+    "schema": 1,
+    "laravel_major": 13,
+    "plans": [
+        {
+            "type": "rule",
+            "name": "Profile/ValidDisplayName",
+            "options": "",
+            "target": "Rules/Profile/ValidDisplayName.php"
+        },
+        {
+            "type": "rule",
+            "name": "Profile/RequiredProfile",
+            "options": "--implicit",
+            "target": "Rules/Profile/RequiredProfile.php"
+        }
+    ]
+}

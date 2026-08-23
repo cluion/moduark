@@ -116,6 +116,8 @@ single-target Module ownership contract.
 Policy `--model` values are Module-relative class names below `Models/`;
 `--guard` retains Laravel's application auth-provider semantics. Neither option
 creates a related model.
+Validation rules are generated below `Rules/`; `--implicit` changes only the
+native rule stub and does not create related HTTP artifacts.
 
 Architecture checks use these process exit codes:
 

@@ -20,7 +20,7 @@ final class ModuleMakeCommand extends Command
     /** @var string */
     protected $signature = 'moduark:make
         {module : Existing Module name}
-        {type : Maker type: cast, class, controller, enum, exception, interface, middleware, model, policy, request, resource, scope, or trait}
+        {type : Maker type: cast, class, controller, enum, exception, interface, middleware, model, policy, request, resource, rule, scope, or trait}
         {name : StudlyCase class name, optionally with nested segments}
         {--dry-run : Display the complete generation plan without writing files}
         {--force : Overwrite an existing generated class}
@@ -35,6 +35,7 @@ final class ModuleMakeCommand extends Command
         {--json-api : Generate a JSON:API resource}
         {--model= : Module-owned model that a policy applies to}
         {--guard= : Laravel authentication guard that a policy relies on}
+        {--implicit : Generate an implicit validation rule}
         {--invokable : Generate an invokable class or controller}
         {--resource : Generate a resource controller}
         {--api : Generate an API controller without create and edit methods}';
@@ -79,6 +80,7 @@ final class ModuleMakeCommand extends Command
                 jsonApi: $this->option('json-api') === true,
                 model: $this->optionalStringOption('model'),
                 guard: $this->optionalStringOption('guard'),
+                implicit: $this->option('implicit') === true,
             ));
         } catch (ModuleMakerFailed $exception) {
             $this->components->error('Module Maker failed: '.$exception->getMessage());

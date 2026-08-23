@@ -21,6 +21,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
     case Policy = 'policy';
     case HttpRequest = 'request';
     case HttpResource = 'resource';
+    case ValidationRule = 'rule';
     case PhpScope = 'scope';
     case PhpTrait = 'trait';
 
@@ -38,6 +39,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Policy->value => self::Policy,
             self::HttpRequest->value => self::HttpRequest,
             self::HttpResource->value => self::HttpResource,
+            self::ValidationRule->value => self::ValidationRule,
             self::PhpScope->value => self::PhpScope,
             self::PhpTrait->value => self::PhpTrait,
             default => throw ModuleMakerFailed::unsupportedType($type),
@@ -68,6 +70,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Policy => 'Policies',
             self::HttpRequest => 'Http\\Requests',
             self::HttpResource => 'Http\\Resources',
+            self::ValidationRule => 'Rules',
             self::PhpScope => 'Models\\Scopes',
             self::PhpTrait => 'Concerns',
         };
@@ -92,6 +95,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::Policy,
             self::HttpRequest,
             self::HttpResource,
+            self::ValidationRule,
             self::PhpScope,
             self::PhpTrait => $this->singleTargetPlan($target, $options),
         };
@@ -175,6 +179,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             self::PhpException => ['render', 'report'],
             self::HttpResource => ['collection', 'json-api'],
             self::Policy => ['model', 'guard'],
+            self::ValidationRule => ['implicit'],
             self::PhpInterface,
             self::HttpMiddleware,
             self::HttpRequest,
@@ -219,6 +224,8 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             if ($options->guard !== null) {
                 $parameters['--guard'] = $options->guard;
             }
+        } elseif ($this === self::ValidationRule) {
+            $parameters['--implicit'] = $options->implicit;
         }
 
         return new GenerationPlan([
@@ -255,6 +262,7 @@ enum ModuleMakerType: string implements GeneratorDescriptor
             'json-api' => $options->jsonApi,
             'model' => $options->model !== null,
             'guard' => $options->guard !== null,
+            'implicit' => $options->implicit,
         ] as $option => $enabled) {
             if ($enabled && ! in_array($option, $allowed, true)) {
                 throw ModuleMakerFailed::unsupportedOption($option, $this->value);

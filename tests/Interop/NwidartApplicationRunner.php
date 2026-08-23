@@ -616,12 +616,14 @@ PHP;
         $this->assertContains('--json-api', $moduark, 'Moduark resource maker lost its JSON:API option.');
         $this->assertContains('--model', $moduark, 'Moduark resource maker lost its policy model option.');
         $this->assertContains('--guard', $moduark, 'Moduark resource maker lost its policy guard option.');
+        $this->assertContains('--implicit', $moduark, 'Moduark resource maker lost its rule implicit option.');
         $this->assertContains(
             'middleware',
             $moduark,
             'Moduark resource maker lost its middleware type.',
         );
         $this->assertContains('policy', $moduark, 'Moduark resource maker lost its policy type.');
+        $this->assertContains('rule', $moduark, 'Moduark resource maker lost its rule type.');
     }
 
     /** @param array<string, string> $environment */

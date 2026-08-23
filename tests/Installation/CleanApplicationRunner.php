@@ -309,6 +309,7 @@ final class CleanApplicationRunner
             ['resource', 'Profile/ProfileResource', null, 'Http/Resources/Profile/ProfileResource.php'],
             ['resource', 'Profile/ProfileCollection', '--collection', 'Http/Resources/Profile/ProfileCollection.php'],
             ['resource', 'Profile/ProfileJsonApiResource', '--json-api', 'Http/Resources/Profile/ProfileJsonApiResource.php'],
+            ['rule', 'Profile/RequiredProfile', '--implicit', 'Rules/Profile/RequiredProfile.php'],
             ['scope', 'Visibility/PublishedScope', null, 'Models/Scopes/Visibility/PublishedScope.php'],
             ['trait', 'Serialization/SerializesAttributes', null, 'Concerns/Serialization/SerializesAttributes.php'],
         ] as [$type, $name, $option, $relativePath]) {

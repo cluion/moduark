@@ -326,9 +326,9 @@ final class ModuleMakeCommandTest extends TestCase
 
     public function test_it_rejects_an_unsupported_maker_type(): void
     {
-        $this->command('moduark:make User rule ProfileRule')
+        $this->command('moduark:make User view ProfileView')
             ->expectsOutputToContain(
-                'Module Maker failed: Maker type [rule] is not supported; expected cast, class, controller, enum, exception, interface, middleware, model, policy, request, resource, scope, or trait.',
+                'Module Maker failed: Maker type [view] is not supported; expected cast, class, controller, enum, exception, interface, middleware, model, policy, request, resource, rule, scope, or trait.',
             )
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }

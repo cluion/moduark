@@ -1,6 +1,6 @@
 # ADR-0049: Generator Registry Contract and Laravel Maker Inventory
 
-- Status: Accepted and implemented through `1.1` Slice G2-C
+- Status: Accepted and implemented through `1.1` Slice G2-D
 - Date: 2026-08-23
 
 ## Context
@@ -32,6 +32,8 @@ G2-B adds the Module-owned `middleware` descriptor while preserving its
 single-target native contract.
 G2-C adds the Module-owned `policy` descriptor with explicit model and auth-user
 ownership semantics.
+G2-D completes the HTTP validation group with a Module-owned `rule` descriptor
+and Laravel's plain or implicit native stub.
 
 ## Decision
 
@@ -85,6 +87,9 @@ ownership semantics.
   qualified below the selected Module's `Models/` namespace; external FQCNs are
   rejected. `--guard` retains Laravel's application auth-provider lookup. These
   options change only the policy stub and never create a related model.
+- G2-D fixes validation rules below `Rules/` and keeps native single-target
+  delegation. `--implicit` selects Laravel's implicit-rule stub; plain and
+  implicit modes do not create a request, policy, or any other related artifact.
 
 The concrete PHP interfaces were introduced with executable contract tests in
 G0-B. They remain pre-`1.1` internal extension boundaries until their public API
@@ -161,6 +166,10 @@ membership is evidence for planning, not a support claim.
 - G2-C adds separate Laravel 12 / 13 Policy plan fixtures and verifies plain and
   Module-model stubs, guard-selected user types, external-model refusal,
   collision/force parity, invalid-guard cleanup, clean installation, and
+  nwidart command ownership.
+- G2-D adds separate Laravel 12 / 13 Rule plan fixtures and verifies plain and
+  implicit native stubs, nested Module ownership, collision/force parity,
+  foreign-option refusal, dry-run zero mutation, clean installation, and
   nwidart command ownership.
 
 ## Consequences

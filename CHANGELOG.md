@@ -37,6 +37,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the Module-owned `policy` Maker below `Policies/` with native plain and
   model-aware stubs. Relative `--model` values resolve inside the selected
   Module, while `--guard` retains Laravel's application auth-provider semantics.
+- Added the Module-owned validation `rule` Maker below `Rules/` with native
+  plain and `--implicit` stubs, versioned Laravel 12 / 13 fixtures, and shared
+  single-target dry-run, collision, and force behavior.
 
 ## [1.0.1] - 2026-08-23
 
