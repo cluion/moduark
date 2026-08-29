@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   mutation, optimistic concurrency checks, and graph-cache invalidation.
 - Added deploy-safe standalone activation state in `moduark-modules.json`;
   failed cache invalidation or state commit preserves the previous state.
+- Added a permanent cold/cached active-set parity fixture covering list,
+  inspect, doctor, resources, every graph, source analysis, Module cache,
+  providers, Capabilities, and runtime resources.
 
 ## [1.2.0] - 2026-08-29
 

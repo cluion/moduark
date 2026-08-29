@@ -54,6 +54,13 @@ update nwidart's configured file-activator status file when both packages share
 the same Module root. Custom nwidart activators remain dry-run-only unless they
 can provide the same atomic contract.
 
+Aggregate diagnostics and every runtime surface consume only the committed
+active Module set. A targeted `moduark:doctor <module>` or
+`moduark:resources <module>` request can still report a known disabled Module
+as `state: disabled`, with no class, dependencies, or resources loaded;
+`moduark:inspect <module>` requires the Module to be active. Cold discovery and
+Module-cached boot retain the same boundary.
+
 nwidart-generated Module classes must already be Composer-autoloadable. Follow
 nwidart's installation guidance by loading `Modules/*/composer.json` through
 its Composer merge plugin, or provide equivalent explicit per-Module PSR-4
@@ -67,7 +74,9 @@ particular, `moduark:make` intentionally rejects an external Module path. See
 [Adopting Moduark](docs/adoption.md) for the complete setup.
 
 See [ADR-0047](docs/adr/0047-nwidart-interoperability.md),
-[ADR-0048](docs/adr/0048-nwidart-active-module-set.md), and the
+[ADR-0048](docs/adr/0048-nwidart-active-module-set.md),
+[ADR-0059](docs/adr/0059-atomic-activation-state-and-cache-invalidation.md),
+[ADR-0060](docs/adr/0060-active-module-set-diagnostic-parity.md), and the
 [upgrade guide](UPGRADING.md) for the RC.1 namespace migration.
 
 The optional `cluion/moduark-phpstan` `v0.2.0` companion supports the Moduark

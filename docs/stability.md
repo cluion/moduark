@@ -148,6 +148,13 @@ concurrent state change, cache failure, or state failure use `error` and exit
 event caches, then atomically replaces the authoritative state file. It does not
 hot-switch an already-running application process.
 
+Aggregate list, graph, architecture-analysis, cache, provider, Capability, and
+resource execution surfaces contain active Modules only. Targeted `doctor` and
+`resources` diagnostics may return a known disabled placeholder with no runtime
+metadata; `inspect` requires an active Module. This semantic boundary is the
+same on cold and Module-cached boot. No additional `--enabled-only` switch is
+defined because aggregate surfaces are already active-only.
+
 The following commands and their documented arguments and options are Stable:
 
 ```text
