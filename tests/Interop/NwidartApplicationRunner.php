@@ -14,6 +14,21 @@ final class NwidartApplicationRunner
 {
     private const MODULE_DIRECTORY = 'InteropModules';
 
+    /** @var list<string> */
+    private const EXTRACTABILITY_CHECK_CODES = [
+        'MOD-EXTRACT-LAYOUT-001',
+        'MOD-EXTRACT-AUTOLOAD-001',
+        'MOD-EXTRACT-PROVIDER-001',
+        'MOD-EXTRACT-RESOURCE-001',
+        'MOD-EXTRACT-COUPLING-001',
+        'MOD-EXTRACT-DEPENDENCY-001',
+        'MOD-EXTRACT-CAPABILITY-001',
+        'MOD-EXTRACT-TABLE-001',
+        'MOD-EXTRACT-FK-001',
+        'MOD-EXTRACT-TRANSACTION-001',
+        'MOD-EXTRACT-EXPORT-001',
+    ];
+
     private string $packagePath;
 
     public function __construct(
@@ -155,6 +170,7 @@ final class NwidartApplicationRunner
         $this->verifyCommandOwnership($application, $environment);
         $this->verifyEffectiveConfiguration($application, $environment);
         $this->verifyDiscoveryAndAnalysis($application, $environment);
+        $this->resolveInternalApiDebt($application);
         $this->verifyCacheAndRoutes($application, $environment);
         $this->verifyEnabledStateTransitions($application, $environment);
 
@@ -357,7 +373,9 @@ namespace Modules\User;
 
 use Cluion\Moduark\Capability;
 use Cluion\Moduark\Module;
+use Modules\User\Contracts\UserDirectory;
 use Modules\User\Contracts\UserLookupCapability;
+use Modules\User\Events\UserCreated;
 
 final class UserModule extends Module
 {
@@ -365,6 +383,16 @@ final class UserModule extends Module
     public function provides(): array
     {
         return [UserLookupCapability::class];
+    }
+
+    /** @return list<class-string> */
+    public function exports(): array
+    {
+        return [
+            UserDirectory::class,
+            UserLookupCapability::class,
+            UserCreated::class,
+        ];
     }
 }
 PHP,
@@ -812,6 +840,34 @@ PHP;
         }
     }
 
+    private function resolveInternalApiDebt(string $application): void
+    {
+        $source = <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Order\Actions;
+
+use Modules\User\Contracts\UserDirectory;
+use Modules\User\Events\UserCreated;
+
+final class ObserveUser
+{
+    public function __invoke(
+        UserDirectory $directory,
+        UserCreated $event,
+    ): void {
+    }
+}
+PHP;
+        $path = $application.'/'.self::MODULE_DIRECTORY.'/Order/app/Actions/ObserveUser.php';
+
+        if (file_put_contents($path, $source.PHP_EOL) === false) {
+            throw new RuntimeException('Unable to resolve the interoperability internal API fixture debt.');
+        }
+    }
+
     /** @param array<string, string> $environment */
     private function verifyCacheAndRoutes(string $application, array $environment): void
     {
@@ -1049,10 +1105,16 @@ PHP;
             $environment,
         ), true, 512, JSON_THROW_ON_ERROR);
 
+        $extractabilityChecks = is_array($extractability)
+            && is_array($extractability['checks'] ?? null)
+                ? array_column($extractability['checks'], 'code')
+                : null;
+
         if (! is_array($extractability)
             || ($extractability['mode'] ?? null) !== 'extractability'
             || ($extractability['status'] ?? null) !== 'ready_for_export_dry_run'
-            || ($extractability['blockers'] ?? null) !== []) {
+            || ($extractability['blockers'] ?? null) !== []
+            || $extractabilityChecks !== self::EXTRACTABILITY_CHECK_CODES) {
             throw new RuntimeException('Extractability diagnostics blocked the nwidart Module layout.');
         }
 

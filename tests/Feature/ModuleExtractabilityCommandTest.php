@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Discovery\DiscoveredModule;
+use Cluion\Moduark\Extraction\ArchitectureExtractabilityGate;
 use Cluion\Moduark\Extraction\ExtractabilityCheck;
 use Cluion\Moduark\Extraction\ExtractabilityInspector;
 use Cluion\Moduark\Metadata\ModuleDescriptor;
@@ -59,6 +60,12 @@ final class ModuleExtractabilityCommandTest extends TestCase
             'MOD-EXTRACT-PROVIDER-001',
             'MOD-EXTRACT-RESOURCE-001',
             'MOD-EXTRACT-COUPLING-001',
+            'MOD-EXTRACT-DEPENDENCY-001',
+            'MOD-EXTRACT-CAPABILITY-001',
+            'MOD-EXTRACT-TABLE-001',
+            'MOD-EXTRACT-FK-001',
+            'MOD-EXTRACT-TRANSACTION-001',
+            'MOD-EXTRACT-EXPORT-001',
         ], array_column($first['checks'], 'code'));
         self::assertSame([], $first['blockers']);
         self::assertSame(ExitPolicy::SUCCESS, $first['exit_code']);
@@ -94,12 +101,11 @@ final class ModuleExtractabilityCommandTest extends TestCase
         self::assertSame(ExitPolicy::VIOLATIONS_FOUND, $exitCode);
         self::assertSame('blocked', $payload['status']);
         self::assertIsArray($payload['blockers']);
-        self::assertCount(3, $payload['blockers']);
         self::assertSame([
             'MOD-EXTRACT-PROVIDER-001',
             'MOD-EXTRACT-RESOURCE-001',
             'MOD-EXTRACT-COUPLING-001',
-        ], array_column($payload['blockers'], 'code'));
+        ], array_slice(array_column($payload['blockers'], 'code'), 0, 3));
         self::assertSame(ExitPolicy::VIOLATIONS_FOUND, $payload['exit_code']);
     }
 
@@ -144,6 +150,7 @@ final class ModuleExtractabilityCommandTest extends TestCase
             ),
             $configuration,
             base_path('vendor'),
+            $this->application()->make(ArchitectureExtractabilityGate::class),
         );
 
         $report = $inspector->inspect('User')->toArray();

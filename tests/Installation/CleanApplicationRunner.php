@@ -13,6 +13,21 @@ use Tests\Distribution\PackageArchiveContract;
 
 final class CleanApplicationRunner
 {
+    /** @var list<string> */
+    private const EXTRACTABILITY_CHECK_CODES = [
+        'MOD-EXTRACT-LAYOUT-001',
+        'MOD-EXTRACT-AUTOLOAD-001',
+        'MOD-EXTRACT-PROVIDER-001',
+        'MOD-EXTRACT-RESOURCE-001',
+        'MOD-EXTRACT-COUPLING-001',
+        'MOD-EXTRACT-DEPENDENCY-001',
+        'MOD-EXTRACT-CAPABILITY-001',
+        'MOD-EXTRACT-TABLE-001',
+        'MOD-EXTRACT-FK-001',
+        'MOD-EXTRACT-TRANSACTION-001',
+        'MOD-EXTRACT-EXPORT-001',
+    ];
+
     private string $packagePath;
 
     private ?string $packageVersion;
@@ -1296,10 +1311,16 @@ PHP;
             $environment,
         ), true, 512, JSON_THROW_ON_ERROR);
 
+        $extractabilityChecks = is_array($extractability)
+            && is_array($extractability['checks'] ?? null)
+                ? array_column($extractability['checks'], 'code')
+                : null;
+
         if (! is_array($extractability)
             || ($extractability['mode'] ?? null) !== 'extractability'
             || ($extractability['status'] ?? null) !== 'ready_for_export_dry_run'
-            || ($extractability['blockers'] ?? null) !== []) {
+            || ($extractability['blockers'] ?? null) !== []
+            || $extractabilityChecks !== self::EXTRACTABILITY_CHECK_CODES) {
             throw new RuntimeException('Extractability diagnostics blocked the fresh-install Module.');
         }
 

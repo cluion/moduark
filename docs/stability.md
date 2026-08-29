@@ -164,6 +164,14 @@ only a later export planning phase; `blocked` uses exit `1`, and invalid or
 inactive Modules use `error` with exit `2`. It does not claim Composer dependency
 inference, package Testbench installation, or independent test execution.
 
+LC1-B extends that same schema with six ordered raw Level 3 architecture checks
+for undeclared dependencies, Capability contracts, table ownership,
+cross-Module foreign keys and transactions, and explicit public exports.
+Application baselines and suppressions are intentionally not applied. Any
+warning or error involving the selected Module as consumer or target blocks
+export planning; a disabled or unavailable required rule also blocks rather
+than being reported as passed. Existing `moduark:check` behavior is unchanged.
+
 The following commands and their documented arguments and options are Stable:
 
 ```text

@@ -905,6 +905,14 @@ For nwidart layouts, provider classes remain owned by the `app/` source root,
 while routes, migrations, views, and other file-backed resources may live in
 the full Module root beside `app/`.
 
+The same report also runs raw Level 3 evidence for undeclared dependencies,
+Capability completeness, table ownership, cross-Module foreign keys and
+transactions, and explicit public exports. Baselines and suppressions do not
+hide extraction blockers; warnings block planning too. Evidence involving the
+selected Module as either consumer or target is included. A disabled or
+unavailable required rule is reported as not evaluated and blocks the result.
+See [ADR-0062](docs/adr/0062-architecture-extractability-gate.md).
+
 Application bootstrap happens before Artisan invokes a command. A configuration,
 discovery, metadata, or runtime Capability-resolution exception raised during
 bootstrap may therefore be rendered by Laravel itself rather than by

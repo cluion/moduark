@@ -60,6 +60,7 @@ use Cluion\Moduark\Console\ModuleTestCommand;
 use Cluion\Moduark\Discovery\ModuleActivationSet;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
 use Cluion\Moduark\Discovery\NwidartModuleActivationResolver;
+use Cluion\Moduark\Extraction\ArchitectureExtractabilityGate;
 use Cluion\Moduark\Extraction\ExtractabilityInspector;
 use Cluion\Moduark\Graph\CapabilityGraphBuilder;
 use Cluion\Moduark\Graph\CombinedGraphBuilder;
@@ -241,8 +242,10 @@ final class ModuarkServiceProvider extends ServiceProvider
                 $this->app->make(ResourceManifest::class),
                 $this->app->make(ModulesConfig::class),
                 $this->app->basePath('vendor'),
+                $this->app->make(ArchitectureExtractabilityGate::class),
             ),
         );
+        $this->app->singleton(ArchitectureExtractabilityGate::class);
         $this->app->singleton(GeneratorRegistry::class);
 
         foreach (ModuleMakerType::cases() as $descriptor) {
