@@ -4,14 +4,14 @@ This guide covers application-owned changes required when upgrading Moduark.
 Read the complete changelog between the installed and target versions as well
 as the section below for the target release.
 
-> **Current status:** `1.1.0` is the current stable release. It completes the
-> Generation Foundation without changing the existing architecture-policy,
-> diagnostic, configuration, or nwidart active-set contracts.
+> **Current status:** `1.2.0` is the current stable release. It completes
+> Runtime Completeness without changing the existing architecture-policy,
+> configuration, generation, or nwidart active-set contracts.
 
 Install or upgrade to the stable line:
 
 ```bash
-composer require cluion/moduark:^1.1
+composer require cluion/moduark:^1.2
 ```
 
 ## Upgrade Safety Checklist
@@ -42,6 +42,39 @@ the namespace migration. The debt-file commands below use Moduark's default
 filenames. Substitute the paths configured in
 `moduark.architecture.baseline` and `moduark.architecture.suppressions` when the
 application overrides them.
+
+## Upgrading from `1.1.0` to `1.2.0`
+
+This additive minor release introduces the Resource Plugin manifest, opt-in
+Module config and custom runtime resources, generic assets, resource
+diagnostics, and Module-scoped test, migrate, and seed operations. Existing
+route, view, translation, migration, command, provider, architecture, and
+Generation behavior remains enabled and compatible.
+
+No configuration migration, architecture baseline rewrite, or suppression
+rewrite is required. The rebuildable Module metadata cache advances to schema
+version `5`. Clear it after Composer updates the package, inspect the effective
+resource manifest, and rebuild the production cache only after accepting it:
+
+```bash
+composer require cluion/moduark:^1.2
+php artisan optimize:clear
+php artisan moduark:list
+php artisan moduark:resources
+php artisan moduark:doctor
+php artisan moduark:cache
+```
+
+New config, route, command, factory, seeder, policy, listener, component, asset,
+test, and extension resources require explicit Module metadata. Migrate and
+seed are forward-only operations; `1.2.0` does not add rollback, reset,
+refresh, or fresh variants. Review `moduark:resources --format=json` before
+adopting metadata and use `moduark:doctor --format=json` for automation.
+
+Applications using nwidart should confirm disabled Modules remain absent from
+Moduark's registry, analysis, graphs, cache, providers, Capability bindings,
+resources, and operations. Applications using Laravel Boost should rerun
+`php artisan boost:install` and review the installed Skill diff.
 
 ## Upgrading from `1.0.1` to `1.1.0`
 

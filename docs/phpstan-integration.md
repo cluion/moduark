@@ -37,11 +37,11 @@ Install stable Moduark as an application dependency and the stable companion as
 a development dependency:
 
 ```bash
-composer require cluion/moduark:^1.1
+composer require cluion/moduark:^1.2
 composer require --dev cluion/moduark-phpstan:^0.2
 ```
 
-If the application already requires Moduark `^1.1`, only the second command is
+If the application already requires Moduark `^1.2`, only the second command is
 needed. Pin the exact companion version when repeatable upgrades matter.
 
 ## Load the Extension
@@ -207,7 +207,7 @@ JSON reports as tool failures rather than successful architecture checks.
 - If services or diagnostics appear twice, remove either automatic or manual
   loading for the duplicate extension.
 - If a clean install cannot resolve `cluion/moduark`, declare
-  `cluion/moduark:^1.1` in the application root before requiring the extension.
+  `cluion/moduark:^1.2` in the application root before requiring the extension.
 - If custom Modules are not analysed, align `modulesPath`, `rootNamespace`, and
   PHPStan `paths`.
 - If CLI and PHPStan results differ, compare the effective Level, rule override,

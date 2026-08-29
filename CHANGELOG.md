@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-08-29
+
+This minor release completes Runtime Completeness while preserving the Stable
+Level 0 through 2 architecture contract and Level 3 Preview boundary. It adds
+one serializable resource manifest for discovery, cache, diagnostics, runtime
+registration, assets, and forward-only Module operations, with Laravel 12 / 13
+and nwidart interoperability coverage.
+
 ### Added
 
 - Added an extensible Resource Plugin contract with separate pure discovery and
@@ -488,7 +496,8 @@ incomplete and are not part of this release contract.
 - Clean installation acceptance from release-tag checkouts by explicitly
   mapping the local path repository to `dev-main`.
 
-[Unreleased]: https://github.com/cluion/moduark/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/cluion/moduark/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/cluion/moduark/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/cluion/moduark/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/cluion/moduark/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/cluion/moduark/compare/v1.0.0-rc.2...v1.0.0

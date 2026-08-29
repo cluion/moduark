@@ -4,10 +4,11 @@ Moduark is a Laravel-native modular architecture toolkit. It keeps Modules in a
 normal Laravel application while making their dependencies, lifecycle order,
 resources, and architecture boundaries executable and inspectable.
 
-> **Stable status:** `1.1.0` is the current stable release. Levels 0 through 2
+> **Stable status:** `1.2.0` is the current stable release. Levels 0 through 2
 > are Stable, Level 3 remains Preview, and the zero-configuration default
-> remains Level 1. This minor release completes plan-first Module generation
-> while retaining nwidart active-set interoperability.
+> remains Level 1. This minor release completes Runtime Completeness around one
+> canonical resource manifest while retaining nwidart active-set
+> interoperability.
 
 ## Requirements
 
@@ -20,7 +21,7 @@ resources, and architecture boundaries executable and inspectable.
 Install the stable line from Packagist:
 
 ```bash
-composer require cluion/moduark:^1.1
+composer require cluion/moduark:^1.2
 ```
 
 Laravel package discovery registers `Cluion\Moduark\ModuarkServiceProvider`.
@@ -990,7 +991,7 @@ acceptance against the Packagist dist instead of the local path repository. This
 mode also verifies the installed archive layout:
 
 ```bash
-composer test:installation -- --package=1.1.0
+composer test:installation -- --package=1.2.0
 ```
 
 The GitHub Actions compatibility workflow runs PHPUnit on all four
@@ -1017,12 +1018,12 @@ contract.
 
 ## Current Scope
 
-The next `1.2.0` minor is under development. Its Runtime Completeness candidate
-adds a serializable Resource Plugin manifest, opt-in Laravel runtime resources,
-generic assets, resource diagnostics, and Module-scoped test/migrate/seed
-operations. These changes are not a published `1.2.0` release until the release
-commit, Laravel 12 / 13 gates, exact-commit CI, tag, registry, and fresh public
-installation stages have each been verified.
+The `1.2.0` minor release completes Runtime Completeness with a serializable
+Resource Plugin manifest shared by cold discovery, cached boot, diagnostics,
+runtime registration, generic assets, and Module-scoped test/migrate/seed
+operations. Laravel resources remain metadata opt-in, database operations are
+forward-only, and nwidart's enabled Module set remains authoritative whenever
+both packages share its Module root.
 
 The `1.1.0` minor release retains the Stable command, configuration, diagnostic,
 and architecture boundaries while completing the Generation Foundation.

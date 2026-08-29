@@ -13,9 +13,13 @@ final class UpgradePolicyContractTest extends TestCase
         $guide = $this->contents('UPGRADING.md');
 
         foreach ([
-            '`1.1.0` is the current stable release',
-            'Generation Foundation',
-            'composer require cluion/moduark:^1.1',
+            '`1.2.0` is the current stable release',
+            'Runtime Completeness',
+            'composer require cluion/moduark:^1.2',
+            'Upgrading from `1.1.0` to `1.2.0`',
+            'Resource Plugin manifest',
+            'metadata cache advances to schema',
+            'seed are forward-only operations',
             'Upgrading from `1.0.1` to `1.1.0`',
             '31 Module-owned Maker types',
             'Config and provider Makers create Module-owned artifacts',

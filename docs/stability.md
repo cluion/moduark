@@ -5,7 +5,9 @@ This document defines the stable compatibility contract for Moduark `1.x`.
 configuration identities; `1.0.0-rc.2` adopts the revised boundary documented
 by ADR-0047. `1.0.0` promotes that reviewed boundary without another runtime or
 machine-schema change. `1.1.0` adds the Generation Foundation contracts below
-without changing the existing architecture or diagnostic identities.
+without changing the existing architecture or diagnostic identities. `1.2.0`
+adds the Runtime Completeness resource and operation contracts while retaining
+the same Stable Level 0 through 2 and Preview Level 3 boundary.
 
 ## Contract Categories
 
@@ -108,10 +110,9 @@ rule semantics.
 
 ## CLI Contract
 
-The following Runtime Completeness additions are Unreleased candidates for
-`1.2.0`. Once `1.2.0` is published, their documented command definitions,
-schema version `1` fields, status identities, and exit meanings are Stable for
-the remainder of `1.x`:
+The following Runtime Completeness commands are Stable since `1.2.0`. Their
+documented command definitions, schema version `1` fields, status identities,
+and exit meanings are Stable for the remainder of `1.x`:
 
 ```text
 moduark:resources [{module}] [--format=text|json]
@@ -258,8 +259,8 @@ contract. They are rebuildable and may receive a new internal schema or be
 invalidated by any release. Do not edit or consume them as application data.
 
 Resource manifest schema version `1` and Module asset manifest schema version
-`1` are the Unreleased `1.2.0` machine contracts. The resource manifest contains
-the dependency-ordered enabled Module class list and ordered resource
+`1` are Stable machine contracts introduced in `1.2.0`. The resource manifest
+contains the dependency-ordered enabled Module class list and ordered resource
 descriptors. Each descriptor contains `module`, `plugin`, `identity`, nullable
 `source`, nullable `namespace`, normalized `attributes`, and nullable
 `collision_key`. The asset manifest contains `schema_version`, `modules`, and
@@ -268,8 +269,7 @@ reinterpret existing fields without a schema change.
 
 ## Resource Extension Contract
 
-The following additive PHP extension points are Unreleased candidates for
-`1.2.0` and become Stable when that release is published:
+The following additive PHP extension points are Stable since `1.2.0`:
 
 - overridable parameterless `Module::resources(): array`;
 - `ResourceDiscoverer` and `ResourceHandler` interfaces;
