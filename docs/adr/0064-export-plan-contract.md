@@ -1,6 +1,6 @@
 # ADR-0064: Export Plan Contract
 
-- Status: Accepted
+- Status: Accepted; materialization added by ADR-0065
 - Date: 2026-08-29
 
 ## Context

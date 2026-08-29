@@ -32,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Preview `moduark:export <module> --dry-run` package planning with explicit
   target, Composer identity and namespace, deterministic file transforms,
   dependency evidence, and fail-closed collision checks without filesystem writes.
+- Added atomic `moduark:export` materialization, deterministic Composer/provider
+  rendering, namespace rewriting, rollback diagnostics, and a portable one-Module
+  package runtime for Laravel and Testbench applications.
 
 ## [1.2.0] - 2026-08-29
 

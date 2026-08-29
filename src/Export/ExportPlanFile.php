@@ -19,9 +19,19 @@ final readonly class ExportPlanFile
         return $this->operation;
     }
 
+    public function source(): ?string
+    {
+        return $this->source;
+    }
+
     public function destination(): string
     {
         return $this->destination;
+    }
+
+    public function transform(): ?string
+    {
+        return $this->transform;
     }
 
     /**

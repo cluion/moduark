@@ -127,7 +127,7 @@ final class CleanApplicationRunner
 
         echo "Clean installation root: {$root}\n";
         echo $this->packageVersion === null
-            ? "Package source: current checkout as cluion/moduark:dev-main\n"
+            ? "Package source: current checkout as cluion/moduark:1.3.x-dev\n"
             : "Package source: Packagist cluion/moduark:{$this->packageVersion}\n";
         echo $this->withBoost
             ? "Laravel Boost Skill installation: enabled\n"
@@ -172,7 +172,7 @@ final class CleanApplicationRunner
             'The clean Laravel application unexpectedly contains config/moduark.php.',
         );
 
-        $packageConstraint = $this->packageVersion ?? 'dev-main';
+        $packageConstraint = $this->packageVersion ?? '1.3.x-dev';
 
         if ($this->packageVersion === null) {
             $repository = json_encode([
@@ -180,7 +180,7 @@ final class CleanApplicationRunner
                 'url' => $this->packagePath,
                 'options' => [
                     'versions' => [
-                        'cluion/moduark' => 'dev-main',
+                        'cluion/moduark' => '1.3.x-dev',
                     ],
                 ],
             ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
@@ -754,7 +754,7 @@ final class CleanApplicationRunner
         }
 
         $this->enableRuntimeOperationFixtures($modulePath);
-        $this->verifyRuntimeOperations($application, $environment);
+        $this->verifyRuntimeOperations($application, $major, $environment);
 
         $list = $this->artisan($application, ['moduark:list'], $environment);
         $this->assertContains('User', $list, 'moduark:list did not report the generated User Module.');
@@ -1211,6 +1211,12 @@ final class CleanApplicationRunner
     public function resources(): array
     {
         return [
+            'config' => [
+                [
+                    'path' => 'config/billing/services.php',
+                    'key' => 'moduark_export_user',
+                ],
+            ],
             'seeders' => [\App\Modules\User\Database\Seeders\Billing\ProfileSeeder::class],
             'tests' => true,
         ];
@@ -1221,10 +1227,40 @@ PHP;
         if (! is_string($updated) || $count !== 1 || file_put_contents($modulePath, $updated) === false) {
             throw new RuntimeException('Unable to enable the generated User Module runtime fixture.');
         }
+
+        $root = dirname($modulePath);
+
+        foreach ([$root.'/routes', $root.'/resources/views', $root.'/config/billing'] as $directory) {
+            if (! is_dir($directory) && ! mkdir($directory, 0755, true)) {
+                throw new RuntimeException("Unable to create export runtime fixture directory [{$directory}].");
+            }
+        }
+
+        $route = <<<'PHP'
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+Route::get('/moduark-export-user', static fn (): string => 'portable-user')
+    ->name('moduark.export.user');
+PHP;
+
+        if (file_put_contents($root.'/routes/web.php', $route."\n") === false
+            || file_put_contents($root.'/resources/views/export-probe.blade.php', 'portable-user') === false
+            || file_put_contents(
+                $root.'/config/billing/services.php',
+                "<?php\n\ndeclare(strict_types=1);\n\nreturn ['portable' => true];\n",
+            ) === false) {
+            throw new RuntimeException('Unable to write export runtime fixtures.');
+        }
     }
 
     /** @param array<string, string> $environment */
-    private function verifyRuntimeOperations(string $application, array $environment): void
+    private function verifyRuntimeOperations(
+        string $application,
+        int $major,
+        array $environment,
+    ): void
     {
         $activation = json_decode($this->artisan(
             $application,
@@ -1366,6 +1402,44 @@ PHP;
             throw new RuntimeException('Export dry-run was not deterministic, ready, or read-only.');
         }
 
+        $materializedOutput = $this->artisan(
+            $application,
+            [
+                'moduark:export',
+                'User',
+                '--target='.$exportTarget,
+                '--package=acme/user-module',
+                '--namespace=Acme\UserModule',
+                '--format=json',
+            ],
+            $environment,
+        );
+        $materialized = json_decode($materializedOutput, true, 512, JSON_THROW_ON_ERROR);
+
+        if (! is_array($materialized)
+            || ($materialized['status'] ?? null) !== 'exported'
+            || ($materialized['dry_run'] ?? null) !== false
+            || ($materialized['files'] ?? null) !== ($export['files'] ?? null)
+            || ! is_file($application.'/'.$exportTarget.'/composer.json')
+            || ! is_file($application.'/'.$exportTarget.'/src/UserModule.php')) {
+            throw new RuntimeException('Export materialization did not publish the exact validated plan.');
+        }
+
+        $this->command(
+            ['composer', 'validate', '--strict', '--no-check-publish'],
+            $application.'/'.$exportTarget,
+            $environment,
+        );
+        $exportedModule = file_get_contents($application.'/'.$exportTarget.'/src/UserModule.php');
+
+        if (! is_string($exportedModule)
+            || ! str_contains($exportedModule, 'namespace Acme\UserModule;')
+            || str_contains($exportedModule, 'namespace App\Modules\User;')) {
+            throw new RuntimeException('Export materialization did not rewrite the Module namespace.');
+        }
+
+        $this->verifyStandaloneExportPackage($application, $major, $exportTarget, $environment);
+
         $test = json_decode($this->artisan(
             $application,
             ['moduark:test', 'User', '--list', '--format=json'],
@@ -1398,6 +1472,112 @@ PHP;
         if (! is_array($migrate) || ($migrate['status'] ?? null) !== 'passed') {
             throw new RuntimeException('moduark:migrate did not run the fresh-install Module migration path.');
         }
+    }
+
+    /** @param array<string, string> $environment */
+    private function verifyStandaloneExportPackage(
+        string $application,
+        int $major,
+        string $exportTarget,
+        array $environment,
+    ): void {
+        $repository = json_encode([
+            'type' => 'path',
+            'url' => $application.'/'.$exportTarget,
+            'options' => [
+                'symlink' => false,
+                'versions' => ['acme/user-module' => 'dev-main'],
+            ],
+        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+        $this->command([
+            'composer',
+            'config',
+            '--json',
+            'repositories.moduark-user-export',
+            $repository,
+        ], $application, $environment);
+        $this->command([
+            'composer',
+            'require',
+            'acme/user-module:dev-main',
+            '--no-interaction',
+            '--no-progress',
+            '--prefer-dist',
+        ], $application, $environment);
+        $testbench = $major === 12 ? '^10.0' : '^11.0';
+        $this->command([
+            'composer',
+            'require',
+            '--dev',
+            'orchestra/testbench:'.$testbench,
+            '--no-interaction',
+            '--no-progress',
+            '--prefer-dist',
+            '--with-all-dependencies',
+        ], $application, $environment);
+
+        $runtimeProbe = <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+use Acme\UserModule\UserModule;
+use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Contracts\Config\Repository;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Routing\Router;
+
+require __DIR__.'/vendor/autoload.php';
+$application = require __DIR__.'/bootstrap/app.php';
+$application->make(Kernel::class)->bootstrap();
+
+if (! $application->bound(UserModule::class)
+    || ! $application->make(UserModule::class) instanceof UserModule
+    || $application->make(Repository::class)->get('moduark_export_user.portable') !== true
+    || $application->make(Router::class)->getRoutes()->getByName('moduark.export.user') === null
+    || ! $application->make(Factory::class)->exists('user::export-probe')) {
+    fwrite(STDERR, 'Exported package auto-discovery runtime probe failed.'.PHP_EOL);
+    exit(2);
+}
+
+echo 'PASS exported package auto-discovery runtime'.PHP_EOL;
+PHP;
+        $testbenchProbe = <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+use Acme\UserModule\UserModule;
+use Acme\UserModule\UserPackageServiceProvider;
+use Illuminate\Contracts\Config\Repository;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Routing\Router;
+use Orchestra\Testbench\Foundation\Application;
+
+require __DIR__.'/vendor/autoload.php';
+$application = Application::create(
+    options: ['extra' => ['providers' => [UserPackageServiceProvider::class]]],
+);
+
+if (! $application->bound(UserModule::class)
+    || ! $application->make(UserModule::class) instanceof UserModule
+    || $application->make(Repository::class)->get('moduark_export_user.portable') !== true
+    || $application->make(Router::class)->getRoutes()->getByName('moduark.export.user') === null
+    || ! $application->make(Factory::class)->exists('user::export-probe')) {
+    fwrite(STDERR, 'Exported package Testbench runtime probe failed.'.PHP_EOL);
+    exit(2);
+}
+
+echo 'PASS Laravel '.$application->version().' exported package Testbench runtime'.PHP_EOL;
+PHP;
+
+        if (file_put_contents($application.'/moduark-export-runtime-probe.php', $runtimeProbe."\n") === false
+            || file_put_contents($application.'/moduark-export-testbench-probe.php', $testbenchProbe."\n") === false) {
+            throw new RuntimeException('Unable to write exported package runtime probes.');
+        }
+
+        $this->command([PHP_BINARY, 'moduark-export-runtime-probe.php'], $application, $environment);
+        $this->command([PHP_BINARY, 'moduark-export-testbench-probe.php'], $application, $environment);
     }
 
     private function assertFileExists(string $path, string $message): void

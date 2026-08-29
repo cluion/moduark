@@ -158,8 +158,10 @@ final readonly class ModuleExportPlanner
         $absolute = $this->targetAbsolutePath($target);
         $evidence = [];
 
-        if (file_exists($absolute) && ! is_dir($absolute)) {
-            $evidence[] = $target.'=not_directory';
+        if (is_link($absolute)) {
+            $evidence[] = $target.'=symlink';
+        } elseif (file_exists($absolute)) {
+            $evidence[] = $target.'=exists';
         }
 
         $cursor = $absolute;

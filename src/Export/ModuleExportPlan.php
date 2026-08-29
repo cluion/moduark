@@ -67,6 +67,26 @@ final readonly class ModuleExportPlan
         return $this->blockers === [];
     }
 
+    public function target(): string
+    {
+        return $this->target;
+    }
+
+    public function package(): string
+    {
+        return $this->package;
+    }
+
+    public function namespace(): string
+    {
+        return $this->namespace;
+    }
+
+    public function provider(): string
+    {
+        return $this->provider;
+    }
+
     /** @return list<ExportPlanFile> */
     public function files(): array
     {

@@ -67,6 +67,10 @@ use Cluion\Moduark\Extraction\PortableRuntimeGate;
 use Cluion\Moduark\Extraction\ProviderBindingScanner;
 use Cluion\Moduark\Export\ModuleExportPlanExporter;
 use Cluion\Moduark\Export\ModuleExportPlanner;
+use Cluion\Moduark\Export\ModuleExportFilesystem;
+use Cluion\Moduark\Export\ModuleExportMaterializer;
+use Cluion\Moduark\Export\ModuleExportRenderer;
+use Cluion\Moduark\Export\NativeModuleExportFilesystem;
 use Cluion\Moduark\Graph\CapabilityGraphBuilder;
 use Cluion\Moduark\Graph\CombinedGraphBuilder;
 use Cluion\Moduark\Graph\Export\MermaidCapabilityGraphExporter;
@@ -274,6 +278,17 @@ final class ModuarkServiceProvider extends ServiceProvider
             ),
         );
         $this->app->singleton(ModuleExportPlanExporter::class);
+        $this->app->singleton(ModuleExportRenderer::class);
+        $this->app->singleton(ModuleExportFilesystem::class, NativeModuleExportFilesystem::class);
+        $this->app->singleton(
+            ModuleExportMaterializer::class,
+            fn (): ModuleExportMaterializer => new ModuleExportMaterializer(
+                $this->app->make(ModuleExportFilesystem::class),
+                $this->app->make(ModuleExportRenderer::class),
+                $this->app->make(ModulesConfig::class),
+                $this->app->basePath(),
+            ),
+        );
         $this->app->singleton(GeneratorRegistry::class);
 
         foreach (ModuleMakerType::cases() as $descriptor) {

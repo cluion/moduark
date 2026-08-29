@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Cluion\Moduark\Console;
 
 use Cluion\Moduark\Architecture\ExitPolicy;
+use Cluion\Moduark\Export\ModuleExportMaterializer;
 use Cluion\Moduark\Export\ModuleExportPlanExporter;
 use Cluion\Moduark\Export\ModuleExportPlanner;
 use Illuminate\Console\Command;
@@ -22,11 +23,12 @@ final class ModuleExportCommand extends Command
         {--format=text : Output format: text or json}';
 
     /** @var string */
-    protected $description = 'Plan a Module package export without writing files';
+    protected $description = 'Plan or materialize a standalone Module package';
 
     public function __construct(
         private readonly ModuleExportPlanner $planner,
         private readonly ModuleExportPlanExporter $exporter,
+        private readonly ModuleExportMaterializer $materializer,
     ) {
         parent::__construct();
     }
@@ -34,16 +36,14 @@ final class ModuleExportCommand extends Command
     public function handle(): int
     {
         $format = $this->option('format');
+        $dryRun = $this->option('dry-run') === true;
 
         if (! is_string($format) || ! in_array($format, ['text', 'json'], true)) {
             return $this->failure(
                 is_string($format) ? $format : 'text',
                 'The export output format must be text or json.',
+                $dryRun,
             );
-        }
-
-        if ($this->option('dry-run') !== true) {
-            return $this->failure($format, 'Module export currently requires --dry-run; no package files were written.');
         }
 
         $module = $this->argument('module');
@@ -61,45 +61,91 @@ final class ModuleExportCommand extends Command
             return $this->failure(
                 $format,
                 'Module export requires --target, --package, and --namespace.',
+                $dryRun,
             );
         }
 
         try {
             $plan = $this->planner->plan($module, $target, $package, $namespace);
         } catch (InvalidArgumentException $exception) {
-            return $this->failure($format, $exception->getMessage());
+            return $this->failure($format, $exception->getMessage(), $dryRun);
         }
 
         $exitCode = $plan->ready()
             ? ExitPolicy::SUCCESS
             : ExitPolicy::VIOLATIONS_FOUND;
 
-        if ($format === 'json') {
+        if ($dryRun && $format === 'json') {
             return $this->json($this->exporter->json($plan, $exitCode), $exitCode);
+        }
+
+        if (! $plan->ready()) {
+            if ($format === 'json') {
+                return $this->json($this->exporter->jsonMaterializationBlocked($plan), $exitCode);
+            }
+
+            foreach ($this->exporter->textLines($plan) as $line) {
+                $this->line($line);
+            }
+
+            $this->components->error(
+                "Module [{$plan->module()->name()}] package export is blocked; no files were written.",
+            );
+
+            return $exitCode;
+        }
+
+        if (! $dryRun) {
+            $result = $this->materializer->materialize($plan);
+
+            if ($format === 'json') {
+                $payload = $result->successful()
+                    ? $this->exporter->jsonMaterialized($plan)
+                    : $this->exporter->jsonMaterializationFailure($plan, $result);
+
+                return $this->json(
+                    $payload,
+                    $result->successful() ? ExitPolicy::SUCCESS : ExitPolicy::TOOL_ERROR,
+                );
+            }
+
+            if (! $result->successful()) {
+                $this->components->error($result->error() ?? 'Module package export failed.');
+
+                foreach ($result->rollbackFailures() as $failure) {
+                    $this->line('ROLLBACK-FAILED '.$failure);
+                }
+
+                return ExitPolicy::TOOL_ERROR;
+            }
+
+            foreach ($this->exporter->textLines($plan) as $line) {
+                $this->line($line);
+            }
+
+            $this->components->info(
+                "Module [{$plan->module()->name()}] package exported to [{$plan->target()}].",
+            );
+
+            return ExitPolicy::SUCCESS;
         }
 
         foreach ($this->exporter->textLines($plan) as $line) {
             $this->line($line);
         }
 
-        if ($plan->ready()) {
-            $this->components->info(
-                "Module [{$plan->module()->name()}] package export plan is ready; no files were written.",
-            );
-        } else {
-            $this->components->error(
-                "Module [{$plan->module()->name()}] package export plan is blocked; no files were written.",
-            );
-        }
+        $this->components->info(
+            "Module [{$plan->module()->name()}] package export plan is ready; no files were written.",
+        );
 
         return $exitCode;
     }
 
-    private function failure(string $format, string $message): int
+    private function failure(string $format, string $message, bool $dryRun): int
     {
         if ($format === 'json') {
             return $this->json(
-                $this->exporter->jsonFailure(ExitPolicy::TOOL_ERROR, $message),
+                $this->exporter->jsonFailure(ExitPolicy::TOOL_ERROR, $message, $dryRun),
                 ExitPolicy::TOOL_ERROR,
             );
         }

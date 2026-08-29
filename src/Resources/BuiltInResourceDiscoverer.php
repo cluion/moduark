@@ -28,7 +28,7 @@ final readonly class BuiltInResourceDiscoverer implements ResourceDiscoverer
             'translations' => $this->directory($module, 'translations', 'resources/lang', strtolower($module->name()), true),
             'migrations' => $this->migrationDirectory($module),
             'commands' => $this->commands($module, $moduleConfiguration),
-            'factories' => $this->optInDirectories($module, $moduleConfiguration, 'factories', ['Database/Factories', 'database/factories']),
+            'factories' => $this->optInDirectories($module, $moduleConfiguration, 'factories', ['Database/Factories', 'database/factories', 'src/Database/Factories']),
             'seeders' => $this->classList($module, $moduleConfiguration, 'seeders'),
             'policies' => $this->classMap($module, $moduleConfiguration, 'policies'),
             'events' => $this->events($module, $moduleConfiguration),
@@ -602,6 +602,10 @@ final readonly class BuiltInResourceDiscoverer implements ResourceDiscoverer
     private function moduleRoot(DiscoveredModule $module): string
     {
         $entryRoot = dirname($module->path());
+
+        if (basename($entryRoot) === 'src' && is_file(dirname($entryRoot).'/composer.json')) {
+            return dirname($entryRoot);
+        }
 
         return basename($entryRoot) === 'app' ? dirname($entryRoot) : $entryRoot;
     }

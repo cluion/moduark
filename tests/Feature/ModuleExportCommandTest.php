@@ -6,6 +6,8 @@ namespace Tests\Feature;
 
 use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Configuration\ModulesConfig;
+use Cluion\Moduark\Export\ModuleExportFilesystem;
+use Cluion\Moduark\Export\NativeModuleExportFilesystem;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Filesystem\Filesystem;
 use JsonException;
@@ -53,27 +55,86 @@ final class ModuleExportCommandTest extends TestCase
     }
 
     /** @throws JsonException */
-    public function test_export_requires_dry_run_and_explicit_package_identity(): void
+    public function test_export_requires_explicit_package_identity(): void
     {
-        [$withoutDryRunExit, $withoutDryRun] = $this->jsonOutput(
-            'User',
-            'packages/moduark-user-plan',
-            false,
-        );
         [$missingOptionsExit, $missingOptions] = $this->rawJsonOutput([
             'module' => 'User',
-            '--dry-run' => true,
             '--format' => 'json',
         ]);
 
-        self::assertSame(ExitPolicy::TOOL_ERROR, $withoutDryRunExit);
-        self::assertSame('error', $withoutDryRun['status']);
-        self::assertIsString($withoutDryRun['error']);
-        self::assertStringContainsString('requires --dry-run', $withoutDryRun['error']);
         self::assertSame(ExitPolicy::TOOL_ERROR, $missingOptionsExit);
         self::assertSame('error', $missingOptions['status']);
+        self::assertFalse($missingOptions['dry_run']);
         self::assertIsString($missingOptions['error']);
         self::assertStringContainsString('--target, --package, and --namespace', $missingOptions['error']);
+    }
+
+    /** @throws JsonException */
+    public function test_export_materializes_the_exact_plan_atomically(): void
+    {
+        $target = 'packages/moduark-user-materialized';
+        $absolute = base_path($target);
+        $filesystem = new Filesystem;
+        self::assertDirectoryDoesNotExist($absolute);
+        [, $planned] = $this->jsonOutput('User', $target);
+
+        try {
+            [$exitCode, $exported] = $this->jsonOutput('User', $target, false);
+
+            self::assertSame(ExitPolicy::SUCCESS, $exitCode);
+            self::assertSame('exported', $exported['status']);
+            self::assertTrue($exported['complete']);
+            self::assertFalse($exported['dry_run']);
+            self::assertSame([], $exported['rollback_failures']);
+            self::assertSame($planned['files'], $exported['files']);
+            self::assertDirectoryExists($absolute);
+            self::assertSame([
+                'composer.json',
+                'src/UserModule.php',
+                'src/UserPackageServiceProvider.php',
+            ], $this->relativeFiles($filesystem, $absolute));
+            self::assertStringContainsString(
+                'namespace Acme\\UserModule;',
+                $filesystem->get($absolute.'/src/UserModule.php'),
+            );
+            $composer = json_decode($filesystem->get($absolute.'/composer.json'), true, 512, JSON_THROW_ON_ERROR);
+            self::assertIsArray($composer);
+            self::assertSame('acme/user-module', $composer['name']);
+            self::assertSame('proprietary', $composer['license']);
+            self::assertIsArray($composer['extra']);
+            self::assertIsArray($composer['extra']['laravel']);
+            self::assertSame(
+                ['Acme\\UserModule\\UserPackageServiceProvider'],
+                $composer['extra']['laravel']['providers'],
+            );
+        } finally {
+            $filesystem->deleteDirectory($absolute);
+        }
+    }
+
+    /** @throws JsonException */
+    public function test_materialization_failure_removes_staging_and_target(): void
+    {
+        $target = 'moduark-export-failure-parent/package';
+        $absolute = base_path($target);
+        $parent = dirname($absolute);
+        self::assertDirectoryDoesNotExist($parent);
+        $this->application()->instance(
+            ModuleExportFilesystem::class,
+            new FailingModuleExportFilesystem(2),
+        );
+
+        [$exitCode, $payload] = $this->jsonOutput('User', $target, false);
+
+        self::assertSame(ExitPolicy::TOOL_ERROR, $exitCode);
+        self::assertSame('error', $payload['status']);
+        self::assertFalse($payload['complete']);
+        self::assertFalse($payload['dry_run']);
+        self::assertIsString($payload['error']);
+        self::assertStringContainsString('Injected export write failure', $payload['error']);
+        self::assertSame([], $payload['rollback_failures']);
+        self::assertDirectoryDoesNotExist($absolute);
+        self::assertDirectoryDoesNotExist($parent);
     }
 
     /** @throws JsonException */
@@ -104,10 +165,11 @@ final class ModuleExportCommandTest extends TestCase
         $filesystem->put($absolute.'/composer.json', "fixture\n");
 
         try {
-            [$exitCode, $payload] = $this->jsonOutput('User', $target);
+            [$exitCode, $payload] = $this->jsonOutput('User', $target, false);
 
             self::assertSame(ExitPolicy::VIOLATIONS_FOUND, $exitCode);
             self::assertSame('blocked', $payload['status']);
+            self::assertFalse($payload['dry_run']);
             self::assertIsArray($payload['blockers']);
             self::assertContains('MOD-EXPORT-COLLISION-001', array_column($payload['blockers'], 'code'));
             self::assertSame("fixture\n", $filesystem->get($absolute.'/composer.json'));
@@ -213,5 +275,65 @@ final class ModuleExportCommandTest extends TestCase
         }
 
         return [$exitCode, $normalized, $json];
+    }
+
+    /** @return list<string> */
+    private function relativeFiles(Filesystem $filesystem, string $root): array
+    {
+        $files = array_map(
+            static fn ($file): string => str_replace('\\', '/', $file->getRelativePathname()),
+            $filesystem->allFiles($root),
+        );
+        sort($files, SORT_STRING);
+
+        return $files;
+    }
+}
+
+final class FailingModuleExportFilesystem implements ModuleExportFilesystem
+{
+    private int $writes = 0;
+
+    private NativeModuleExportFilesystem $native;
+
+    public function __construct(private readonly int $failOnWrite)
+    {
+        $this->native = new NativeModuleExportFilesystem;
+    }
+
+    public function ensureDirectory(string $path): void
+    {
+        $this->native->ensureDirectory($path);
+    }
+
+    public function read(string $path): string
+    {
+        return $this->native->read($path);
+    }
+
+    public function write(string $path, string $contents): void
+    {
+        $this->writes++;
+
+        if ($this->writes === $this->failOnWrite) {
+            throw new \RuntimeException('Injected export write failure.');
+        }
+
+        $this->native->write($path, $contents);
+    }
+
+    public function moveDirectory(string $source, string $destination): void
+    {
+        $this->native->moveDirectory($source, $destination);
+    }
+
+    public function delete(string $path): void
+    {
+        $this->native->delete($path);
+    }
+
+    public function removeEmptyDirectory(string $path): void
+    {
+        $this->native->removeEmptyDirectory($path);
     }
 }

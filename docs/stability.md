@@ -182,13 +182,22 @@ selected-Module collisions block planning. It does not inspect every route
 declaration, execute publishing, inspect destination files, or infer Composer,
 NPM, or Vite dependencies.
 
-LC1-D adds the Preview, dry-run-only `moduark:export` plan. Callers must provide
+LC1-D introduced the Preview, dry-run `moduark:export` plan. Callers must provide
 an application-relative target, lowercase Composer package identity, and PHP
 namespace. Schema version `1` reports deterministic generated/copy file targets,
 namespace transforms, resolved or manual dependencies, fixed blockers, exit
 code, and a nullable error. Successful planning uses exit `0`; source, target,
 collision, dependency, or extractability blockers use exit `1`; invalid input
-or omission of `--dry-run` uses exit `2`. No invocation writes package files.
+uses exit `2`. Dry-run never writes package files.
+
+LC1-E extends the same Preview command with materialization when `--dry-run` is
+omitted. The target must not exist. File copies, namespace rewrites, generated
+Composer metadata and the portable package ServiceProvider are completed in a
+same-filesystem staging directory and published with one rename. Success reports
+`status=exported`, `dry_run=false`, and exit `0`; plan blockers remain exit `1`;
+execution or rollback failure is exit `2`. Exported package runtime is independent
+of the application Module root, but Composer-installed packages do not yet join
+the host-wide Moduark registry, activation state, graph, analysis, or cache.
 
 The following commands and their documented arguments and options are Stable:
 

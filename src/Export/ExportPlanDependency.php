@@ -24,6 +24,16 @@ final readonly class ExportPlanDependency
         return $this->source;
     }
 
+    public function package(): ?string
+    {
+        return $this->package;
+    }
+
+    public function constraint(): ?string
+    {
+        return $this->constraint;
+    }
+
     public function status(): string
     {
         return $this->status;

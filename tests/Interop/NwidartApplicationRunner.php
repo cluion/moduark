@@ -127,7 +127,7 @@ final class NwidartApplicationRunner
 
         echo "Nwidart interoperability root: {$root}\n";
         echo $this->packageVersion === null
-            ? "Package source: current checkout as cluion/moduark:dev-main\n"
+            ? "Package source: current checkout as cluion/moduark:1.3.x-dev\n"
             : "Package source: Packagist cluion/moduark:{$this->packageVersion}\n";
         $results = [];
 
@@ -195,7 +195,7 @@ final class NwidartApplicationRunner
     /** @param array<string, string> $environment */
     private function installPackages(string $application, int $major, array $environment): void
     {
-        $constraint = $this->packageVersion ?? 'dev-main';
+        $constraint = $this->packageVersion ?? '1.3.x-dev';
 
         $this->command([
             'composer',
@@ -210,7 +210,7 @@ final class NwidartApplicationRunner
                 'type' => 'path',
                 'url' => $this->packagePath,
                 'options' => [
-                    'versions' => ['cluion/moduark' => 'dev-main'],
+                    'versions' => ['cluion/moduark' => '1.3.x-dev'],
                 ],
             ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
 
@@ -1165,6 +1165,36 @@ PHP;
             || file_exists($application.'/'.$exportTarget)) {
             throw new RuntimeException('nwidart export dry-run did not preserve the package destination contract.');
         }
+
+        $materializedOutput = $this->artisan(
+            $application,
+            [
+                'moduark:export',
+                'User',
+                '--target='.$exportTarget,
+                '--package=acme/user-module',
+                '--namespace=Acme\UserModule',
+                '--format=json',
+            ],
+            $environment,
+        );
+        $materialized = json_decode($materializedOutput, true, 512, JSON_THROW_ON_ERROR);
+
+        if (! is_array($materialized)
+            || ($materialized['status'] ?? null) !== 'exported'
+            || ($materialized['dry_run'] ?? null) !== false
+            || ($materialized['files'] ?? null) !== ($export['files'] ?? null)
+            || ! is_file($application.'/'.$exportTarget.'/src/UserModule.php')
+            || ! is_file($application.'/'.$exportTarget.'/routes/web.php')
+            || ! is_file($application.'/'.$exportTarget.'/resources/views/index.blade.php')) {
+            throw new RuntimeException('nwidart export materialization did not publish the exact package layout.');
+        }
+
+        $this->command(
+            ['composer', 'validate', '--strict', '--no-check-publish'],
+            $application.'/'.$exportTarget,
+            $environment,
+        );
 
         $this->artisan($application, ['moduark:clear'], $environment);
     }

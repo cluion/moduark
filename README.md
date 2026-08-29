@@ -941,9 +941,28 @@ The command maps standalone or nwidart files to package roots, plans generated
 Composer and package-provider targets, records namespace rewrites and runtime or
 manual dependencies, and checks destination collisions. Package identity is
 never guessed. Module dependencies without an explicit Composer mapping block
-readiness. LC1-D remains strictly read-only: calls without `--dry-run` return
-exit `2`, and even a successful plan creates no directory or file. See
-[ADR-0064](docs/adr/0064-export-plan-contract.md).
+readiness. Omit `--dry-run` to materialize the same validated plan:
+
+```bash
+php artisan moduark:export User \
+    --target=packages/user-module \
+    --package=acme/user-module \
+    --namespace='Acme\UserModule'
+```
+
+The target must not exist. Moduark writes every target into a same-filesystem
+staging directory, parses generated PHP, and publishes the complete package with
+one rename; it never merges or overwrites a package. The generated Composer
+metadata uses the conservative `proprietary` license placeholder so strict
+validation passes without assigning the application's code an unrequested
+open-source license; replace it with the real package license before publication.
+It auto-discovers a portable package ServiceProvider that registers the
+exported Module providers, Capabilities, config, routes, views, translations,
+migrations, commands, policies, listeners, components, and public assets without
+requiring an application Module directory. The exported package is not yet added
+to the host application's canonical `moduark:list`, graph, cache, or activation
+registry. See [ADR-0064](docs/adr/0064-export-plan-contract.md) and
+[ADR-0065](docs/adr/0065-export-materialization.md).
 
 Application bootstrap happens before Artisan invokes a command. A configuration,
 discovery, metadata, or runtime Capability-resolution exception raised during
