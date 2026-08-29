@@ -107,6 +107,14 @@ final class ModuleExportCommandTest extends TestCase
                 ['Acme\\UserModule\\UserPackageServiceProvider'],
                 $composer['extra']['laravel']['providers'],
             );
+            self::assertSame([
+                'schema_version' => 1,
+                'modules' => [[
+                    'name' => 'User',
+                    'class' => 'Acme\\UserModule\\UserModule',
+                    'path' => 'src/UserModule.php',
+                ]],
+            ], $composer['extra']['moduark']);
         } finally {
             $filesystem->deleteDirectory($absolute);
         }

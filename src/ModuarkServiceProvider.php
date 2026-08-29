@@ -103,6 +103,7 @@ use Cluion\Moduark\Lifecycle\Activation\ModuleActivationPlanner;
 use Cluion\Moduark\Lifecycle\Activation\ModuleActivationState;
 use Cluion\Moduark\Lifecycle\Activation\NativeAtomicFileWriter;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
+use Cluion\Moduark\Package\ComposerPackageModuleDiscoverer;
 use Cluion\Moduark\Persistence\TableOwnershipIndex;
 use Cluion\Moduark\Registry\ModuleRegistry;
 use Cluion\Moduark\Resources\ModuleResourceDiscoverer;
@@ -181,6 +182,10 @@ final class ModuarkServiceProvider extends ServiceProvider
             $this->app->make(RuleResolver::class)->resolve($configuration),
         );
         $this->app->singleton(ModuleDiscoverer::class);
+        $this->app->singleton(
+            ComposerPackageModuleDiscoverer::class,
+            fn (): ComposerPackageModuleDiscoverer => ComposerPackageModuleDiscoverer::fromComposerRuntime(),
+        );
         $resourcePlugins = new ResourcePluginRegistry;
         BuiltInResourcePlugins::register($resourcePlugins);
         $this->app->instance(ResourcePluginRegistry::class, $resourcePlugins);

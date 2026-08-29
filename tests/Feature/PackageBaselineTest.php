@@ -45,6 +45,7 @@ use Cluion\Moduark\Lifecycle\ModuleOrderer;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
 use Cluion\Moduark\Persistence\TableOwnershipIndex;
 use Cluion\Moduark\ModuarkServiceProvider;
+use Cluion\Moduark\Package\ComposerPackageModuleDiscoverer;
 use Cluion\Moduark\Registry\ModuleRegistry;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Support\ServiceProvider;
@@ -74,6 +75,7 @@ final class PackageBaselineTest extends TestCase
         self::assertTrue($application->bound(SourceAnalysisCacheStore::class));
         self::assertTrue($application->bound(SourceIndexBuilder::class));
         self::assertTrue($application->bound(ModuleDiscoverer::class));
+        self::assertTrue($application->bound(ComposerPackageModuleDiscoverer::class));
         self::assertTrue($application->bound(ModuleRegistry::class));
         self::assertTrue($application->bound(ModuleMetadataCompiler::class));
         self::assertTrue($application->bound(TableOwnershipIndex::class));

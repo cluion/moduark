@@ -199,6 +199,13 @@ execution or rollback failure is exit `2`. Exported package runtime is independe
 of the application Module root, but Composer-installed packages do not yet join
 the host-wide Moduark registry, activation state, graph, analysis, or cache.
 
+LC1-F-A adds the Preview Composer package Module descriptor catalog. Generated
+`extra.moduark` schema version `1` declares Module name, class, and
+package-relative source path. Discovery validates installed source identity,
+sorts scalar catalog output, and produces a stable fingerprint. Unknown schemas,
+unsafe paths, source mismatches, and duplicate package Module names or classes
+fail closed. The catalog is not yet merged into the canonical registry or cache.
+
 The following commands and their documented arguments and options are Stable:
 
 ```text

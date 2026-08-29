@@ -964,6 +964,15 @@ to the host application's canonical `moduark:list`, graph, cache, or activation
 registry. See [ADR-0064](docs/adr/0064-export-plan-contract.md) and
 [ADR-0065](docs/adr/0065-export-materialization.md).
 
+Exported Composer metadata also contains schema-versioned `extra.moduark`
+descriptors with the package-relative Module class source. Moduark reads those
+descriptors directly from Composer's installed-package manifest, validates the
+autoloaded class against the installed source, sorts a deterministic catalog,
+and rejects duplicate package Module names or classes. The catalog and its
+stable fingerprint are the LC1-F-A discovery contract; canonical registry,
+activation, cache, and lifecycle adoption remain deferred to LC1-F-B. See
+[ADR-0066](docs/adr/0066-composer-package-module-descriptors.md).
+
 Application bootstrap happens before Artisan invokes a command. A configuration,
 discovery, metadata, or runtime Capability-resolution exception raised during
 bootstrap may therefore be rendered by Laravel itself rather than by

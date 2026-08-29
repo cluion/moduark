@@ -35,6 +35,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added atomic `moduark:export` materialization, deterministic Composer/provider
   rendering, namespace rewriting, rollback diagnostics, and a portable one-Module
   package runtime for Laravel and Testbench applications.
+- Added schema-versioned `extra.moduark` package Module descriptors and a
+  deterministic Composer installed-package catalog with source validation,
+  stable fingerprints, and fail-closed identity collisions.
 
 ## [1.2.0] - 2026-08-29
 

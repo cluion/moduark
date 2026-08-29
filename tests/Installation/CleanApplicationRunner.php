@@ -1522,6 +1522,7 @@ PHP;
 declare(strict_types=1);
 
 use Acme\UserModule\UserModule;
+use Cluion\Moduark\Package\ComposerPackageModuleDiscoverer;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\View\Factory;
@@ -1530,12 +1531,26 @@ use Illuminate\Routing\Router;
 require __DIR__.'/vendor/autoload.php';
 $application = require __DIR__.'/bootstrap/app.php';
 $application->make(Kernel::class)->bootstrap();
+$discoverer = $application->make(ComposerPackageModuleDiscoverer::class);
+$catalog = $discoverer->discover();
+$catalogPayload = $catalog->toArray();
 
 if (! $application->bound(UserModule::class)
     || ! $application->make(UserModule::class) instanceof UserModule
     || $application->make(Repository::class)->get('moduark_export_user.portable') !== true
     || $application->make(Router::class)->getRoutes()->getByName('moduark.export.user') === null
-    || ! $application->make(Factory::class)->exists('user::export-probe')) {
+    || ! $application->make(Factory::class)->exists('user::export-probe')
+    || $catalogPayload !== [
+        'schema_version' => 1,
+        'modules' => [[
+            'package' => 'acme/user-module',
+            'name' => 'User',
+            'class' => UserModule::class,
+            'path' => 'src/UserModule.php',
+            'namespace' => 'Acme\\UserModule',
+        ]],
+    ]
+    || $catalog->fingerprint() !== $discoverer->discover()->fingerprint()) {
     fwrite(STDERR, 'Exported package auto-discovery runtime probe failed.'.PHP_EOL);
     exit(2);
 }

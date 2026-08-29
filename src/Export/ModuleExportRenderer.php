@@ -59,6 +59,14 @@ final class ModuleExportRenderer
                 'laravel' => [
                     'providers' => [$plan->provider()],
                 ],
+                'moduark' => [
+                    'schema_version' => 1,
+                    'modules' => [[
+                        'name' => $plan->module()->name(),
+                        'class' => $plan->namespace().'\\'.$plan->module()->name().'Module',
+                        'path' => 'src/'.$plan->module()->name().'Module.php',
+                    ]],
+                ],
             ],
             'scripts' => [
                 'test' => 'phpunit',

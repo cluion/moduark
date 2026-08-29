@@ -40,6 +40,8 @@ and booted independently under Laravel / Testbench. It does not merge installed
 package Modules into the host application's canonical registry, activation state,
 analysis, graph, cache, or cross-package collision model. That requires a later
 package registry adapter so every subsystem observes one active Module set.
+ADR-0066 establishes the package descriptor inventory without changing this
+runtime boundary.
 
 ## Consequences
 
