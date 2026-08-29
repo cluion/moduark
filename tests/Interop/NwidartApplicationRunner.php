@@ -595,6 +595,8 @@ PHP;
             ['help', 'moduark:make-module'],
             $environment,
         );
+        $moduarkEnable = $this->artisan($application, ['help', 'moduark:enable'], $environment);
+        $moduarkDisable = $this->artisan($application, ['help', 'moduark:disable'], $environment);
 
         $this->assertContains('Create a new module.', $nwidart, 'nwidart module:make was overwritten.');
         $this->assertContains('[<name>...]', $nwidart, 'nwidart module:make lost its name list argument.');
@@ -643,6 +645,10 @@ PHP;
             $moduark,
             'Moduark resource maker lost its plan output format option.',
         );
+        $this->assertContains('--dry-run', $moduarkEnable, 'Moduark enable lost its dry-run gate.');
+        $this->assertContains('--format', $moduarkEnable, 'Moduark enable lost its output format.');
+        $this->assertContains('--dry-run', $moduarkDisable, 'Moduark disable lost its dry-run gate.');
+        $this->assertContains('--format', $moduarkDisable, 'Moduark disable lost its output format.');
         $this->assertContains('--factory', $moduark, 'Moduark resource maker lost its factory option.');
         $this->assertContains('--command', $moduark, 'Moduark Module Maker lost its command name option.');
         $this->assertContains(
@@ -836,6 +842,46 @@ PHP;
             throw new RuntimeException('The initial resource manifest did not contain both active Modules.');
         }
 
+        $statusesPath = $application.'/modules_statuses.json';
+        $beforeDryRun = hash_file('sha256', $statusesPath);
+        $blockedPlan = $this->activationProbe(
+            $application,
+            $environment,
+            'disable',
+            'User',
+            [1],
+        );
+        $blockedPayload = $blockedPlan['plan'] ?? null;
+        $blockedRows = is_array($blockedPayload) ? ($blockedPayload['blockers'] ?? null) : null;
+
+        if (($blockedPlan['status'] ?? null) !== 'blocked'
+            || ($blockedPlan['driver'] ?? null) !== 'nwidart'
+            || ! is_array($blockedPayload)
+            || ! is_array($blockedRows)
+            || ! is_array($blockedRows[0] ?? null)
+            || ($blockedRows[0]['code'] ?? null) !== 'missing-dependency') {
+            throw new RuntimeException('nwidart dependency-aware activation dry-run was not blocked.');
+        }
+
+        $disablePlan = $this->activationProbe($application, $environment, 'disable', 'Order');
+        $afterDryRun = hash_file('sha256', $statusesPath);
+        $disablePayload = $disablePlan['plan'] ?? null;
+        $disableAfter = is_array($disablePayload) ? ($disablePayload['after'] ?? null) : null;
+
+        if (($disablePlan['status'] ?? null) !== 'planned'
+            || ($disablePlan['driver'] ?? null) !== 'nwidart'
+            || ($disablePlan['dry_run'] ?? null) !== true
+            || ! is_array($disablePayload)
+            || ! is_array($disableAfter)
+            || in_array('Order', $disableAfter, true)
+            || ! is_string($beforeDryRun)
+            || $beforeDryRun !== $afterDryRun) {
+            throw new RuntimeException('nwidart disable dry-run changed state or returned an invalid plan.');
+        }
+
+        $afterDryRunList = $this->artisan($application, ['moduark:list'], $environment);
+        $this->assertContains('Order', $afterDryRunList, 'nwidart disable dry-run changed active state.');
+
         $this->artisan($application, ['module:disable', 'Order'], $environment);
 
         $nwidartList = $this->artisan($application, ['module:list'], $environment);
@@ -911,6 +957,22 @@ PHP;
             throw new RuntimeException('The cached resource manifest retained the disabled Order Module.');
         }
 
+        $beforeEnableDryRun = hash_file('sha256', $statusesPath);
+        $enablePlan = $this->activationProbe($application, $environment, 'enable', 'Order');
+        $afterEnableDryRun = hash_file('sha256', $statusesPath);
+        $enablePayload = $enablePlan['plan'] ?? null;
+        $enableAfter = is_array($enablePayload) ? ($enablePayload['after'] ?? null) : null;
+
+        if (($enablePlan['status'] ?? null) !== 'planned'
+            || ($enablePlan['driver'] ?? null) !== 'nwidart'
+            || ! is_array($enablePayload)
+            || ! is_array($enableAfter)
+            || ! in_array('Order', $enableAfter, true)
+            || ! is_string($beforeEnableDryRun)
+            || $beforeEnableDryRun !== $afterEnableDryRun) {
+            throw new RuntimeException('nwidart enable dry-run changed state or returned an invalid plan.');
+        }
+
         $this->artisan($application, ['module:enable', 'Order'], $environment);
 
         $restoredList = $this->artisan($application, ['moduark:list'], $environment);
@@ -979,6 +1041,43 @@ PHP;
         }
 
         return $result;
+    }
+
+    /**
+     * @param array<string, string> $environment
+     * @param list<int> $allowedExitCodes
+     * @return array<string, mixed>
+     */
+    private function activationProbe(
+        string $application,
+        array $environment,
+        string $operation,
+        string $module,
+        array $allowedExitCodes = [0],
+    ): array {
+        $result = $this->artisanResult(
+            $application,
+            ["moduark:{$operation}", $module, '--dry-run', '--format=json'],
+            $environment,
+            $allowedExitCodes,
+        );
+        $payload = json_decode(trim($result['output']), true, 512, JSON_THROW_ON_ERROR);
+
+        if (! is_array($payload)) {
+            throw new RuntimeException('The interoperability activation probe did not return an object.');
+        }
+
+        $normalized = [];
+
+        foreach ($payload as $key => $value) {
+            if (! is_string($key)) {
+                throw new RuntimeException('The interoperability activation probe returned an invalid key.');
+            }
+
+            $normalized[$key] = $value;
+        }
+
+        return $normalized;
     }
 
     /**

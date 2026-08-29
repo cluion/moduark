@@ -230,6 +230,8 @@ final class CleanApplicationRunner
                 'moduark:cache',
                 'moduark:check',
                 'moduark:clear',
+                'moduark:disable',
+                'moduark:enable',
                 'moduark:graph',
                 'moduark:inspect',
                 'moduark:list',
@@ -1204,6 +1206,27 @@ PHP;
     /** @param array<string, string> $environment */
     private function verifyRuntimeOperations(string $application, array $environment): void
     {
+        $activation = json_decode($this->artisan(
+            $application,
+            ['moduark:disable', 'User', '--dry-run', '--format=json'],
+            $environment,
+        ), true, 512, JSON_THROW_ON_ERROR);
+        $activationPlan = is_array($activation) ? ($activation['plan'] ?? null) : null;
+        $activationAfter = is_array($activationPlan) ? ($activationPlan['after'] ?? null) : null;
+
+        if (! is_array($activation)
+            || ($activation['status'] ?? null) !== 'planned'
+            || ($activation['driver'] ?? null) !== 'standalone'
+            || ($activation['dry_run'] ?? null) !== true
+            || ! is_array($activationPlan)
+            || ! is_array($activationAfter)
+            || in_array('User', $activationAfter, true)) {
+            throw new RuntimeException('Standalone activation dry-run did not return the expected plan.');
+        }
+
+        $activeModules = $this->artisan($application, ['moduark:list'], $environment);
+        $this->assertContains('User', $activeModules, 'Activation dry-run changed standalone Module state.');
+
         $resources = json_decode($this->artisan(
             $application,
             ['moduark:resources', 'User', '--format=json'],

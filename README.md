@@ -712,6 +712,8 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `moduark:baseline [--level=0..3] [--force] [--prune]` | Adopt current violations explicitly or safely remove stale baseline debt |
 | `moduark:cache` | Cache deterministic Module discovery and typed metadata |
 | `moduark:clear` | Remove cached Module metadata and incremental source analysis |
+| `moduark:enable {module} --dry-run [--format=text\|json]` | Preview an enable plan against the complete dependency and Capability graph without changing state |
+| `moduark:disable {module} --dry-run [--format=text\|json]` | Preview a disable plan against the complete dependency and Capability graph without changing state |
 | `moduark:list` | List discovered Modules in deterministic order |
 | `moduark:check [--level=0..3] [--format=text\|json\|github] [--show-suppressions]` | Run the effective architecture rules, audit suppressions, and optionally emit JSON or GitHub Actions annotations |
 | `moduark:graph [module] [--view=module\|capability\|combined] [--format=text\|mermaid]` | Render direct, Capability, or combined relationships and optionally select one neighborhood |
@@ -721,6 +723,12 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `moduark:migrate {module} [--format=text\|json]` | Run only the selected active Module's forward migrations |
 | `moduark:seed {module} [--format=text\|json]` | Run only seeders declared by the selected active Module |
 | `moduark:test {module} [arguments...] [--runner=auto\|phpunit\|pest] [--list] [--format=text\|json]` | Run or list the selected active Module's declared test paths |
+
+The activation commands are an unreleased `1.3` preview surface and currently
+require `--dry-run`. They report the authoritative `standalone` or `nwidart`
+driver and return a complete proposed plan, but never write a status file,
+invalidate caches, or hot-switch the running application. A valid plan is not
+evidence that activation state changed.
 
 `moduark:check` exit codes are part of the Stable `1.x` contract:
 

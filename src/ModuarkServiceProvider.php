@@ -46,8 +46,10 @@ use Cluion\Moduark\Console\ModuleBaselineCommand;
 use Cluion\Moduark\Console\ModuleCacheCommand;
 use Cluion\Moduark\Console\ModuleCheckCommand;
 use Cluion\Moduark\Console\ModuleClearCommand;
+use Cluion\Moduark\Console\ModuleDisableCommand;
 use Cluion\Moduark\Console\ModuleGraphCommand;
 use Cluion\Moduark\Console\ModuleDoctorCommand;
+use Cluion\Moduark\Console\ModuleEnableCommand;
 use Cluion\Moduark\Console\ModuleInspectCommand;
 use Cluion\Moduark\Console\ModuleListCommand;
 use Cluion\Moduark\Console\ModuleMakeCommand;
@@ -80,6 +82,9 @@ use Cluion\Moduark\Inspection\ModuleInspectionBuilder;
 use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
 use Cluion\Moduark\Lifecycle\ModuleOrderer;
 use Cluion\Moduark\Lifecycle\OrderedModules;
+use Cluion\Moduark\Lifecycle\Activation\ModuleActivationDriver;
+use Cluion\Moduark\Lifecycle\Activation\ModuleActivationPlanner;
+use Cluion\Moduark\Lifecycle\Activation\ModuleActivationState;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
 use Cluion\Moduark\Persistence\TableOwnershipIndex;
 use Cluion\Moduark\Registry\ModuleRegistry;
@@ -146,6 +151,15 @@ final class ModuarkServiceProvider extends ServiceProvider
             ? $this->nwidartActivationSet($repository, $configuration->path())
             : ModuleActivationSet::all();
         $this->app->instance(ModuleActivationSet::class, $activationSet);
+        $this->app->instance(
+            ModuleActivationState::class,
+            new ModuleActivationState(
+                $followsNwidart
+                    ? ModuleActivationDriver::Nwidart
+                    : ModuleActivationDriver::Standalone,
+                $activationSet,
+            ),
+        );
         $this->app->instance(ResourceOwnership::class, new ResourceOwnership($followsNwidart));
         $this->app->singleton(RulePresets::class);
         $this->app->singleton(RuleResolver::class);
@@ -226,6 +240,14 @@ final class ModuarkServiceProvider extends ServiceProvider
         $this->app->singleton(ModuleScaffoldPlanner::class);
         $this->app->singleton(ModuleOrderer::class);
         $this->app->singleton(CapabilityResolver::class);
+        $this->app->singleton(
+            ModuleActivationPlanner::class,
+            fn (): ModuleActivationPlanner => new ModuleActivationPlanner(
+                new ModuleMetadataCompiler,
+                $this->app->make(ModuleOrderer::class),
+                $this->app->make(CapabilityResolver::class),
+            ),
+        );
         $this->app->singleton(
             TableOwnershipIndex::class,
             fn (): TableOwnershipIndex => new TableOwnershipIndex(
@@ -317,7 +339,9 @@ final class ModuarkServiceProvider extends ServiceProvider
             ModuleCacheCommand::class,
             ModuleCheckCommand::class,
             ModuleClearCommand::class,
+            ModuleDisableCommand::class,
             ModuleDoctorCommand::class,
+            ModuleEnableCommand::class,
             ModuleGraphCommand::class,
             ModuleInspectCommand::class,
             ModuleListCommand::class,

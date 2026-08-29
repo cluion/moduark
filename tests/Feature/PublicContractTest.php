@@ -214,6 +214,8 @@ final class PublicContractTest extends TestCase
             'moduark:baseline' => [],
             'moduark:cache' => [],
             'moduark:clear' => [],
+            'moduark:enable' => ['module'],
+            'moduark:disable' => ['module'],
             'moduark:resources' => ['module'],
             'moduark:doctor' => ['module'],
             'moduark:migrate' => ['module'],
@@ -259,7 +261,7 @@ final class PublicContractTest extends TestCase
             );
         }
 
-        foreach (['moduark:migrate', 'moduark:seed', 'moduark:test'] as $command) {
+        foreach (['moduark:enable', 'moduark:disable', 'moduark:migrate', 'moduark:seed', 'moduark:test'] as $command) {
             self::assertTrue(
                 $this->documentedCommand($commands, $command)
                     ->getDefinition()
@@ -331,6 +333,14 @@ final class PublicContractTest extends TestCase
             'level' => null,
             'force' => false,
             'prune' => false,
+        ]);
+        $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:enable'), [
+            'dry-run' => false,
+            'format' => 'text',
+        ]);
+        $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:disable'), [
+            'dry-run' => false,
+            'format' => 'text',
         ]);
         $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:resources'), [
             'format' => 'text',
