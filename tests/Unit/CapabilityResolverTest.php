@@ -6,6 +6,7 @@ namespace Tests\Unit;
 
 use Cluion\Moduark\CapabilityRequirement;
 use Cluion\Moduark\Capabilities\CapabilityPlan;
+use Cluion\Moduark\Capabilities\CapabilityResolutionReason;
 use Cluion\Moduark\Capabilities\CapabilityResolver;
 use Cluion\Moduark\Exceptions\CapabilityResolutionFailed;
 use Cluion\Moduark\Metadata\ModuleDescriptor;
@@ -138,7 +139,20 @@ final class CapabilityResolverTest extends TestCase
             .ResolutionPortConsumerBetaModule::class.'].',
         );
 
-        (new CapabilityResolver)->resolve([$beta, $provider, $alpha]);
+        try {
+            (new CapabilityResolver)->resolve([$beta, $provider, $alpha]);
+        } catch (CapabilityResolutionFailed $exception) {
+            self::assertSame(CapabilityResolutionReason::DuplicatePort, $exception->reason());
+            self::assertSame([
+                'port' => OrderUserLookup::class,
+                'consumers' => [
+                    ResolutionPortConsumerAlphaModule::class,
+                    ResolutionPortConsumerBetaModule::class,
+                ],
+            ], $exception->context());
+
+            throw $exception;
+        }
     }
 
     public function test_plan_payload_round_trips_without_objects(): void
