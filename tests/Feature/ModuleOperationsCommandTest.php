@@ -39,14 +39,24 @@ final class ModuleOperationsCommandTest extends TestCase
         self::assertTrue(config('moduark.order.seeder_ran'));
     }
 
-    public function test_module_test_runs_phpunit_and_preserves_selected_paths(): void
+    public function test_module_test_runs_phpunit_from_the_composer_root_when_the_application_base_path_is_isolated(): void
     {
-        [$exitCode, $payload] = $this->jsonOutput('moduark:test', [
-            'module' => 'Order',
-            '--runner' => 'phpunit',
-        ]);
+        $application = $this->application();
+        $basePath = $application->basePath();
+        $application->setBasePath(__DIR__);
 
-        self::assertSame(ExitPolicy::SUCCESS, $exitCode);
+        try {
+            self::assertFileDoesNotExist($application->basePath('vendor/bin/phpunit'));
+
+            [$exitCode, $payload, $json] = $this->jsonOutput('moduark:test', [
+                'module' => 'Order',
+                '--runner' => 'phpunit',
+            ]);
+        } finally {
+            $application->setBasePath($basePath);
+        }
+
+        self::assertSame(ExitPolicy::SUCCESS, $exitCode, $json);
         self::assertSame('passed', $payload['status']);
         self::assertSame('phpunit', $payload['runner']);
         self::assertIsArray($payload['paths']);

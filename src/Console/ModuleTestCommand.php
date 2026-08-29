@@ -7,6 +7,7 @@ namespace Cluion\Moduark\Console;
 use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Resources\ModuleOperationResolver;
 use Cluion\Moduark\Resources\ResourceDescriptor;
+use Composer\InstalledVersions;
 use Illuminate\Console\Command;
 use InvalidArgumentException;
 use JsonException;
@@ -85,13 +86,14 @@ final class ModuleTestCommand extends Command
         }
 
         $forwarded = array_values(array_filter($arguments, 'is_string'));
-        $binary = $this->laravel->basePath('vendor/bin/'.$runner);
+        $projectPath = $this->projectPath();
+        $binary = $this->projectPath('vendor/bin/'.$runner);
 
         if (! is_file($binary)) {
             return $this->failure($format, "The [{$runner}] test runner is not installed.", $module, $paths);
         }
 
-        $process = new Process([$binary, ...$forwarded, ...$paths], $this->laravel->basePath());
+        $process = new Process([$binary, ...$forwarded, ...$paths], $projectPath);
         $process->setTimeout(null);
         $output = '';
         $process->run(static function (string $type, string $buffer) use (&$output): void {
@@ -116,10 +118,17 @@ final class ModuleTestCommand extends Command
     private function runner(string $requested): ?string
     {
         if ($requested === 'auto') {
-            return is_file($this->laravel->basePath('vendor/bin/pest')) ? 'pest' : 'phpunit';
+            return is_file($this->projectPath('vendor/bin/pest')) ? 'pest' : 'phpunit';
         }
 
         return in_array($requested, ['phpunit', 'pest'], true) ? $requested : null;
+    }
+
+    private function projectPath(string $path = ''): string
+    {
+        $root = rtrim(InstalledVersions::getRootPackage()['install_path'], '/\\');
+
+        return $path === '' ? $root : $root.DIRECTORY_SEPARATOR.ltrim($path, '/\\');
     }
 
     /** @param list<string> $paths */

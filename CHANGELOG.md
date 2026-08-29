@@ -34,6 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Resolved PHPUnit and Pest binaries from the Composer project root so
+  `moduark:test` remains usable when Laravel or Testbench uses an isolated
+  application base path.
 - Kept resource diagnostics, operations, providers, assets, registry, analysis,
   graphs, cache, and Capabilities aligned with nwidart's authoritative active
   Module set, including after config caching and with an observable
