@@ -14,6 +14,7 @@ use Cluion\Moduark\Graph\CombinedGraphBuilder;
 use Cluion\Moduark\Graph\ModuleGraphBuilder;
 use Cluion\Moduark\Lifecycle\OrderedModules;
 use Cluion\Moduark\Listing\ModuleListBuilder;
+use Cluion\Moduark\Package\PackageModuleCatalog;
 use Cluion\Moduark\Registry\ModuleRegistry;
 use Cluion\Moduark\Resources\ResourceInspector;
 use Cluion\Moduark\Resources\ResourceManifest;
@@ -202,6 +203,7 @@ final class ActiveModuleSetParityTest extends TestCase
             $cache = $this->application()->make(ModuleCacheStore::class)->load(
                 $this->application()->make(ModulesConfig::class)->path(),
                 $activation->fingerprint(),
+                $this->application()->make(PackageModuleCatalog::class)->fingerprint(),
             );
 
             self::assertNotNull($cache);

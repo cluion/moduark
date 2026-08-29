@@ -38,6 +38,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added schema-versioned `extra.moduark` package Module descriptors and a
   deterministic Composer installed-package catalog with source validation,
   stable fingerprints, and fail-closed identity collisions.
+- Added one canonical active Module registry across application or nwidart and
+  Composer package Modules, including analysis, graphs, cache, lifecycle,
+  providers, Capabilities, and resources.
+
+### Changed
+
+- Extended the rebuildable Module cache to schema version 6 and invalidate it
+  when the installed package Module catalog fingerprint changes.
+- Made Composer-installed package Modules immutable-active until Composer
+  removes them, while retaining package Modules in local activation dependency
+  and Capability planning.
+- Made descriptor-aware portable package providers delegate to the canonical
+  runtime so provider and resource registration remain single-owner regardless
+  of Laravel provider order.
 
 ## [1.2.0] - 2026-08-29
 

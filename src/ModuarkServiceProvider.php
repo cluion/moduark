@@ -104,7 +104,9 @@ use Cluion\Moduark\Lifecycle\Activation\ModuleActivationState;
 use Cluion\Moduark\Lifecycle\Activation\NativeAtomicFileWriter;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
 use Cluion\Moduark\Package\ComposerPackageModuleDiscoverer;
+use Cluion\Moduark\Package\PackageModuleCatalog;
 use Cluion\Moduark\Persistence\TableOwnershipIndex;
+use Cluion\Moduark\Registry\CanonicalModuleRegistryBuilder;
 use Cluion\Moduark\Registry\ModuleRegistry;
 use Cluion\Moduark\Resources\ModuleResourceDiscoverer;
 use Cluion\Moduark\Resources\ModuleResourceServiceProvider;
@@ -182,9 +184,20 @@ final class ModuarkServiceProvider extends ServiceProvider
             $this->app->make(RuleResolver::class)->resolve($configuration),
         );
         $this->app->singleton(ModuleDiscoverer::class);
-        $this->app->singleton(
-            ComposerPackageModuleDiscoverer::class,
-            fn (): ComposerPackageModuleDiscoverer => ComposerPackageModuleDiscoverer::fromComposerRuntime(),
+        if (! $this->app->bound(ComposerPackageModuleDiscoverer::class)) {
+            $this->app->singleton(
+                ComposerPackageModuleDiscoverer::class,
+                fn (): ComposerPackageModuleDiscoverer => ComposerPackageModuleDiscoverer::fromComposerRuntime(),
+            );
+        }
+        $packageModules = $this->app->make(ComposerPackageModuleDiscoverer::class)->discover();
+        $this->app->instance(PackageModuleCatalog::class, $packageModules);
+        $this->app->instance(
+            CanonicalModuleRegistryBuilder::class,
+            new CanonicalModuleRegistryBuilder(
+                $this->app->make(ModuleDiscoverer::class),
+                $packageModules,
+            ),
         );
         $resourcePlugins = new ResourcePluginRegistry;
         BuiltInResourcePlugins::register($resourcePlugins);
@@ -197,12 +210,13 @@ final class ModuarkServiceProvider extends ServiceProvider
         $manifest = $this->app->make(ModuleCacheStore::class)->load(
             $configuration->path(),
             $activationSet->fingerprint(),
+            $packageModules->fingerprint(),
         );
 
         if ($manifest === null) {
             $this->app->singleton(
                 ModuleRegistry::class,
-                fn (): ModuleRegistry => $this->app->make(ModuleDiscoverer::class)
+                fn (): ModuleRegistry => $this->app->make(CanonicalModuleRegistryBuilder::class)
                     ->discover(
                         $this->app->make(ModulesConfig::class)->path(),
                         $this->app->make(ModuleActivationSet::class),

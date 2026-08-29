@@ -14,7 +14,7 @@ use InvalidArgumentException;
 
 final readonly class ModuleCacheManifest
 {
-    public const SCHEMA_VERSION = 5;
+    public const SCHEMA_VERSION = 6;
 
     private ResourceManifest $resources;
 
@@ -24,6 +24,7 @@ final readonly class ModuleCacheManifest
     public function __construct(
         private string $modulesPath,
         private string $activationFingerprint,
+        private string $packageFingerprint,
         private ModuleRegistry $registry,
         private array $descriptors,
         ?ResourceManifest $resources = null,
@@ -34,6 +35,10 @@ final readonly class ModuleCacheManifest
 
         if ($this->activationFingerprint === '') {
             throw new InvalidArgumentException('The cached Module activation fingerprint must be a non-empty string.');
+        }
+
+        if ($this->packageFingerprint === '') {
+            throw new InvalidArgumentException('The cached package Module fingerprint must be a non-empty string.');
         }
 
         $registryClasses = $this->registry->moduleClasses();
@@ -77,12 +82,14 @@ final readonly class ModuleCacheManifest
 
         $modulesPath = $payload['modules_path'] ?? null;
         $activationFingerprint = $payload['activation_fingerprint'] ?? null;
+        $packageFingerprint = $payload['package_fingerprint'] ?? null;
         $registryRows = $payload['registry'] ?? null;
         $descriptorRows = $payload['descriptors'] ?? null;
         $resourcePayload = $payload['resources'] ?? null;
 
         if (! is_string($modulesPath) || $modulesPath === ''
             || ! is_string($activationFingerprint) || $activationFingerprint === ''
+            || ! is_string($packageFingerprint) || $packageFingerprint === ''
             || ! is_array($registryRows)
             || ! is_array($descriptorRows)
             || ! is_array($resourcePayload)) {
@@ -143,6 +150,7 @@ final readonly class ModuleCacheManifest
         return new self(
             $modulesPath,
             $activationFingerprint,
+            $packageFingerprint,
             new ModuleRegistry($modules),
             $descriptors,
             ResourceManifest::fromArray($resourcePayload),
@@ -157,6 +165,11 @@ final readonly class ModuleCacheManifest
     public function activationFingerprint(): string
     {
         return $this->activationFingerprint;
+    }
+
+    public function packageFingerprint(): string
+    {
+        return $this->packageFingerprint;
     }
 
     public function registry(): ModuleRegistry
@@ -182,6 +195,7 @@ final readonly class ModuleCacheManifest
      *     schema_version: int,
      *     modules_path: string,
      *     activation_fingerprint: string,
+     *     package_fingerprint: string,
      *     registry: list<array{name: string, class: class-string<Module>, path: string, namespace: string}>,
      *     descriptors: list<array<string, mixed>>,
      *     resources: array<string, mixed>
@@ -193,6 +207,7 @@ final readonly class ModuleCacheManifest
             'schema_version' => self::SCHEMA_VERSION,
             'modules_path' => $this->modulesPath,
             'activation_fingerprint' => $this->activationFingerprint,
+            'package_fingerprint' => $this->packageFingerprint,
             'registry' => $this->registry->toArray(),
             'descriptors' => array_map(
                 static fn (ModuleDescriptor $descriptor): array => $descriptor->toArray(),

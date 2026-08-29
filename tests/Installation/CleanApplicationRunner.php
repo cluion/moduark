@@ -1481,6 +1481,13 @@ PHP;
         string $exportTarget,
         array $environment,
     ): void {
+        $this->artisan($application, ['moduark:clear'], $environment);
+        $this->deleteDirectory($application.'/app/Modules/User');
+
+        if (is_dir($application.'/app/Modules/User')) {
+            throw new RuntimeException('The application User Module was not removed before package adoption.');
+        }
+
         $repository = json_encode([
             'type' => 'path',
             'url' => $application.'/'.$exportTarget,
@@ -1522,7 +1529,13 @@ PHP;
 declare(strict_types=1);
 
 use Acme\UserModule\UserModule;
+use Acme\UserModule\UserPackageServiceProvider;
+use Cluion\Moduark\Analysis\Source\SourceIndexBuilder;
+use Cluion\Moduark\Graph\CombinedGraphBuilder;
+use Cluion\Moduark\Lifecycle\OrderedModules;
 use Cluion\Moduark\Package\ComposerPackageModuleDiscoverer;
+use Cluion\Moduark\Registry\ModuleRegistry;
+use Cluion\Moduark\Resources\ResourceManifest;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\View\Factory;
@@ -1534,12 +1547,38 @@ $application->make(Kernel::class)->bootstrap();
 $discoverer = $application->make(ComposerPackageModuleDiscoverer::class);
 $catalog = $discoverer->discover();
 $catalogPayload = $catalog->toArray();
+$registry = $application->make(ModuleRegistry::class);
+$user = $registry->find('User');
+$ordered = array_map(
+    static fn ($descriptor): string => $descriptor->moduleClass(),
+    $application->make(OrderedModules::class)->all(),
+);
+$owners = array_values(array_unique(array_map(
+    static fn ($symbol): string => $symbol->owner(),
+    $application->make(SourceIndexBuilder::class)->build()->symbols(),
+)));
+$routeCount = 0;
 
-if (! $application->bound(UserModule::class)
-    || ! $application->make(UserModule::class) instanceof UserModule
+foreach ($application->make(Router::class)->getRoutes() as $route) {
+    if ($route->getName() === 'moduark.export.user') {
+        $routeCount++;
+    }
+}
+
+if ($user?->moduleClass() !== UserModule::class
+    || ! $application->providerIsLoaded(UserPackageServiceProvider::class)
     || $application->make(Repository::class)->get('moduark_export_user.portable') !== true
     || $application->make(Router::class)->getRoutes()->getByName('moduark.export.user') === null
+    || $routeCount !== 1
     || ! $application->make(Factory::class)->exists('user::export-probe')
+    || count(array_keys($ordered, UserModule::class, true)) !== 1
+    || ! in_array(UserModule::class, $owners, true)
+    || ! in_array(UserModule::class, $application->make(ResourceManifest::class)->moduleClasses(), true)
+    || $application->make(CombinedGraphBuilder::class)
+        ->build()
+        ->moduleGraph()
+        ->node(UserModule::class)
+        ->moduleClass() !== UserModule::class
     || $catalogPayload !== [
         'schema_version' => 1,
         'modules' => [[
@@ -1564,6 +1603,8 @@ declare(strict_types=1);
 
 use Acme\UserModule\UserModule;
 use Acme\UserModule\UserPackageServiceProvider;
+use Cluion\Moduark\ModuarkServiceProvider;
+use Cluion\Moduark\Registry\ModuleRegistry;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Routing\Router;
@@ -1571,11 +1612,14 @@ use Orchestra\Testbench\Foundation\Application;
 
 require __DIR__.'/vendor/autoload.php';
 $application = Application::create(
-    options: ['extra' => ['providers' => [UserPackageServiceProvider::class]]],
+    options: ['extra' => ['providers' => [
+        UserPackageServiceProvider::class,
+        ModuarkServiceProvider::class,
+    ]]],
 );
+$user = $application->make(ModuleRegistry::class)->find('User');
 
-if (! $application->bound(UserModule::class)
-    || ! $application->make(UserModule::class) instanceof UserModule
+if ($user?->moduleClass() !== UserModule::class
     || $application->make(Repository::class)->get('moduark_export_user.portable') !== true
     || $application->make(Router::class)->getRoutes()->getByName('moduark.export.user') === null
     || ! $application->make(Factory::class)->exists('user::export-probe')) {

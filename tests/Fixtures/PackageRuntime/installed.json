@@ -1,0 +1,26 @@
+{
+    "packages": [
+        {
+            "name": "acme/package-inventory",
+            "version": "dev-main",
+            "install-path": "PackageInventory",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Tests\\Fixtures\\PackageRuntime\\PackageInventory\\PackageInventoryPackageServiceProvider"
+                    ]
+                },
+                "moduark": {
+                    "schema_version": 1,
+                    "modules": [
+                        {
+                            "name": "PackageInventory",
+                            "class": "Tests\\Fixtures\\PackageRuntime\\PackageInventory\\PackageInventoryModule",
+                            "path": "src/PackageInventoryModule.php"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

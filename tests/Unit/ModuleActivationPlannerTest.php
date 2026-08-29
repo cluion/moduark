@@ -13,6 +13,7 @@ use Cluion\Moduark\Lifecycle\Activation\ModuleActivationIntent;
 use Cluion\Moduark\Lifecycle\Activation\ModuleActivationPlanner;
 use Cluion\Moduark\Lifecycle\ModuleOrderer;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
+use Cluion\Moduark\Module;
 use Cluion\Moduark\Registry\ModuleRegistry;
 use PHPUnit\Framework\TestCase;
 use Tests\Fixtures\Lifecycle\Activation\Capabilities\Payments;
@@ -95,6 +96,27 @@ final class ModuleActivationPlannerTest extends TestCase
         self::assertSame('Foundation', $plan->module());
         self::assertSame($plan->before(), $plan->after());
         self::assertSame($current->fingerprint(), $plan->activationFingerprint());
+    }
+
+    public function test_it_validates_always_active_package_modules_without_persisting_them(): void
+    {
+        $current = $this->baseline();
+        $plan = $this->planner->plan(
+            $this->inventory,
+            $current,
+            'Reports',
+            ModuleActivationIntent::Disable,
+            [AlwaysActivePackageModule::class],
+        );
+
+        self::assertTrue($plan->executable());
+        self::assertContains(AlwaysActivePackageModule::class, $plan->orderedModules());
+        self::assertNotContains('AlwaysActivePackage', $plan->before());
+        self::assertNotContains('AlwaysActivePackage', $plan->after());
+        self::assertSame(
+            ModuleActivationSet::only($plan->after())->fingerprint(),
+            $plan->activationFingerprint(),
+        );
     }
 
     public function test_unknown_module_is_an_input_error_instead_of_a_no_op(): void
@@ -273,4 +295,8 @@ final class ModuleActivationPlannerTest extends TestCase
     {
         return dirname(__DIR__).'/Fixtures/Lifecycle/Activation/Modules';
     }
+}
+
+final class AlwaysActivePackageModule extends Module
+{
 }

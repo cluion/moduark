@@ -159,8 +159,13 @@ final class ModuleExportCommandTest extends TestCase
         self::assertContains('MOD-EXPORT-DEPENDENCY-001', array_column($payload['blockers'], 'code'));
         self::assertSame(1, $payload['summary']['manual_dependencies']);
         self::assertNotSame([], $payload['files']);
-        self::assertIsArray($payload['dependencies'][2]);
-        self::assertSame('manual', $payload['dependencies'][2]['status']);
+        $moduleDependencies = array_values(array_filter(
+            $payload['dependencies'],
+            static fn (mixed $dependency): bool => is_array($dependency)
+                && ($dependency['kind'] ?? null) === 'module',
+        ));
+        self::assertCount(1, $moduleDependencies);
+        self::assertSame('manual', $moduleDependencies[0]['status']);
     }
 
     /** @throws JsonException */

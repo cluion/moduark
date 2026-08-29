@@ -26,6 +26,8 @@ use RuntimeException;
 
 abstract class PortableModuleServiceProvider extends ServiceProvider
 {
+    private bool $delegatedToCanonicalRuntime = false;
+
     private ?ResourceManifest $portableManifest = null;
 
     private ?ResourcePluginRegistry $portablePlugins = null;
@@ -38,6 +40,12 @@ abstract class PortableModuleServiceProvider extends ServiceProvider
 
     public function register(): void
     {
+        if ($this->canonicalDescriptorDeclared()) {
+            $this->delegatedToCanonicalRuntime = true;
+
+            return;
+        }
+
         [$module, $compiler] = $this->portableModule();
         $application = $this->app->make(Application::class);
         $ordered = (new ModuleLifecycleRegistrar(
@@ -63,6 +71,10 @@ abstract class PortableModuleServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if ($this->delegatedToCanonicalRuntime) {
+            return;
+        }
+
         $this->handle(ResourcePhase::Boot, $this->app->make(Application::class));
     }
 
@@ -112,6 +124,21 @@ abstract class PortableModuleServiceProvider extends ServiceProvider
         BuiltInResourcePlugins::register($plugins);
 
         return $plugins;
+    }
+
+    private function canonicalDescriptorDeclared(): bool
+    {
+        $moduleClass = $this->moduleClass();
+
+        if (! is_a($moduleClass, Module::class, true)) {
+            return false;
+        }
+
+        $discoverer = $this->app->bound(ComposerPackageModuleDiscoverer::class)
+            ? $this->app->make(ComposerPackageModuleDiscoverer::class)
+            : ComposerPackageModuleDiscoverer::fromComposerRuntime();
+
+        return $discoverer->discover()->containsClass($moduleClass);
     }
 
     private function handle(ResourcePhase $phase, Application $application): void

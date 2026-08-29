@@ -8,12 +8,14 @@ use Cluion\Moduark\Architecture\ExitPolicy;
 use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Discovery\ModuleActivationSet;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
+use Cluion\Moduark\Exceptions\ModuleActivationFailed;
 use Cluion\Moduark\Lifecycle\Activation\ModuleActivationBlocker;
 use Cluion\Moduark\Lifecycle\Activation\ModuleActivationIntent;
 use Cluion\Moduark\Lifecycle\Activation\ModuleActivationMutator;
 use Cluion\Moduark\Lifecycle\Activation\ModuleActivationPlan;
 use Cluion\Moduark\Lifecycle\Activation\ModuleActivationPlanner;
 use Cluion\Moduark\Lifecycle\Activation\ModuleActivationState;
+use Cluion\Moduark\Package\PackageModuleCatalog;
 use Illuminate\Console\Command;
 use InvalidArgumentException;
 use JsonException;
@@ -27,6 +29,7 @@ abstract class ModuleActivationCommand extends Command
         private readonly ModulesConfig $configuration,
         private readonly ModuleActivationState $state,
         private readonly ModuleActivationMutator $mutator,
+        private readonly PackageModuleCatalog $packageModules,
     ) {
         parent::__construct();
     }
@@ -48,6 +51,12 @@ abstract class ModuleActivationCommand extends Command
         }
 
         try {
+            $packageModule = $this->packageModules->find($module);
+
+            if ($packageModule !== null) {
+                throw ModuleActivationFailed::installedPackage($packageModule->name());
+            }
+
             $inventory = $this->discoverer->discover(
                 $this->configuration->path(),
                 ModuleActivationSet::all(),
@@ -57,6 +66,7 @@ abstract class ModuleActivationCommand extends Command
                 $this->state->activationSet(),
                 $module,
                 $this->intent(),
+                $this->packageModules->moduleClasses(),
             );
         } catch (InvalidArgumentException|RuntimeException $exception) {
             return $this->failOutput($format, $exception->getMessage());

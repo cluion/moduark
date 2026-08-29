@@ -13,9 +13,10 @@ use Cluion\Moduark\Extraction\ExtractabilityInspector;
 use Cluion\Moduark\Extraction\PortableRuntimeGate;
 use Cluion\Moduark\Metadata\ModuleDescriptor;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
+use Cluion\Moduark\Registry\ModuleRegistry;
 use Cluion\Moduark\Resources\ResourceDescriptor;
 use Cluion\Moduark\Resources\ResourceManifest;
-use Cluion\Moduark\Registry\ModuleRegistry;
+use Composer\Autoload\ClassLoader;
 use Illuminate\Contracts\Console\Kernel;
 use JsonException;
 use ReflectionClass;
@@ -131,44 +132,53 @@ final class ModuleExtractabilityCommandTest extends TestCase
 
     public function test_nwidart_resources_are_owned_by_the_full_module_root(): void
     {
-        $moduleFile = (new ReflectionClass(NwidartUserModule::class))->getFileName();
-        self::assertIsString($moduleFile);
-        $modulePath = dirname($moduleFile);
-        $moduleRoot = dirname($modulePath);
-        $entry = $modulePath.DIRECTORY_SEPARATOR.'UserModule.php';
-        $resource = $moduleRoot.DIRECTORY_SEPARATOR.'routes'.DIRECTORY_SEPARATOR.'web.php';
-        $configured = $this->application()->make(ModulesConfig::class)->all();
-        $configuration = ModulesConfig::from($configured, [
-            'path' => dirname($moduleRoot),
-        ]);
-        $module = new DiscoveredModule(
-            'User',
-            NwidartUserModule::class,
-            $entry,
-            'Tests\\Fixtures\\Nwidart\\Modules\\User',
-        );
-        $inspector = new ExtractabilityInspector(
-            new ModuleRegistry([$module]),
-            new ModuleMetadataCompiler,
-            new ResourceManifest(
-                [NwidartUserModule::class],
-                [new ResourceDescriptor(NwidartUserModule::class, 'routes', 'web.php', $resource)],
-            ),
-            $configuration,
-            base_path('vendor'),
-            $this->application()->make(ArchitectureExtractabilityGate::class),
-            $this->application()->make(PortableRuntimeGate::class),
-        );
+        $fixtureRoot = dirname(__DIR__).'/Fixtures/Nwidart/Modules/User';
+        $loader = new ClassLoader;
+        $loader->addPsr4('Tests\\Fixtures\\Nwidart\\Modules\\User\\', $fixtureRoot.'/app');
+        $loader->register(true);
 
-        $report = $inspector->inspect('User')->toArray();
+        try {
+            $moduleFile = (new ReflectionClass(NwidartUserModule::class))->getFileName();
+            self::assertIsString($moduleFile);
+            $modulePath = dirname($moduleFile);
+            $moduleRoot = dirname($modulePath);
+            $entry = $modulePath.DIRECTORY_SEPARATOR.'UserModule.php';
+            $resource = $moduleRoot.DIRECTORY_SEPARATOR.'routes'.DIRECTORY_SEPARATOR.'web.php';
+            $configured = $this->application()->make(ModulesConfig::class)->all();
+            $configuration = ModulesConfig::from($configured, [
+                'path' => dirname($moduleRoot),
+            ]);
+            $module = new DiscoveredModule(
+                'User',
+                NwidartUserModule::class,
+                $entry,
+                'Tests\\Fixtures\\Nwidart\\Modules\\User',
+            );
+            $inspector = new ExtractabilityInspector(
+                new ModuleRegistry([$module]),
+                new ModuleMetadataCompiler,
+                new ResourceManifest(
+                    [NwidartUserModule::class],
+                    [new ResourceDescriptor(NwidartUserModule::class, 'routes', 'web.php', $resource)],
+                ),
+                $configuration,
+                base_path('vendor'),
+                $this->application()->make(ArchitectureExtractabilityGate::class),
+                $this->application()->make(PortableRuntimeGate::class),
+            );
 
-        self::assertSame('ready_for_export_dry_run', $report['status']);
-        self::assertSame([], $report['blockers']);
-        self::assertSame(
-            ExtractabilityCheck::PASSED,
-            $report['checks'][3]['status'],
-        );
-        self::assertSame(['routes:web.php='.$resource], $report['checks'][3]['evidence']);
+            $report = $inspector->inspect('User')->toArray();
+
+            self::assertSame('ready_for_export_dry_run', $report['status']);
+            self::assertSame([], $report['blockers']);
+            self::assertSame(
+                ExtractabilityCheck::PASSED,
+                $report['checks'][3]['status'],
+            );
+            self::assertSame(['routes:web.php='.$resource], $report['checks'][3]['evidence']);
+        } finally {
+            $loader->unregister();
+        }
     }
 
     /**

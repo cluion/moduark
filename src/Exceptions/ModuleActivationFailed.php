@@ -12,4 +12,11 @@ final class ModuleActivationFailed extends InvalidArgumentException
     {
         return new self("Unknown Module [{$module}].");
     }
+
+    public static function installedPackage(string $module): self
+    {
+        return new self(
+            "Package Module [{$module}] is always active while installed; use Composer to install or remove it.",
+        );
+    }
 }

@@ -959,19 +959,27 @@ open-source license; replace it with the real package license before publication
 It auto-discovers a portable package ServiceProvider that registers the
 exported Module providers, Capabilities, config, routes, views, translations,
 migrations, commands, policies, listeners, components, and public assets without
-requiring an application Module directory. The exported package is not yet added
-to the host application's canonical `moduark:list`, graph, cache, or activation
-registry. See [ADR-0064](docs/adr/0064-export-plan-contract.md) and
-[ADR-0065](docs/adr/0065-export-materialization.md).
+requiring an application Module directory. When the package contains a Moduark
+descriptor, its Module joins the host application's canonical active registry.
+See [ADR-0064](docs/adr/0064-export-plan-contract.md),
+[ADR-0065](docs/adr/0065-export-materialization.md), and
+[ADR-0067](docs/adr/0067-canonical-package-module-registry.md).
 
 Exported Composer metadata also contains schema-versioned `extra.moduark`
 descriptors with the package-relative Module class source. Moduark reads those
 descriptors directly from Composer's installed-package manifest, validates the
 autoloaded class against the installed source, sorts a deterministic catalog,
 and rejects duplicate package Module names or classes. The catalog and its
-stable fingerprint are the LC1-F-A discovery contract; canonical registry,
-activation, cache, and lifecycle adoption remain deferred to LC1-F-B. See
-[ADR-0066](docs/adr/0066-composer-package-module-descriptors.md).
+stable fingerprint are the LC1-F-A discovery contract. The host merges its
+application or nwidart active Modules with the installed package catalog before
+registry, analysis, graph, cache, lifecycle, Capability, and resource work.
+Package Modules are immutable-active while installed: `moduark:enable` and
+`moduark:disable` reject them, and Composer install or remove changes the set.
+Cache schema version `6` includes the package fingerprint, and descriptor-aware
+portable providers delegate to this canonical runtime to avoid duplicate
+provider or resource registration. See
+[ADR-0066](docs/adr/0066-composer-package-module-descriptors.md) and
+[ADR-0067](docs/adr/0067-canonical-package-module-registry.md).
 
 Application bootstrap happens before Artisan invokes a command. A configuration,
 discovery, metadata, or runtime Capability-resolution exception raised during

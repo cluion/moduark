@@ -35,15 +35,13 @@ service-provider registration.
 
 ## Boundaries
 
-This slice establishes inventory only. It does not merge package Modules into
-`ModuleRegistry`, change application or nwidart activation state, invalidate the
-Module cache with the package fingerprint, or replace the portable provider's
-LC1-E runtime path. Those changes require one coordinated canonical-registry
-slice so no package provider or resource is registered twice.
+This decision establishes inventory only. The coordinated canonical-registry
+adoption, package-aware cache validity, immutable installed-package activation,
+and portable-provider delegation are specified by ADR-0067.
 
 ## Consequences
 
 Package Module discovery no longer depends on Laravel provider ordering and can
-be reproduced before lifecycle registration. A later adapter can combine the
-catalog with application discovery and include its fingerprint in cache
-validity while reusing the existing duplicate-identity and lifecycle contracts.
+be reproduced before lifecycle registration. ADR-0067 consumes the catalog and
+its fingerprint while reusing the existing duplicate-identity and lifecycle
+contracts.

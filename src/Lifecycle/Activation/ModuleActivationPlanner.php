@@ -29,12 +29,15 @@ final readonly class ModuleActivationPlanner
     /**
      * The inventory must contain every discovered Module, including disabled
      * Modules. Runtime active-only registries are not a valid planning input.
+     *
+     * @param list<class-string<\Cluion\Moduark\Module>> $alwaysActiveModuleClasses
      */
     public function plan(
         ModuleRegistry $inventory,
         ModuleActivationSet $current,
         string $module,
         ModuleActivationIntent $intent,
+        array $alwaysActiveModuleClasses = [],
     ): ModuleActivationPlan {
         $target = $inventory->find($module);
 
@@ -49,7 +52,10 @@ final readonly class ModuleActivationPlanner
         $fingerprint = $noOp ? $current->fingerprint() : $proposed->fingerprint();
 
         try {
-            $descriptors = $this->compiler->compileAll($this->activeClasses($inventory, $proposed));
+            $descriptors = $this->compiler->compileAll(array_values(array_unique([
+                ...$this->activeClasses($inventory, $proposed),
+                ...$alwaysActiveModuleClasses,
+            ])));
         } catch (InvalidModuleMetadata $exception) {
             return $this->blockedPlan(
                 $target->name(),

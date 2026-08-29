@@ -25,6 +25,7 @@ final readonly class ModuleCacheStore
     public function load(
         string $expectedModulesPath,
         string $expectedActivationFingerprint,
+        string $expectedPackageFingerprint,
     ): ?ModuleCacheManifest
     {
         if (! is_file($this->path)) {
@@ -53,6 +54,7 @@ final readonly class ModuleCacheStore
 
         return $manifest->modulesPath() === $expectedModulesPath
             && $manifest->activationFingerprint() === $expectedActivationFingerprint
+            && $manifest->packageFingerprint() === $expectedPackageFingerprint
                 ? $manifest
                 : null;
     }

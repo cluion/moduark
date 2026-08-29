@@ -6,15 +6,15 @@ namespace Cluion\Moduark\Cache;
 
 use Cluion\Moduark\Capabilities\CapabilityResolver;
 use Cluion\Moduark\Discovery\ModuleActivationSet;
-use Cluion\Moduark\Discovery\ModuleDiscoverer;
 use Cluion\Moduark\Lifecycle\ModuleOrderer;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
+use Cluion\Moduark\Registry\CanonicalModuleRegistryBuilder;
 use Cluion\Moduark\Resources\ResourceManifestBuilder;
 
 final readonly class ModuleCacheBuilder
 {
     public function __construct(
-        private ModuleDiscoverer $discoverer,
+        private CanonicalModuleRegistryBuilder $registry,
         private ModuleOrderer $orderer,
         private CapabilityResolver $capabilities,
         private ModuleActivationSet $activationSet,
@@ -24,7 +24,7 @@ final readonly class ModuleCacheBuilder
 
     public function build(string $modulesPath): ModuleCacheManifest
     {
-        $registry = $this->discoverer->discover($modulesPath, $this->activationSet);
+        $registry = $this->registry->discover($modulesPath, $this->activationSet);
         $descriptors = (new ModuleMetadataCompiler)->compileAll($registry->moduleClasses());
         $ordered = $this->orderer->order($descriptors);
 
@@ -33,6 +33,7 @@ final readonly class ModuleCacheBuilder
         return new ModuleCacheManifest(
             $modulesPath,
             $this->activationSet->fingerprint(),
+            $this->registry->packageFingerprint(),
             $registry,
             $ordered,
             $this->resources->build($registry, $ordered),

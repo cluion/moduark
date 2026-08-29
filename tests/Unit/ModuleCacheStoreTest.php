@@ -52,7 +52,7 @@ final class ModuleCacheStoreTest extends TestCase
         self::assertSame($first, $second);
         self::assertStringStartsWith("<?php\n\ndeclare(strict_types=1);\n\nreturn ", $first);
 
-        $loaded = $store->load('/workspace/app/Modules', $this->fingerprint());
+        $loaded = $store->load('/workspace/app/Modules', $this->fingerprint(), $this->packageFingerprint());
 
         self::assertNotNull($loaded);
         self::assertSame($manifest->toArray(), $loaded->toArray());
@@ -77,7 +77,11 @@ final class ModuleCacheStoreTest extends TestCase
         $store = new ModuleCacheStore($this->path);
         $store->write($this->manifest());
 
-        self::assertNull($store->load('/different/app/Modules', $this->fingerprint()));
+        self::assertNull($store->load(
+            '/different/app/Modules',
+            $this->fingerprint(),
+            $this->packageFingerprint(),
+        ));
     }
 
     public function test_manifest_for_another_activation_set_is_not_used(): void
@@ -88,6 +92,19 @@ final class ModuleCacheStoreTest extends TestCase
         self::assertNull($store->load(
             '/workspace/app/Modules',
             ModuleActivationSet::only(['CacheAlpha'])->fingerprint(),
+            $this->packageFingerprint(),
+        ));
+    }
+
+    public function test_manifest_for_another_package_set_is_not_used(): void
+    {
+        $store = new ModuleCacheStore($this->path);
+        $store->write($this->manifest());
+
+        self::assertNull($store->load(
+            '/workspace/app/Modules',
+            $this->fingerprint(),
+            hash('sha256', 'different-packages'),
         ));
     }
 
@@ -99,6 +116,7 @@ final class ModuleCacheStoreTest extends TestCase
         self::assertNull((new ModuleCacheStore($this->path))->load(
             '/workspace/app/Modules',
             $this->fingerprint(),
+            $this->packageFingerprint(),
         ));
     }
 
@@ -110,6 +128,7 @@ final class ModuleCacheStoreTest extends TestCase
         self::assertNull((new ModuleCacheStore($this->path))->load(
             '/workspace/app/Modules',
             $this->fingerprint(),
+            $this->packageFingerprint(),
         ));
     }
 
@@ -124,7 +143,11 @@ final class ModuleCacheStoreTest extends TestCase
         $this->expectException(ModuleCacheFailed::class);
         $this->expectExceptionMessage("Module cache [{$this->path}] is invalid.");
 
-        (new ModuleCacheStore($this->path))->load('/workspace/app/Modules', $this->fingerprint());
+        (new ModuleCacheStore($this->path))->load(
+            '/workspace/app/Modules',
+            $this->fingerprint(),
+            $this->packageFingerprint(),
+        );
     }
 
     public function test_current_cache_schema_revalidates_canonical_table_metadata(): void
@@ -140,7 +163,11 @@ final class ModuleCacheStoreTest extends TestCase
         $this->expectException(ModuleCacheFailed::class);
         $this->expectExceptionMessage("Module cache [{$this->path}] is invalid.");
 
-        (new ModuleCacheStore($this->path))->load('/workspace/app/Modules', $this->fingerprint());
+        (new ModuleCacheStore($this->path))->load(
+            '/workspace/app/Modules',
+            $this->fingerprint(),
+            $this->packageFingerprint(),
+        );
     }
 
     public function test_current_cache_schema_rejects_malformed_export_metadata(): void
@@ -156,7 +183,11 @@ final class ModuleCacheStoreTest extends TestCase
         $this->expectException(ModuleCacheFailed::class);
         $this->expectExceptionMessage("Module cache [{$this->path}] is invalid.");
 
-        (new ModuleCacheStore($this->path))->load('/workspace/app/Modules', $this->fingerprint());
+        (new ModuleCacheStore($this->path))->load(
+            '/workspace/app/Modules',
+            $this->fingerprint(),
+            $this->packageFingerprint(),
+        );
     }
 
     public function test_clear_is_idempotent(): void
@@ -198,6 +229,7 @@ final class ModuleCacheStoreTest extends TestCase
         return new ModuleCacheManifest(
             '/workspace/app/Modules',
             $this->fingerprint(),
+            $this->packageFingerprint(),
             $registry,
             (new ModuleMetadataCompiler)->compileAll($registry->moduleClasses()),
         );
@@ -206,6 +238,11 @@ final class ModuleCacheStoreTest extends TestCase
     private function fingerprint(): string
     {
         return ModuleActivationSet::only(['CacheAlpha', 'CacheBeta'])->fingerprint();
+    }
+
+    private function packageFingerprint(): string
+    {
+        return hash('sha256', 'packages');
     }
 }
 

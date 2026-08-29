@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use Cluion\Moduark\Analysis\Source\SourceAnalysisCacheStore;
 use Cluion\Moduark\Cache\ModuleCacheManifest;
 use Cluion\Moduark\Cache\ModuleCacheStore;
+use Cluion\Moduark\Package\PackageModuleCatalog;
 use Cluion\Moduark\Registry\ModuleRegistry;
 use Cluion\Moduark\Resources\ResourceManifest;
 use Tests\TestCase;
@@ -53,6 +54,10 @@ final class ModuleCacheCommandTest extends TestCase
         self::assertIsArray($payload);
         self::assertSame(ModuleCacheManifest::SCHEMA_VERSION, $payload['schema_version']);
         self::assertSame('all:v1', $payload['activation_fingerprint']);
+        self::assertSame(
+            $this->application()->make(PackageModuleCatalog::class)->fingerprint(),
+            $payload['package_fingerprint'],
+        );
         self::assertIsArray($payload['registry']);
         self::assertCount(3, $payload['registry']);
         self::assertIsArray($payload['descriptors']);

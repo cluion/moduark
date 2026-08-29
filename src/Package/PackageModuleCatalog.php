@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Cluion\Moduark\Package;
 
 use Cluion\Moduark\Exceptions\PackageModuleDiscoveryFailed;
+use Cluion\Moduark\Module;
 use JsonException;
 
 final readonly class PackageModuleCatalog
@@ -59,6 +60,38 @@ final readonly class PackageModuleCatalog
     public function all(): array
     {
         return $this->modules;
+    }
+
+    /** @return list<class-string<Module>> */
+    public function moduleClasses(): array
+    {
+        return array_map(
+            static fn (PackageModuleDescriptor $module): string => $module->moduleClass(),
+            $this->modules,
+        );
+    }
+
+    public function find(string $name): ?PackageModuleDescriptor
+    {
+        foreach ($this->modules as $module) {
+            if (strcasecmp($module->name(), $name) === 0) {
+                return $module;
+            }
+        }
+
+        return null;
+    }
+
+    /** @param class-string<Module> $moduleClass */
+    public function containsClass(string $moduleClass): bool
+    {
+        foreach ($this->modules as $module) {
+            if (strcasecmp($module->moduleClass(), $moduleClass) === 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

@@ -196,15 +196,24 @@ Composer metadata and the portable package ServiceProvider are completed in a
 same-filesystem staging directory and published with one rename. Success reports
 `status=exported`, `dry_run=false`, and exit `0`; plan blockers remain exit `1`;
 execution or rollback failure is exit `2`. Exported package runtime is independent
-of the application Module root, but Composer-installed packages do not yet join
-the host-wide Moduark registry, activation state, graph, analysis, or cache.
+of the application Module root.
 
 LC1-F-A adds the Preview Composer package Module descriptor catalog. Generated
 `extra.moduark` schema version `1` declares Module name, class, and
 package-relative source path. Discovery validates installed source identity,
 sorts scalar catalog output, and produces a stable fingerprint. Unknown schemas,
 unsafe paths, source mismatches, and duplicate package Module names or classes
-fail closed. The catalog is not yet merged into the canonical registry or cache.
+fail closed.
+
+LC1-F-B merges that catalog with the application or nwidart active registry.
+Registry, analysis, graphs, cache, lifecycle, providers, Capabilities, and
+resources therefore consume one canonical set. Composer-installed package
+Modules remain active while installed and cannot be toggled by `moduark:enable`
+or `moduark:disable`; Composer owns install and removal. Module cache schema
+version `6` includes the package fingerprint, and a changed package inventory
+bypasses the previous cache. Descriptor-aware portable providers delegate to the
+canonical runtime, while descriptor-less LC1-E packages retain their portable
+fallback.
 
 The following commands and their documented arguments and options are Stable:
 

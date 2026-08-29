@@ -1,0 +1,35 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "acme/package-inventory",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "cluion/moduark": "^1.3",
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tests\\Fixtures\\PackageRuntime\\PackageInventory\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Tests\\Fixtures\\PackageRuntime\\PackageInventory\\PackageInventoryPackageServiceProvider"
+            ]
+        },
+        "moduark": {
+            "schema_version": 1,
+            "modules": [
+                {
+                    "name": "PackageInventory",
+                    "class": "Tests\\Fixtures\\PackageRuntime\\PackageInventory\\PackageInventoryModule",
+                    "path": "src/PackageInventoryModule.php"
+                }
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

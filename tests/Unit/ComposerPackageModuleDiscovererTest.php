@@ -89,6 +89,13 @@ final class ComposerPackageModuleDiscovererTest extends TestCase
         self::assertSame($first->fingerprint(), $second->fingerprint());
         self::assertSame(64, strlen($first->fingerprint()));
         self::assertSame(
+            [BillingModule::class, UserModule::class],
+            $first->moduleClasses(),
+        );
+        self::assertSame(UserModule::class, $first->find('user')?->moduleClass());
+        self::assertTrue($first->containsClass(UserModule::class));
+        self::assertNull($first->find('Missing'));
+        self::assertSame(
             realpath(dirname(__DIR__, 2).'/tests/Fixtures/Inspection/Modules/Billing/BillingModule.php'),
             $first->all()[0]->discoveredModule()->path(),
         );
