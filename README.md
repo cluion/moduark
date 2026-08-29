@@ -913,6 +913,16 @@ selected Module as either consumer or target is included. A disabled or
 unavailable required rule is reported as not evaluated and blocks the result.
 See [ADR-0062](docs/adr/0062-architecture-extractability-gate.md).
 
+Five additional runtime-portability checks reuse the active resource manifest
+to verify built-in plugin contracts, Module-scoped config / view / translation /
+component namespaces, manifest collisions, asset inputs, and safe config or
+public-asset publish targets. Declared providers are parsed without execution;
+application-global classes, unscoped string keys, dynamic or contextual
+container bindings block export planning. Unknown resource plugins also block
+until their portable package contract is explicit. This does not execute
+publishing, inspect destination files, or infer Composer / frontend dependencies.
+See [ADR-0063](docs/adr/0063-portable-runtime-extractability-gate.md).
+
 Application bootstrap happens before Artisan invokes a command. A configuration,
 discovery, metadata, or runtime Capability-resolution exception raised during
 bootstrap may therefore be rendered by Laravel itself rather than by

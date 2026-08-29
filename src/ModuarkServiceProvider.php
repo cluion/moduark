@@ -62,6 +62,8 @@ use Cluion\Moduark\Discovery\ModuleDiscoverer;
 use Cluion\Moduark\Discovery\NwidartModuleActivationResolver;
 use Cluion\Moduark\Extraction\ArchitectureExtractabilityGate;
 use Cluion\Moduark\Extraction\ExtractabilityInspector;
+use Cluion\Moduark\Extraction\PortableRuntimeGate;
+use Cluion\Moduark\Extraction\ProviderBindingScanner;
 use Cluion\Moduark\Graph\CapabilityGraphBuilder;
 use Cluion\Moduark\Graph\CombinedGraphBuilder;
 use Cluion\Moduark\Graph\Export\MermaidCapabilityGraphExporter;
@@ -243,9 +245,21 @@ final class ModuarkServiceProvider extends ServiceProvider
                 $this->app->make(ModulesConfig::class),
                 $this->app->basePath('vendor'),
                 $this->app->make(ArchitectureExtractabilityGate::class),
+                $this->app->make(PortableRuntimeGate::class),
             ),
         );
         $this->app->singleton(ArchitectureExtractabilityGate::class);
+        $this->app->singleton(
+            PortableRuntimeGate::class,
+            fn (): PortableRuntimeGate => new PortableRuntimeGate(
+                $this->app->make(ResourceManifest::class),
+                $this->app->make(ModuleRegistry::class),
+                $this->app->make(ModulesConfig::class),
+                $this->app->basePath('vendor'),
+                $this->app->make(ProviderBindingScanner::class),
+            ),
+        );
+        $this->app->singleton(ProviderBindingScanner::class);
         $this->app->singleton(GeneratorRegistry::class);
 
         foreach (ModuleMakerType::cases() as $descriptor) {

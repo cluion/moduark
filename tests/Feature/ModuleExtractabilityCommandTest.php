@@ -10,6 +10,7 @@ use Cluion\Moduark\Discovery\DiscoveredModule;
 use Cluion\Moduark\Extraction\ArchitectureExtractabilityGate;
 use Cluion\Moduark\Extraction\ExtractabilityCheck;
 use Cluion\Moduark\Extraction\ExtractabilityInspector;
+use Cluion\Moduark\Extraction\PortableRuntimeGate;
 use Cluion\Moduark\Metadata\ModuleDescriptor;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
 use Cluion\Moduark\Resources\ResourceDescriptor;
@@ -66,6 +67,11 @@ final class ModuleExtractabilityCommandTest extends TestCase
             'MOD-EXTRACT-FK-001',
             'MOD-EXTRACT-TRANSACTION-001',
             'MOD-EXTRACT-EXPORT-001',
+            'MOD-EXTRACT-PLUGIN-001',
+            'MOD-EXTRACT-NAMESPACE-001',
+            'MOD-EXTRACT-COLLISION-001',
+            'MOD-EXTRACT-PUBLISH-001',
+            'MOD-EXTRACT-BINDING-001',
         ], array_column($first['checks'], 'code'));
         self::assertSame([], $first['blockers']);
         self::assertSame(ExitPolicy::SUCCESS, $first['exit_code']);
@@ -151,6 +157,7 @@ final class ModuleExtractabilityCommandTest extends TestCase
             $configuration,
             base_path('vendor'),
             $this->application()->make(ArchitectureExtractabilityGate::class),
+            $this->application()->make(PortableRuntimeGate::class),
         );
 
         $report = $inspector->inspect('User')->toArray();

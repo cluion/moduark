@@ -172,6 +172,16 @@ warning or error involving the selected Module as consumer or target blocks
 export planning; a disabled or unavailable required rule also blocks rather
 than being reported as passed. Existing `moduark:check` behavior is unchanged.
 
+LC1-C adds five ordered runtime-portability checks for supported resource plugin
+contracts, Module-scoped runtime namespaces, active manifest collisions, safe
+publish targets / asset inputs, and provider container bindings. The gate reads
+the active `ResourceManifest` and parses declared providers without executing
+them. Unknown plugins, application-global classes, unscoped string bindings,
+dynamic or contextual bindings, traversal / absolute publish targets, and
+selected-Module collisions block planning. It does not inspect every route
+declaration, execute publishing, inspect destination files, or infer Composer,
+NPM, or Vite dependencies.
+
 The following commands and their documented arguments and options are Stable:
 
 ```text

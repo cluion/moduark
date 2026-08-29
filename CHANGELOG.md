@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Module-scoped raw Level 3 architecture extraction gates for dependency,
   Capability, table, foreign-key, transaction, and explicit-export evidence;
   baselines, suppressions, warnings, or unevaluated rules cannot hide blockers.
+- Added portable runtime extraction gates for resource plugin contracts,
+  Module-scoped namespaces, manifest collisions, publish targets / asset inputs,
+  and statically detected provider container bindings.
 
 ## [1.2.0] - 2026-08-29
 

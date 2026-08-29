@@ -26,6 +26,11 @@ final class CleanApplicationRunner
         'MOD-EXTRACT-FK-001',
         'MOD-EXTRACT-TRANSACTION-001',
         'MOD-EXTRACT-EXPORT-001',
+        'MOD-EXTRACT-PLUGIN-001',
+        'MOD-EXTRACT-NAMESPACE-001',
+        'MOD-EXTRACT-COLLISION-001',
+        'MOD-EXTRACT-PUBLISH-001',
+        'MOD-EXTRACT-BINDING-001',
     ];
 
     private string $packagePath;

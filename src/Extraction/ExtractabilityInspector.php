@@ -25,6 +25,7 @@ final readonly class ExtractabilityInspector
         private ModulesConfig $configuration,
         private string $applicationVendorPath,
         private ArchitectureExtractabilityGate $architecture,
+        private PortableRuntimeGate $runtime,
     ) {
     }
 
@@ -45,6 +46,7 @@ final readonly class ExtractabilityInspector
             $this->resourceOwnership($module),
             $this->declaredMetadataCoupling($module, $metadata),
             ...$this->architecture->checks($module),
+            ...$this->runtime->checks($module, $metadata),
         ]);
     }
 
