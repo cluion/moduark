@@ -47,6 +47,17 @@ final readonly class ModulesConfig
         return Level::from($architecture['level']);
     }
 
+    public function activationPath(): string
+    {
+        $activation = $this->values['activation'] ?? null;
+
+        if (! is_array($activation) || ! isset($activation['path']) || ! is_string($activation['path'])) {
+            return dirname($this->path()).'/moduark-modules.json';
+        }
+
+        return $activation['path'];
+    }
+
     public function baselinePath(): ?string
     {
         /** @var array{baseline?: string, level: int, rules: array<string, mixed>} $architecture */
@@ -93,6 +104,21 @@ final readonly class ModulesConfig
 
         if (! isset($values['architecture']) || ! is_array($values['architecture'])) {
             throw new InvalidArgumentException('The moduark.architecture configuration must be an array.');
+        }
+
+        if (array_key_exists('activation', $values) && ! is_array($values['activation'])) {
+            throw new InvalidArgumentException('The moduark.activation configuration must be an array.');
+        }
+
+        $activationPath = is_array($values['activation'] ?? null)
+            ? ($values['activation']['path'] ?? null)
+            : null;
+
+        if (array_key_exists('activation', $values)
+            && (! is_string($activationPath) || trim($activationPath) === '')) {
+            throw new InvalidArgumentException(
+                'The moduark.activation.path configuration must be a non-empty string.',
+            );
         }
 
         $architecture = $values['architecture'];

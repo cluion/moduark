@@ -882,7 +882,29 @@ PHP;
         $afterDryRunList = $this->artisan($application, ['moduark:list'], $environment);
         $this->assertContains('Order', $afterDryRunList, 'nwidart disable dry-run changed active state.');
 
-        $this->artisan($application, ['module:disable', 'Order'], $environment);
+        $beforeMutation = hash_file('sha256', $statusesPath);
+        $appliedDisable = $this->activationProbe(
+            $application,
+            $environment,
+            'disable',
+            'Order',
+            [0],
+            false,
+        );
+        $afterMutation = hash_file('sha256', $statusesPath);
+
+        if (($appliedDisable['status'] ?? null) !== 'applied'
+            || ($appliedDisable['dry_run'] ?? null) !== false
+            || ! is_string($beforeMutation)
+            || ! is_string($afterMutation)
+            || $beforeMutation === $afterMutation) {
+            throw new RuntimeException('Moduark did not atomically commit nwidart disable state.');
+        }
+
+        $this->assertFileMissing(
+            $application.'/bootstrap/cache/moduark.php',
+            'Activation mutation retained the old Module cache.',
+        );
 
         $nwidartList = $this->artisan($application, ['module:list'], $environment);
         $this->assertContains('Order', $nwidartList, 'nwidart omitted the disabled Order Module.');
@@ -973,7 +995,24 @@ PHP;
             throw new RuntimeException('nwidart enable dry-run changed state or returned an invalid plan.');
         }
 
-        $this->artisan($application, ['module:enable', 'Order'], $environment);
+        $beforeRestore = hash_file('sha256', $statusesPath);
+        $appliedEnable = $this->activationProbe(
+            $application,
+            $environment,
+            'enable',
+            'Order',
+            [0],
+            false,
+        );
+        $afterRestore = hash_file('sha256', $statusesPath);
+
+        if (($appliedEnable['status'] ?? null) !== 'applied'
+            || ($appliedEnable['dry_run'] ?? null) !== false
+            || ! is_string($beforeRestore)
+            || ! is_string($afterRestore)
+            || $beforeRestore === $afterRestore) {
+            throw new RuntimeException('Moduark did not atomically commit nwidart enable state.');
+        }
 
         $restoredList = $this->artisan($application, ['moduark:list'], $environment);
         $this->assertContains('Order', $restoredList, 'The re-enabled Order Module was not restored.');
@@ -1054,10 +1093,17 @@ PHP;
         string $operation,
         string $module,
         array $allowedExitCodes = [0],
+        bool $dryRun = true,
     ): array {
+        $arguments = ["moduark:{$operation}", $module, '--format=json'];
+
+        if ($dryRun) {
+            $arguments[] = '--dry-run';
+        }
+
         $result = $this->artisanResult(
             $application,
-            ["moduark:{$operation}", $module, '--dry-run', '--format=json'],
+            $arguments,
             $environment,
             $allowedExitCodes,
         );
@@ -1252,6 +1298,13 @@ PHP;
     private function assertFileExists(string $path, string $message): void
     {
         if (! is_file($path)) {
+            throw new RuntimeException($message);
+        }
+    }
+
+    private function assertFileMissing(string $path, string $message): void
+    {
+        if (file_exists($path)) {
             throw new RuntimeException($message);
         }
     }

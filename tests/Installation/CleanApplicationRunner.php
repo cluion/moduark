@@ -1227,6 +1227,41 @@ PHP;
         $activeModules = $this->artisan($application, ['moduark:list'], $environment);
         $this->assertContains('User', $activeModules, 'Activation dry-run changed standalone Module state.');
 
+        $disabled = json_decode($this->artisan(
+            $application,
+            ['moduark:disable', 'User', '--format=json'],
+            $environment,
+        ), true, 512, JSON_THROW_ON_ERROR);
+
+        if (! is_array($disabled)
+            || ($disabled['status'] ?? null) !== 'applied'
+            || ($disabled['driver'] ?? null) !== 'standalone'
+            || ($disabled['dry_run'] ?? null) !== false) {
+            throw new RuntimeException('Standalone activation mutation did not commit the disable plan.');
+        }
+
+        $this->assertFileExists(
+            $application.'/moduark-modules.json',
+            'Standalone activation mutation did not create its authoritative state file.',
+        );
+        $disabledModules = $this->artisan($application, ['moduark:list'], $environment);
+        $this->assertNotContains('User', $disabledModules, 'Standalone disable did not affect the next boot.');
+
+        $enabled = json_decode($this->artisan(
+            $application,
+            ['moduark:enable', 'User', '--format=json'],
+            $environment,
+        ), true, 512, JSON_THROW_ON_ERROR);
+
+        if (! is_array($enabled)
+            || ($enabled['status'] ?? null) !== 'applied'
+            || ($enabled['driver'] ?? null) !== 'standalone') {
+            throw new RuntimeException('Standalone activation mutation did not commit the enable plan.');
+        }
+
+        $restoredModules = $this->artisan($application, ['moduark:list'], $environment);
+        $this->assertContains('User', $restoredModules, 'Standalone enable did not affect the next boot.');
+
         $resources = json_decode($this->artisan(
             $application,
             ['moduark:resources', 'User', '--format=json'],
@@ -1330,6 +1365,13 @@ PHP;
     private function assertContains(string $expected, string $actual, string $message): void
     {
         if (! str_contains($actual, $expected)) {
+            throw new RuntimeException($message);
+        }
+    }
+
+    private function assertNotContains(string $expected, string $actual, string $message): void
+    {
+        if (str_contains($actual, $expected)) {
             throw new RuntimeException($message);
         }
     }

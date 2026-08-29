@@ -5,7 +5,13 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use Cluion\Moduark\Architecture\ExitPolicy;
+use Cluion\Moduark\Discovery\ModuleActivationSet;
+use Cluion\Moduark\Lifecycle\Activation\FileModuleActivationStore;
+use Cluion\Moduark\Lifecycle\Activation\ModuleActivationCacheInvalidator;
+use Cluion\Moduark\Lifecycle\Activation\ModuleActivationDriver;
+use Cluion\Moduark\Lifecycle\Activation\ModuleActivationMutator;
 use Cluion\Moduark\Lifecycle\Activation\ModuleActivationState;
+use Cluion\Moduark\Lifecycle\Activation\NativeAtomicFileWriter;
 use Illuminate\Contracts\Console\Kernel;
 use JsonException;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -13,6 +19,54 @@ use Tests\TestCase;
 
 final class ModuleActivationCommandTest extends TestCase
 {
+    private string $temporaryDirectory;
+
+    private string $statePath;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->temporaryDirectory = sys_get_temp_dir().'/moduark-command-activation-'.bin2hex(random_bytes(8));
+        $this->statePath = $this->temporaryDirectory.'/moduark-modules.json';
+        $state = new ModuleActivationState(
+            ModuleActivationDriver::Standalone,
+            ModuleActivationSet::all(),
+            new FileModuleActivationStore(
+                $this->statePath,
+                $this->temporaryDirectory.'/activation.lock',
+                ModuleActivationDriver::Standalone,
+                new NativeAtomicFileWriter,
+            ),
+        );
+        $this->application()->instance(ModuleActivationSet::class, $state->activationSet());
+        $this->application()->instance(ModuleActivationState::class, $state);
+        $this->application()->instance(
+            ModuleActivationMutator::class,
+            new ModuleActivationMutator(new class implements ModuleActivationCacheInvalidator
+            {
+                public function invalidate(): void
+                {
+                }
+            }),
+        );
+    }
+
+    protected function tearDown(): void
+    {
+        foreach ([$this->statePath, $this->temporaryDirectory.'/activation.lock'] as $path) {
+            if (is_file($path)) {
+                unlink($path);
+            }
+        }
+
+        if (is_dir($this->temporaryDirectory)) {
+            rmdir($this->temporaryDirectory);
+        }
+
+        parent::tearDown();
+    }
+
     public function test_disable_dry_run_is_deterministic_and_does_not_change_state(): void
     {
         $state = $this->application()->make(ModuleActivationState::class);
@@ -71,11 +125,19 @@ final class ModuleActivationCommandTest extends TestCase
         self::assertTrue($payload['plan']['executable']);
     }
 
-    public function test_commands_refuse_mutation_and_report_input_errors(): void
+    public function test_command_atomically_commits_state_and_reports_input_errors(): void
     {
-        $this->command('moduark:disable Workbench')
-            ->expectsOutputToContain('pass --dry-run')
-            ->assertExitCode(ExitPolicy::TOOL_ERROR);
+        [$appliedCode, $applied] = $this->jsonOutput('moduark:disable', 'Workbench', dryRun: false);
+
+        self::assertSame(ExitPolicy::SUCCESS, $appliedCode);
+        self::assertSame('applied', $applied['status']);
+        self::assertFalse($applied['dry_run']);
+        self::assertFileExists($this->statePath);
+        $state = json_decode((string) file_get_contents($this->statePath), true, 512, JSON_THROW_ON_ERROR);
+        self::assertIsArray($state);
+        self::assertIsArray($state['modules']);
+        self::assertFalse($state['modules']['Workbench']);
+        self::assertTrue($this->application()->make(ModuleActivationState::class)->activationSet()->includes('Workbench'));
 
         [$unknownCode, $unknown] = $this->jsonOutput(
             'moduark:enable',
@@ -93,6 +155,16 @@ final class ModuleActivationCommandTest extends TestCase
             ->assertExitCode(ExitPolicy::TOOL_ERROR);
     }
 
+    public function test_non_dry_run_no_op_does_not_create_state_or_clear_caches(): void
+    {
+        [$exitCode, $payload] = $this->jsonOutput('moduark:enable', 'Workbench', dryRun: false);
+
+        self::assertSame(ExitPolicy::SUCCESS, $exitCode);
+        self::assertSame('unchanged', $payload['status']);
+        self::assertFalse($payload['dry_run']);
+        self::assertFileDoesNotExist($this->statePath);
+    }
+
     /**
      * @param list<int> $allowedExitCodes
      * @return array{int, array<mixed>, string}
@@ -102,13 +174,14 @@ final class ModuleActivationCommandTest extends TestCase
         string $command,
         string $module,
         array $allowedExitCodes = [ExitPolicy::SUCCESS],
+        bool $dryRun = true,
     ): array {
         $output = new BufferedOutput;
         $exitCode = $this->application()->make(Kernel::class)->call(
             $command,
             [
                 'module' => $module,
-                '--dry-run' => true,
+                '--dry-run' => $dryRun,
                 '--format' => 'json',
             ],
             $output,

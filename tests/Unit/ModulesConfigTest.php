@@ -61,6 +61,28 @@ final class ModulesConfigTest extends TestCase
         self::assertSame(Level::Organization, $configuration->level());
     }
 
+    public function test_activation_path_is_configurable_and_legacy_programmatic_config_has_a_fallback(): void
+    {
+        $configured = ModulesConfig::from(
+            [
+                'path' => '/app/Modules',
+                'activation' => ['path' => '/state/moduark-modules.json'],
+                'architecture' => ['level' => 1, 'rules' => []],
+            ],
+            [],
+        );
+        $legacy = ModulesConfig::from(
+            [
+                'path' => '/app/Modules',
+                'architecture' => ['level' => 1, 'rules' => []],
+            ],
+            [],
+        );
+
+        self::assertSame('/state/moduark-modules.json', $configured->activationPath());
+        self::assertSame('/app/moduark-modules.json', $legacy->activationPath());
+    }
+
     public function test_invalid_level_is_rejected(): void
     {
         $this->expectException(InvalidArgumentException::class);

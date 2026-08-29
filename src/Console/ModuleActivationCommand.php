@@ -10,6 +10,7 @@ use Cluion\Moduark\Discovery\ModuleActivationSet;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
 use Cluion\Moduark\Lifecycle\Activation\ModuleActivationBlocker;
 use Cluion\Moduark\Lifecycle\Activation\ModuleActivationIntent;
+use Cluion\Moduark\Lifecycle\Activation\ModuleActivationMutator;
 use Cluion\Moduark\Lifecycle\Activation\ModuleActivationPlan;
 use Cluion\Moduark\Lifecycle\Activation\ModuleActivationPlanner;
 use Cluion\Moduark\Lifecycle\Activation\ModuleActivationState;
@@ -25,6 +26,7 @@ abstract class ModuleActivationCommand extends Command
         private readonly ModuleDiscoverer $discoverer,
         private readonly ModulesConfig $configuration,
         private readonly ModuleActivationState $state,
+        private readonly ModuleActivationMutator $mutator,
     ) {
         parent::__construct();
     }
@@ -37,13 +39,6 @@ abstract class ModuleActivationCommand extends Command
 
         if (! is_string($format) || ! in_array($format, ['text', 'json'], true)) {
             return $this->failOutput($format, 'The activation output format must be text or json.');
-        }
-
-        if ($this->option('dry-run') !== true) {
-            return $this->failOutput(
-                $format,
-                'Activation state mutation is not available; pass --dry-run to preview the change.',
-            );
         }
 
         $module = $this->argument('module');
@@ -70,13 +65,24 @@ abstract class ModuleActivationCommand extends Command
         $exitCode = $plan->executable()
             ? ExitPolicy::SUCCESS
             : ExitPolicy::VIOLATIONS_FOUND;
+        $dryRun = $this->option('dry-run') === true;
+        $status = $plan->executable() ? 'planned' : 'blocked';
+
+        if ($plan->executable() && ! $dryRun) {
+            try {
+                $changed = $this->mutator->apply($plan, $inventory, $this->state);
+                $status = $changed ? 'applied' : 'unchanged';
+            } catch (RuntimeException $exception) {
+                return $this->failOutput($format, $exception->getMessage());
+            }
+        }
 
         if ($format === 'json') {
             return $this->json([
                 'schema_version' => 1,
-                'status' => $plan->executable() ? 'planned' : 'blocked',
+                'status' => $status,
                 'operation' => $this->intent()->value,
-                'dry_run' => true,
+                'dry_run' => $dryRun,
                 'driver' => $this->state->driver()->value,
                 'plan' => $plan->toArray(),
                 'exit_code' => $exitCode,
@@ -84,12 +90,12 @@ abstract class ModuleActivationCommand extends Command
             ], $exitCode);
         }
 
-        $this->renderText($plan);
+        $this->renderText($plan, $dryRun, $status);
 
         return $exitCode;
     }
 
-    private function renderText(ModuleActivationPlan $plan): void
+    private function renderText(ModuleActivationPlan $plan, bool $dryRun, string $status): void
     {
         $this->table(
             ['Field', 'Value'],
@@ -97,15 +103,29 @@ abstract class ModuleActivationCommand extends Command
                 ['Operation', $this->intent()->value],
                 ['Module', $plan->module()],
                 ['Driver', $this->state->driver()->value],
-                ['Dry run', 'yes'],
+                ['Dry run', $dryRun ? 'yes' : 'no'],
                 ['No-op', $plan->noOp() ? 'yes' : 'no'],
                 ['Before', $plan->before() === [] ? '—' : implode(', ', $plan->before())],
                 ['After', $plan->after() === [] ? '—' : implode(', ', $plan->after())],
             ],
         );
 
-        if ($plan->executable()) {
+        if ($status === 'planned') {
             $this->components->info('Activation dry-run is executable; no state was changed.');
+
+            return;
+        }
+
+        if ($status === 'unchanged') {
+            $this->components->info('Module activation state was already unchanged.');
+
+            return;
+        }
+
+        if ($status === 'applied') {
+            $this->components->info(
+                'Module activation state was committed; restart the application to use the new active set.',
+            );
 
             return;
         }

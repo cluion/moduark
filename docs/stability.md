@@ -94,6 +94,7 @@ writes from a descriptor are Internal or unsupported. See
 These configuration identities are Stable:
 
 - `moduark.path`;
+- `moduark.activation.path` (Unreleased `1.3` Preview);
 - `moduark.architecture.level`;
 - `moduark.architecture.baseline`;
 - `moduark.architecture.suppressions`;
@@ -130,20 +131,22 @@ test failure or no declared tests, and `2` for invalid input or unavailable
 runner. Human-readable output may be clarified; automation must use JSON and
 exit codes.
 
-The Unreleased `1.3` line also contains dry-run-only activation commands:
+The Unreleased `1.3` line also contains Preview activation commands:
 
 ```text
-moduark:enable {module} --dry-run [--format=text|json]
-moduark:disable {module} --dry-run [--format=text|json]
+moduark:enable {module} [--dry-run] [--format=text|json]
+moduark:disable {module} [--dry-run] [--format=text|json]
 ```
 
 Their JSON schema version `1` contains `status`, `operation`, `dry_run`,
 authoritative `driver`, nullable `plan`, `exit_code`, and nullable `error`.
-Executable plans use status `planned` and exit `0`; dependency or Capability
-blockers use `blocked` and exit `1`; invalid input, missing `--dry-run`, or tool
-failure use `error` and exit `2`. This preview contract never writes activation
-state or invalidates caches. Mutation remains unavailable until an independently
-verified atomic persistence and recovery slice is completed.
+Dry-run executable plans use status `planned`; committed changes use `applied`;
+validated no-ops use `unchanged`; all use exit `0`. Dependency or Capability
+blockers use `blocked` and exit `1`; invalid input, unsupported writable driver,
+concurrent state change, cache failure, or state failure use `error` and exit
+`2`. Mutation first invalidates Module metadata, source-analysis, route, and
+event caches, then atomically replaces the authoritative state file. It does not
+hot-switch an already-running application process.
 
 The following commands and their documented arguments and options are Stable:
 

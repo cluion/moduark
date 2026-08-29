@@ -12,9 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added dependency- and Capability-aware Module activation planning with stable
   blocker identities, deterministic scalar plans, and explicit standalone or
   nwidart state-driver ownership.
-- Added dry-run-only `moduark:enable` and `moduark:disable` commands with
-  schema-versioned JSON output. Omitting `--dry-run` is rejected and neither
-  command writes activation state or invalidates caches yet.
+- Added `moduark:enable` and `moduark:disable` commands with schema-versioned
+  JSON output, optional dry-run planning, atomic standalone / nwidart file-state
+  mutation, optimistic concurrency checks, and graph-cache invalidation.
+- Added deploy-safe standalone activation state in `moduark-modules.json`;
+  failed cache invalidation or state commit preserves the previous state.
 
 ## [1.2.0] - 2026-08-29
 

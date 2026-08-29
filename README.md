@@ -48,6 +48,12 @@ with:
 php artisan vendor:publish --tag=moduark-config
 ```
 
+The unreleased `1.3` activation commands persist standalone state in the
+configurable `moduark.activation.path` (`moduark-modules.json` by default), or
+update nwidart's configured file-activator status file when both packages share
+the same Module root. Custom nwidart activators remain dry-run-only unless they
+can provide the same atomic contract.
+
 nwidart-generated Module classes must already be Composer-autoloadable. Follow
 nwidart's installation guidance by loading `Modules/*/composer.json` through
 its Composer merge plugin, or provide equivalent explicit per-Module PSR-4
@@ -712,8 +718,8 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `moduark:baseline [--level=0..3] [--force] [--prune]` | Adopt current violations explicitly or safely remove stale baseline debt |
 | `moduark:cache` | Cache deterministic Module discovery and typed metadata |
 | `moduark:clear` | Remove cached Module metadata and incremental source analysis |
-| `moduark:enable {module} --dry-run [--format=text\|json]` | Preview an enable plan against the complete dependency and Capability graph without changing state |
-| `moduark:disable {module} --dry-run [--format=text\|json]` | Preview a disable plan against the complete dependency and Capability graph without changing state |
+| `moduark:enable {module} [--dry-run] [--format=text\|json]` | Validate and enable a Module, or preview the exact plan with `--dry-run` |
+| `moduark:disable {module} [--dry-run] [--format=text\|json]` | Validate and disable a Module, or preview the exact plan with `--dry-run` |
 | `moduark:list` | List discovered Modules in deterministic order |
 | `moduark:check [--level=0..3] [--format=text\|json\|github] [--show-suppressions]` | Run the effective architecture rules, audit suppressions, and optionally emit JSON or GitHub Actions annotations |
 | `moduark:graph [module] [--view=module\|capability\|combined] [--format=text\|mermaid]` | Render direct, Capability, or combined relationships and optionally select one neighborhood |
@@ -724,11 +730,12 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `moduark:seed {module} [--format=text\|json]` | Run only seeders declared by the selected active Module |
 | `moduark:test {module} [arguments...] [--runner=auto\|phpunit\|pest] [--list] [--format=text\|json]` | Run or list the selected active Module's declared test paths |
 
-The activation commands are an unreleased `1.3` preview surface and currently
-require `--dry-run`. They report the authoritative `standalone` or `nwidart`
-driver and return a complete proposed plan, but never write a status file,
-invalidate caches, or hot-switch the running application. A valid plan is not
-evidence that activation state changed.
+The activation commands are an unreleased `1.3` preview surface. `--dry-run`
+reports the authoritative `standalone` or `nwidart` driver and complete proposed
+plan without mutation. Without `--dry-run`, an executable non-no-op plan clears
+Module metadata, source-analysis, route, and event caches before atomically
+committing the authoritative file state. The running process is never
+hot-switched; start a new application process to consume the committed set.
 
 `moduark:check` exit codes are part of the Stable `1.x` contract:
 

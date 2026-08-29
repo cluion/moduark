@@ -160,7 +160,9 @@ final class PublicContractTest extends TestCase
     {
         $configuration = $this->application()->make(ModulesConfig::class)->all();
 
-        self::assertSame(['path', 'architecture'], array_keys($configuration));
+        self::assertSame(['path', 'activation', 'architecture'], array_keys($configuration));
+        self::assertIsArray($configuration['activation']);
+        self::assertSame(['path'], array_keys($configuration['activation']));
         self::assertIsArray($configuration['architecture']);
         self::assertSame(
             ['level', 'baseline', 'suppressions', 'rules'],

@@ -82,9 +82,15 @@ use Cluion\Moduark\Inspection\ModuleInspectionBuilder;
 use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
 use Cluion\Moduark\Lifecycle\ModuleOrderer;
 use Cluion\Moduark\Lifecycle\OrderedModules;
+use Cluion\Moduark\Lifecycle\Activation\ApplicationModuleActivationCacheInvalidator;
+use Cluion\Moduark\Lifecycle\Activation\AtomicFileWriter;
+use Cluion\Moduark\Lifecycle\Activation\FileModuleActivationStore;
 use Cluion\Moduark\Lifecycle\Activation\ModuleActivationDriver;
+use Cluion\Moduark\Lifecycle\Activation\ModuleActivationCacheInvalidator;
+use Cluion\Moduark\Lifecycle\Activation\ModuleActivationMutator;
 use Cluion\Moduark\Lifecycle\Activation\ModuleActivationPlanner;
 use Cluion\Moduark\Lifecycle\Activation\ModuleActivationState;
+use Cluion\Moduark\Lifecycle\Activation\NativeAtomicFileWriter;
 use Cluion\Moduark\Metadata\ModuleMetadataCompiler;
 use Cluion\Moduark\Persistence\TableOwnershipIndex;
 use Cluion\Moduark\Registry\ModuleRegistry;
@@ -147,19 +153,14 @@ final class ModuarkServiceProvider extends ServiceProvider
 
         $repository->set('moduark', $configuration->all());
         $this->app->instance(ModulesConfig::class, $configuration);
-        $activationSet = $followsNwidart
-            ? $this->nwidartActivationSet($repository, $configuration->path())
-            : ModuleActivationSet::all();
+        $atomicWriter = new NativeAtomicFileWriter;
+        $this->app->instance(AtomicFileWriter::class, $atomicWriter);
+        $activationState = $followsNwidart
+            ? $this->nwidartActivationState($repository, $configuration->path(), $atomicWriter)
+            : $this->standaloneActivationState($configuration, $atomicWriter);
+        $activationSet = $activationState->activationSet();
         $this->app->instance(ModuleActivationSet::class, $activationSet);
-        $this->app->instance(
-            ModuleActivationState::class,
-            new ModuleActivationState(
-                $followsNwidart
-                    ? ModuleActivationDriver::Nwidart
-                    : ModuleActivationDriver::Standalone,
-                $activationSet,
-            ),
-        );
+        $this->app->instance(ModuleActivationState::class, $activationState);
         $this->app->instance(ResourceOwnership::class, new ResourceOwnership($followsNwidart));
         $this->app->singleton(RulePresets::class);
         $this->app->singleton(RuleResolver::class);
@@ -205,6 +206,11 @@ final class ModuarkServiceProvider extends ServiceProvider
                 $this->app->bootstrapPath('cache/moduark-analysis.php'),
             ),
         );
+        $this->app->singleton(
+            ModuleActivationCacheInvalidator::class,
+            ApplicationModuleActivationCacheInvalidator::class,
+        );
+        $this->app->singleton(ModuleActivationMutator::class);
         $this->app->singleton(
             SourceIndexBuilder::class,
             fn (): SourceIndexBuilder => new SourceIndexBuilder(
@@ -387,18 +393,32 @@ final class ModuarkServiceProvider extends ServiceProvider
             === rtrim(str_replace('\\', '/', $right), '/');
     }
 
-    private function nwidartActivationSet(
+    private function standaloneActivationState(
+        ModulesConfig $configuration,
+        AtomicFileWriter $writer,
+    ): ModuleActivationState {
+        return $this->fileActivationState(
+            ModuleActivationDriver::Standalone,
+            $configuration->activationPath(),
+            $configuration->path(),
+            $writer,
+        );
+    }
+
+    private function nwidartActivationState(
         Repository $repository,
         string $modulesPath,
-    ): ModuleActivationSet
-    {
+        AtomicFileWriter $writer,
+    ): ModuleActivationState {
         $resolver = new NwidartModuleActivationResolver;
         $activator = $repository->get('modules.activator');
 
         if ($activator === null) {
-            return $resolver->resolveFile(
+            return $this->fileActivationState(
+                ModuleActivationDriver::Nwidart,
                 $this->app->basePath('modules_statuses.json'),
                 $modulesPath,
+                $writer,
             );
         }
 
@@ -410,9 +430,11 @@ final class ModuarkServiceProvider extends ServiceProvider
 
         if (! is_array($configuration)) {
             if ($activator === 'file') {
-                return $resolver->resolveFile(
+                return $this->fileActivationState(
+                    ModuleActivationDriver::Nwidart,
                     $this->app->basePath('modules_statuses.json'),
                     $modulesPath,
+                    $writer,
                 );
             }
 
@@ -425,11 +447,13 @@ final class ModuarkServiceProvider extends ServiceProvider
             && ($class === null || $class === 'Nwidart\\Modules\\Activators\\FileActivator')) {
             $statusesPath = $configuration['statuses-file'] ?? null;
 
-            return $resolver->resolveFile(
+            return $this->fileActivationState(
+                ModuleActivationDriver::Nwidart,
                 is_string($statusesPath) && $statusesPath !== ''
                     ? $statusesPath
                     : $this->app->basePath('modules_statuses.json'),
                 $modulesPath,
+                $writer,
             );
         }
 
@@ -439,6 +463,51 @@ final class ModuarkServiceProvider extends ServiceProvider
 
         $instance = new $class($this->app);
 
-        return $resolver->resolve($instance, $modulesPath);
+        return new ModuleActivationState(
+            ModuleActivationDriver::Nwidart,
+            $resolver->resolve($instance, $modulesPath),
+        );
+    }
+
+    private function fileActivationState(
+        ModuleActivationDriver $driver,
+        string $statePath,
+        string $modulesPath,
+        AtomicFileWriter $writer,
+    ): ModuleActivationState {
+        $store = new FileModuleActivationStore(
+            $statePath,
+            $this->app->bootstrapPath('cache/moduark-activation.lock'),
+            $driver,
+            $writer,
+        );
+
+        return new ModuleActivationState(
+            $driver,
+            $store->load($this->moduleDirectoryNames($modulesPath)),
+            $store,
+        );
+    }
+
+    /** @return list<string> */
+    private function moduleDirectoryNames(string $modulesPath): array
+    {
+        if (! is_dir($modulesPath)) {
+            return [];
+        }
+
+        $directories = glob(
+            rtrim($modulesPath, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'*',
+            GLOB_ONLYDIR,
+        );
+
+        if ($directories === false) {
+            throw new RuntimeException("Unable to scan Module path [{$modulesPath}].");
+        }
+
+        $names = array_map(static fn (string $directory): string => basename($directory), $directories);
+        usort($names, static fn (string $left, string $right): int => strcasecmp($left, $right) ?: strcmp($left, $right));
+
+        return $names;
     }
 }

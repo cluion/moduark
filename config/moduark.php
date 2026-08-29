@@ -6,6 +6,11 @@ return [
     // null selects nwidart's Module root when available, otherwise app/Modules.
     'path' => null,
 
+    'activation' => [
+        // Standalone state is deploy-safe and can be committed with the application.
+        'path' => base_path('moduark-modules.json'),
+    ],
+
     'architecture' => [
         // Levels 0 through 2 are Stable presets; Level 3 is Preview.
         'level' => 1,

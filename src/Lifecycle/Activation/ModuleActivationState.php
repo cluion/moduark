@@ -11,6 +11,7 @@ final readonly class ModuleActivationState
     public function __construct(
         private ModuleActivationDriver $driver,
         private ModuleActivationSet $activationSet,
+        private ?ModuleActivationStore $store = null,
     ) {
     }
 
@@ -22,5 +23,10 @@ final readonly class ModuleActivationState
     public function activationSet(): ModuleActivationSet
     {
         return $this->activationSet;
+    }
+
+    public function store(): ?ModuleActivationStore
+    {
+        return $this->store;
     }
 }

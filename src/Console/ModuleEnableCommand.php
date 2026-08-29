@@ -15,7 +15,7 @@ final class ModuleEnableCommand extends ModuleActivationCommand
         {--format=text : Output format: text or json}';
 
     /** @var string */
-    protected $description = 'Preview enabling a Module without changing activation state';
+    protected $description = 'Enable a Module after validating the complete activation graph';
 
     protected function intent(): ModuleActivationIntent
     {
