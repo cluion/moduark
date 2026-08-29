@@ -1123,6 +1123,49 @@ PHP;
             throw new RuntimeException('Extractability diagnostics blocked the nwidart Module layout.');
         }
 
+        $exportTarget = 'packages/moduark-user-plan';
+        $firstExport = $this->artisan(
+            $application,
+            [
+                'moduark:export',
+                'User',
+                '--dry-run',
+                '--target='.$exportTarget,
+                '--package=acme/user-module',
+                '--namespace=Acme\\UserModule',
+                '--format=json',
+            ],
+            $environment,
+        );
+        $secondExport = $this->artisan(
+            $application,
+            [
+                'moduark:export',
+                'User',
+                '--dry-run',
+                '--target='.$exportTarget,
+                '--package=acme/user-module',
+                '--namespace=Acme\\UserModule',
+                '--format=json',
+            ],
+            $environment,
+        );
+        $export = json_decode($firstExport, true, 512, JSON_THROW_ON_ERROR);
+        $destinations = is_array($export) && is_array($export['files'] ?? null)
+            ? array_column($export['files'], 'destination')
+            : [];
+
+        if ($firstExport !== $secondExport
+            || ! is_array($export)
+            || ($export['status'] ?? null) !== 'planned'
+            || ($export['blockers'] ?? null) !== []
+            || ! in_array('src/UserModule.php', $destinations, true)
+            || ! in_array('routes/web.php', $destinations, true)
+            || ! in_array('resources/views/index.blade.php', $destinations, true)
+            || file_exists($application.'/'.$exportTarget)) {
+            throw new RuntimeException('nwidart export dry-run did not preserve the package destination contract.');
+        }
+
         $this->artisan($application, ['moduark:clear'], $environment);
     }
 

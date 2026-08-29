@@ -50,6 +50,7 @@ use Cluion\Moduark\Console\ModuleDisableCommand;
 use Cluion\Moduark\Console\ModuleGraphCommand;
 use Cluion\Moduark\Console\ModuleDoctorCommand;
 use Cluion\Moduark\Console\ModuleEnableCommand;
+use Cluion\Moduark\Console\ModuleExportCommand;
 use Cluion\Moduark\Console\ModuleInspectCommand;
 use Cluion\Moduark\Console\ModuleListCommand;
 use Cluion\Moduark\Console\ModuleMakeCommand;
@@ -64,6 +65,8 @@ use Cluion\Moduark\Extraction\ArchitectureExtractabilityGate;
 use Cluion\Moduark\Extraction\ExtractabilityInspector;
 use Cluion\Moduark\Extraction\PortableRuntimeGate;
 use Cluion\Moduark\Extraction\ProviderBindingScanner;
+use Cluion\Moduark\Export\ModuleExportPlanExporter;
+use Cluion\Moduark\Export\ModuleExportPlanner;
 use Cluion\Moduark\Graph\CapabilityGraphBuilder;
 use Cluion\Moduark\Graph\CombinedGraphBuilder;
 use Cluion\Moduark\Graph\Export\MermaidCapabilityGraphExporter;
@@ -260,6 +263,17 @@ final class ModuarkServiceProvider extends ServiceProvider
             ),
         );
         $this->app->singleton(ProviderBindingScanner::class);
+        $this->app->singleton(
+            ModuleExportPlanner::class,
+            fn (): ModuleExportPlanner => new ModuleExportPlanner(
+                $this->app->make(ModuleRegistry::class),
+                $this->app->make(ModuleMetadataCompiler::class),
+                $this->app->make(ExtractabilityInspector::class),
+                $this->app->make(ModulesConfig::class),
+                $this->app->basePath(),
+            ),
+        );
+        $this->app->singleton(ModuleExportPlanExporter::class);
         $this->app->singleton(GeneratorRegistry::class);
 
         foreach (ModuleMakerType::cases() as $descriptor) {
@@ -376,6 +390,7 @@ final class ModuarkServiceProvider extends ServiceProvider
             ModuleDisableCommand::class,
             ModuleDoctorCommand::class,
             ModuleEnableCommand::class,
+            ModuleExportCommand::class,
             ModuleGraphCommand::class,
             ModuleInspectCommand::class,
             ModuleListCommand::class,

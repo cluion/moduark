@@ -182,6 +182,14 @@ selected-Module collisions block planning. It does not inspect every route
 declaration, execute publishing, inspect destination files, or infer Composer,
 NPM, or Vite dependencies.
 
+LC1-D adds the Preview, dry-run-only `moduark:export` plan. Callers must provide
+an application-relative target, lowercase Composer package identity, and PHP
+namespace. Schema version `1` reports deterministic generated/copy file targets,
+namespace transforms, resolved or manual dependencies, fixed blockers, exit
+code, and a nullable error. Successful planning uses exit `0`; source, target,
+collision, dependency, or extractability blockers use exit `1`; invalid input
+or omission of `--dry-run` uses exit `2`. No invocation writes package files.
+
 The following commands and their documented arguments and options are Stable:
 
 ```text

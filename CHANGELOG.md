@@ -29,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added portable runtime extraction gates for resource plugin contracts,
   Module-scoped namespaces, manifest collisions, publish targets / asset inputs,
   and statically detected provider container bindings.
+- Added Preview `moduark:export <module> --dry-run` package planning with explicit
+  target, Composer identity and namespace, deterministic file transforms,
+  dependency evidence, and fail-closed collision checks without filesystem writes.
 
 ## [1.2.0] - 2026-08-29
 

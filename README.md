@@ -923,6 +923,28 @@ until their portable package contract is explicit. This does not execute
 publishing, inspect destination files, or infer Composer / frontend dependencies.
 See [ADR-0063](docs/adr/0063-portable-runtime-extractability-gate.md).
 
+When all extractability checks pass, build the Preview package plan explicitly:
+
+```bash
+php artisan moduark:export User --dry-run \
+    --target=packages/user-module \
+    --package=acme/user-module \
+    --namespace='Acme\UserModule'
+php artisan moduark:export User --dry-run \
+    --target=packages/user-module \
+    --package=acme/user-module \
+    --namespace='Acme\UserModule' \
+    --format=json
+```
+
+The command maps standalone or nwidart files to package roots, plans generated
+Composer and package-provider targets, records namespace rewrites and runtime or
+manual dependencies, and checks destination collisions. Package identity is
+never guessed. Module dependencies without an explicit Composer mapping block
+readiness. LC1-D remains strictly read-only: calls without `--dry-run` return
+exit `2`, and even a successful plan creates no directory or file. See
+[ADR-0064](docs/adr/0064-export-plan-contract.md).
+
 Application bootstrap happens before Artisan invokes a command. A configuration,
 discovery, metadata, or runtime Capability-resolution exception raised during
 bootstrap may therefore be rendered by Laravel itself rather than by

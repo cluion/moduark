@@ -1329,6 +1329,43 @@ PHP;
             throw new RuntimeException('Extractability diagnostics blocked the fresh-install Module.');
         }
 
+        $exportTarget = 'packages/moduark-user-plan';
+        $firstExport = $this->artisan(
+            $application,
+            [
+                'moduark:export',
+                'User',
+                '--dry-run',
+                '--target='.$exportTarget,
+                '--package=acme/user-module',
+                '--namespace=Acme\\UserModule',
+                '--format=json',
+            ],
+            $environment,
+        );
+        $secondExport = $this->artisan(
+            $application,
+            [
+                'moduark:export',
+                'User',
+                '--dry-run',
+                '--target='.$exportTarget,
+                '--package=acme/user-module',
+                '--namespace=Acme\\UserModule',
+                '--format=json',
+            ],
+            $environment,
+        );
+        $export = json_decode($firstExport, true, 512, JSON_THROW_ON_ERROR);
+
+        if ($firstExport !== $secondExport
+            || ! is_array($export)
+            || ($export['status'] ?? null) !== 'planned'
+            || ($export['blockers'] ?? null) !== []
+            || file_exists($application.'/'.$exportTarget)) {
+            throw new RuntimeException('Export dry-run was not deterministic, ready, or read-only.');
+        }
+
         $test = json_decode($this->artisan(
             $application,
             ['moduark:test', 'User', '--list', '--format=json'],
