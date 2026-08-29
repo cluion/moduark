@@ -1043,6 +1043,19 @@ PHP;
             throw new RuntimeException('The re-enabled Order Module was not restored to the cached resource manifest.');
         }
 
+        $extractability = json_decode($this->artisan(
+            $application,
+            ['moduark:doctor', 'Order', '--extractable', '--format=json'],
+            $environment,
+        ), true, 512, JSON_THROW_ON_ERROR);
+
+        if (! is_array($extractability)
+            || ($extractability['mode'] ?? null) !== 'extractability'
+            || ($extractability['status'] ?? null) !== 'ready_for_export_dry_run'
+            || ($extractability['blockers'] ?? null) !== []) {
+            throw new RuntimeException('Extractability diagnostics blocked the nwidart Module layout.');
+        }
+
         $this->artisan($application, ['moduark:clear'], $environment);
     }
 

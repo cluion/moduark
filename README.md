@@ -734,7 +734,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `moduark:graph [module] [--view=module\|capability\|combined] [--format=text\|mermaid]` | Render direct, Capability, or combined relationships and optionally select one neighborhood |
 | `moduark:inspect {module}` | Inspect one Module's identity, dependencies, providers, Capabilities, owned tables, and Public API convention |
 | `moduark:resources [module] [--format=text\|json]` | Inspect the canonical enabled resource manifest and deterministic collisions |
-| `moduark:doctor [module] [--format=text\|json]` | Diagnose framework support, Module state, dependencies, resources, sources, handlers, and collisions |
+| `moduark:doctor [module] [--extractable] [--format=text\|json]` | Diagnose runtime health or whether one active Module can enter export dry-run planning |
 | `moduark:migrate {module} [--format=text\|json]` | Run only the selected active Module's forward migrations |
 | `moduark:seed {module} [--format=text\|json]` | Run only seeders declared by the selected active Module |
 | `moduark:test {module} [arguments...] [--runner=auto\|phpunit\|pest] [--list] [--format=text\|json]` | Run or list the selected active Module's declared test paths |
@@ -884,6 +884,26 @@ provider, consumer Port and Adapter, provided Capabilities, explicit owned
 tables, explicit exports, and symbols exposed by the current `Contracts/`,
 `Data/`, `Events/`, and Module-entry convention. The two Public API views remain
 separate so Level 3 narrowing is directly reviewable.
+
+Preview extractability diagnostics are read-only:
+
+```bash
+php artisan moduark:doctor Order --extractable
+php artisan moduark:doctor Order --extractable --format=json
+```
+
+The report checks the supported standalone or nwidart source layout, entry-class
+autoload identity, provider and file-resource ownership, and declared metadata
+classes outside every active Module or Composer vendor tree. Exit `0` and
+`ready_for_export_dry_run` mean only that the Module can enter the future export
+planning phase; they do not prove Composer dependencies, package Testbench
+installation, or independent test execution. Blockers use exit `1`; invalid or
+inactive Modules use exit `2`. See
+[ADR-0061](docs/adr/0061-extractability-diagnostics-contract.md).
+
+For nwidart layouts, provider classes remain owned by the `app/` source root,
+while routes, migrations, views, and other file-backed resources may live in
+the full Module root beside `app/`.
 
 Application bootstrap happens before Artisan invokes a command. A configuration,
 discovery, metadata, or runtime Capability-resolution exception raised during

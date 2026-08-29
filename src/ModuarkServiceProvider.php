@@ -60,6 +60,7 @@ use Cluion\Moduark\Console\ModuleTestCommand;
 use Cluion\Moduark\Discovery\ModuleActivationSet;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
 use Cluion\Moduark\Discovery\NwidartModuleActivationResolver;
+use Cluion\Moduark\Extraction\ExtractabilityInspector;
 use Cluion\Moduark\Graph\CapabilityGraphBuilder;
 use Cluion\Moduark\Graph\CombinedGraphBuilder;
 use Cluion\Moduark\Graph\Export\MermaidCapabilityGraphExporter;
@@ -232,6 +233,16 @@ final class ModuarkServiceProvider extends ServiceProvider
         $this->app->singleton(TextModuleGraphExporter::class);
         $this->app->singleton(MermaidModuleGraphExporter::class);
         $this->app->singleton(ModuleInspectionBuilder::class);
+        $this->app->singleton(
+            ExtractabilityInspector::class,
+            fn (): ExtractabilityInspector => new ExtractabilityInspector(
+                $this->app->make(ModuleRegistry::class),
+                $this->app->make(ModuleMetadataCompiler::class),
+                $this->app->make(ResourceManifest::class),
+                $this->app->make(ModulesConfig::class),
+                $this->app->basePath('vendor'),
+            ),
+        );
         $this->app->singleton(GeneratorRegistry::class);
 
         foreach (ModuleMakerType::cases() as $descriptor) {

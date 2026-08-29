@@ -13,6 +13,7 @@ use Cluion\Moduark\Architecture\RulePresets;
 use Cluion\Moduark\Capability;
 use Cluion\Moduark\CapabilityRequirement;
 use Cluion\Moduark\Configuration\ModulesConfig;
+use Cluion\Moduark\Extraction\ExtractabilityReport;
 use Cluion\Moduark\Generation\GenerationFileTemplate;
 use Cluion\Moduark\Generation\GenerationOptions;
 use Cluion\Moduark\Generation\GenerationPlan;
@@ -172,6 +173,7 @@ final class PublicContractTest extends TestCase
         self::assertSame(1, SuppressionManifest::SCHEMA_VERSION);
         self::assertSame(1, ResourceManifest::SCHEMA_VERSION);
         self::assertSame(1, ModuleAssetManifest::SCHEMA_VERSION);
+        self::assertSame(1, ExtractabilityReport::SCHEMA_VERSION);
 
         $output = new BufferedOutput;
         $exitCode = $this->application()->make(Kernel::class)->call(
@@ -348,6 +350,7 @@ final class PublicContractTest extends TestCase
             'format' => 'text',
         ]);
         $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:doctor'), [
+            'extractable' => false,
             'format' => 'text',
         ]);
         $this->assertOptionDefaults($this->documentedCommand($commands, 'moduark:migrate'), [

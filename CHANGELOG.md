@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a permanent cold/cached active-set parity fixture covering list,
   inspect, doctor, resources, every graph, source analysis, Module cache,
   providers, Capabilities, and runtime resources.
+- Added Preview `moduark:doctor <module> --extractable` diagnostics with a
+  deterministic schema and blockers for layout, autoload, provider/resource
+  ownership, and declared application-global metadata coupling.
 
 ## [1.2.0] - 2026-08-29
 

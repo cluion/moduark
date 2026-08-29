@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Cluion\Moduark\Console;
 
 use Cluion\Moduark\Architecture\ExitPolicy;
+use Cluion\Moduark\Extraction\ExtractabilityInspector;
+use Cluion\Moduark\Extraction\ExtractabilityReport;
 use Cluion\Moduark\Resources\ResourceInspector;
 use Illuminate\Console\Command;
 use InvalidArgumentException;
@@ -15,13 +17,16 @@ final class ModuleDoctorCommand extends Command
     /** @var string */
     protected $signature = 'moduark:doctor
         {module? : Module name to diagnose}
+        {--extractable : Diagnose whether one active Module can enter export dry-run}
         {--format=text : Output format: text or json}';
 
     /** @var string */
     protected $description = 'Diagnose Module runtime resources and prerequisites';
 
-    public function __construct(private readonly ResourceInspector $inspector)
-    {
+    public function __construct(
+        private readonly ResourceInspector $inspector,
+        private readonly ExtractabilityInspector $extractability,
+    ) {
         parent::__construct();
     }
 
@@ -33,6 +38,10 @@ final class ModuleDoctorCommand extends Command
 
         if (! is_string($format) || ! in_array($format, ['text', 'json'], true)) {
             return $this->failOutput($format, 'The doctor output format must be text or json.');
+        }
+
+        if ($this->option('extractable') === true) {
+            return $this->extractability($module, $format);
         }
 
         try {
@@ -74,6 +83,81 @@ final class ModuleDoctorCommand extends Command
         }
 
         return $exitCode;
+    }
+
+    private function extractability(?string $module, string $format): int
+    {
+        if ($module === null) {
+            return $this->extractabilityError(
+                $format,
+                'The --extractable option requires one active Module name.',
+            );
+        }
+
+        try {
+            $report = $this->extractability->inspect($module);
+        } catch (InvalidArgumentException $exception) {
+            return $this->extractabilityError($format, $exception->getMessage());
+        }
+
+        $exitCode = $report->readyForExportDryRun()
+            ? ExitPolicy::SUCCESS
+            : ExitPolicy::VIOLATIONS_FOUND;
+        $payload = [
+            ...$report->toArray(),
+            'exit_code' => $exitCode,
+            'error' => null,
+        ];
+
+        if ($format === 'json') {
+            return $this->json($payload, $exitCode);
+        }
+
+        $this->table(
+            ['Code', 'Category', 'Status', 'Message', 'Evidence'],
+            array_map(
+                static fn ($check): array => [
+                    $check->code(),
+                    $check->category(),
+                    $check->status(),
+                    $check->message(),
+                    implode(PHP_EOL, $check->evidence()),
+                ],
+                $report->checks(),
+            ),
+        );
+
+        if ($report->readyForExportDryRun()) {
+            $this->components->info(
+                "Module [{$report->module()->name()}] is ready for export dry-run planning.",
+            );
+        } else {
+            $this->components->error(
+                "Module [{$report->module()->name()}] is blocked from export dry-run planning.",
+            );
+        }
+
+        return $exitCode;
+    }
+
+    private function extractabilityError(string $format, string $message): int
+    {
+        if ($format === 'json') {
+            return $this->json([
+                'schema_version' => ExtractabilityReport::SCHEMA_VERSION,
+                'mode' => 'extractability',
+                'status' => 'error',
+                'module' => null,
+                'checks' => [],
+                'blockers' => [],
+                'exit_code' => ExitPolicy::TOOL_ERROR,
+                'error' => $message,
+            ], ExitPolicy::TOOL_ERROR);
+        }
+
+        $this->components->error($message);
+
+        return ExitPolicy::TOOL_ERROR;
     }
 
     private function failOutput(mixed $format, string $message): int

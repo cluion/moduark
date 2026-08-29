@@ -155,6 +155,15 @@ metadata; `inspect` requires an active Module. This semantic boundary is the
 same on cold and Module-cached boot. No additional `--enabled-only` switch is
 defined because aggregate surfaces are already active-only.
 
+The Unreleased `1.3` Preview also adds the read-only form
+`moduark:doctor {module} --extractable [--format=text|json]`. Its JSON schema
+version `1` reports ordered checks and blockers for supported source layout,
+autoload identity, provider/resource ownership, and declared application-global
+metadata coupling. Status `ready_for_export_dry_run` with exit `0` authorizes
+only a later export planning phase; `blocked` uses exit `1`, and invalid or
+inactive Modules use `error` with exit `2`. It does not claim Composer dependency
+inference, package Testbench installation, or independent test execution.
+
 The following commands and their documented arguments and options are Stable:
 
 ```text

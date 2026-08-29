@@ -1290,6 +1290,19 @@ PHP;
             throw new RuntimeException('moduark:doctor did not report a healthy fresh-install runtime.');
         }
 
+        $extractability = json_decode($this->artisan(
+            $application,
+            ['moduark:doctor', 'User', '--extractable', '--format=json'],
+            $environment,
+        ), true, 512, JSON_THROW_ON_ERROR);
+
+        if (! is_array($extractability)
+            || ($extractability['mode'] ?? null) !== 'extractability'
+            || ($extractability['status'] ?? null) !== 'ready_for_export_dry_run'
+            || ($extractability['blockers'] ?? null) !== []) {
+            throw new RuntimeException('Extractability diagnostics blocked the fresh-install Module.');
+        }
+
         $test = json_decode($this->artisan(
             $application,
             ['moduark:test', 'User', '--list', '--format=json'],
