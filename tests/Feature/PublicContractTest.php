@@ -161,9 +161,12 @@ final class PublicContractTest extends TestCase
     {
         $configuration = $this->application()->make(ModulesConfig::class)->all();
 
-        self::assertSame(['path', 'activation', 'architecture'], array_keys($configuration));
+        self::assertSame(['path', 'activation', 'generation', 'architecture'], array_keys($configuration));
         self::assertIsArray($configuration['activation']);
         self::assertSame(['path'], array_keys($configuration['activation']));
+        self::assertIsArray($configuration['generation']);
+        self::assertSame(['native_bridge'], array_keys($configuration['generation']));
+        self::assertFalse($configuration['generation']['native_bridge']);
         self::assertIsArray($configuration['architecture']);
         self::assertSame(
             ['level', 'baseline', 'suppressions', 'rules'],

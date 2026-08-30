@@ -76,7 +76,8 @@ particular, `moduark:make` intentionally rejects an external Module path. See
 See [ADR-0047](docs/adr/0047-nwidart-interoperability.md),
 [ADR-0048](docs/adr/0048-nwidart-active-module-set.md),
 [ADR-0059](docs/adr/0059-atomic-activation-state-and-cache-invalidation.md),
-[ADR-0060](docs/adr/0060-active-module-set-diagnostic-parity.md), and the
+[ADR-0060](docs/adr/0060-active-module-set-diagnostic-parity.md),
+[ADR-0071](docs/adr/0071-native-generator-bridge-plan.md), and the
 [upgrade guide](UPGRADING.md) for the RC.1 namespace migration.
 
 The optional `cluion/moduark-phpstan` `v0.2.0` companion supports the Moduark
@@ -693,6 +694,11 @@ php artisan vendor:publish --tag=moduark-config
 return [
     'path' => app_path('Modules'),
 
+    'generation' => [
+        // Unreleased 1.3 plan-only opt-in; this does not mutate make:* commands.
+        'native_bridge' => false,
+    ],
+
     'architecture' => [
         'level' => 1,
         'baseline' => base_path('moduark-baseline.json'),
@@ -729,6 +735,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `moduark:clear` | Remove cached Module metadata and incremental source analysis |
 | `moduark:enable {module} [--dry-run] [--format=text\|json]` | Validate and enable a Module, or preview the exact plan with `--dry-run` |
 | `moduark:disable {module} [--dry-run] [--format=text\|json]` | Validate and disable a Module, or preview the exact plan with `--dry-run` |
+| `moduark:native-bridge [--format=text\|json]` | Inspect the Preview native `make:* --module` opt-in capability and collision plan without modifying Laravel commands |
 | `moduark:list` | List discovered Modules in deterministic order |
 | `moduark:check [--level=0..3] [--format=text\|json\|github] [--show-suppressions]` | Run the effective architecture rules, audit suppressions, and optionally emit JSON or GitHub Actions annotations |
 | `moduark:graph [module] [--view=module\|capability\|combined] [--format=text\|mermaid]` | Render direct, Capability, or combined relationships and optionally select one neighborhood |
@@ -745,6 +752,15 @@ plan without mutation. Without `--dry-run`, an executable non-no-op plan clears
 Module metadata, source-analysis, route, and event caches before atomically
 committing the authoritative file state. The running process is never
 hot-switched; start a new application process to consume the committed set.
+
+The unreleased `1.3` native bridge command is plan-only. It inspects the 31
+Module-owned Laravel Maker candidates, their concrete command owner, required
+`name` argument, and any existing `--module` option. The default
+`moduark.generation.native_bridge=false` leaves every `make:*` definition
+untouched. Setting it to `true` changes the plan to `planned` or `blocked`; LC2-A
+still does not inject `--module`, so generation continues through
+`moduark:make`. JSON schema version `1` exposes stable command, ownership,
+signature, and option-collision diagnostics.
 
 `moduark:check` exit codes are part of the Stable `1.x` contract:
 

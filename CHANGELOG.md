@@ -50,6 +50,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added explicit `moduark:export-set --materialize` package-set preparation,
   dependency-ordered publication, optimistic collision rechecks, rollback, and
   machine-readable residual-target and cleanup-failure evidence.
+- Added the plan-only `moduark:native-bridge` capability report with explicit
+  opt-in, reviewed Laravel 12 / 13 Maker ownership, stable command / signature /
+  option collision diagnostics, and a default zero-mutation boundary.
 
 ### Changed
 

@@ -81,6 +81,36 @@ final class ModulesConfigTest extends TestCase
 
         self::assertSame('/state/moduark-modules.json', $configured->activationPath());
         self::assertSame('/app/moduark-modules.json', $legacy->activationPath());
+        self::assertFalse($legacy->nativeGeneratorBridgeEnabled());
+    }
+
+    public function test_native_generator_bridge_is_explicitly_opt_in(): void
+    {
+        $configuration = ModulesConfig::from(
+            [
+                'path' => '/app/Modules',
+                'generation' => ['native_bridge' => false],
+                'architecture' => ['level' => 1, 'rules' => []],
+            ],
+            ['generation' => ['native_bridge' => true]],
+        );
+
+        self::assertTrue($configuration->nativeGeneratorBridgeEnabled());
+    }
+
+    public function test_native_generator_bridge_rejects_non_boolean_configuration(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('native_bridge configuration must be a boolean');
+
+        ModulesConfig::from(
+            [
+                'path' => '/app/Modules',
+                'generation' => ['native_bridge' => false],
+                'architecture' => ['level' => 1, 'rules' => []],
+            ],
+            ['generation' => ['native_bridge' => 'true']],
+        );
     }
 
     public function test_invalid_level_is_rejected(): void

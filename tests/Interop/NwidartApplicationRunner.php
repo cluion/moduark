@@ -630,6 +630,8 @@ PHP;
         );
         $moduarkEnable = $this->artisan($application, ['help', 'moduark:enable'], $environment);
         $moduarkDisable = $this->artisan($application, ['help', 'moduark:disable'], $environment);
+        $nativeBridge = $this->artisan($application, ['help', 'moduark:native-bridge'], $environment);
+        $nativeModel = $this->artisan($application, ['help', 'make:model'], $environment);
 
         $this->assertContains('Create a new module.', $nwidart, 'nwidart module:make was overwritten.');
         $this->assertContains('[<name>...]', $nwidart, 'nwidart module:make lost its name list argument.');
@@ -682,6 +684,35 @@ PHP;
         $this->assertContains('--format', $moduarkEnable, 'Moduark enable lost its output format.');
         $this->assertContains('--dry-run', $moduarkDisable, 'Moduark disable lost its dry-run gate.');
         $this->assertContains('--format', $moduarkDisable, 'Moduark disable lost its output format.');
+        $this->assertContains(
+            'Inspect the opt-in native Laravel Maker bridge plan',
+            $nativeBridge,
+            'Moduark native bridge plan command is unavailable.',
+        );
+        $this->assertContains('--format', $nativeBridge, 'Moduark native bridge plan lost JSON output.');
+        $this->assertNotContains(
+            '--module',
+            $nativeModel,
+            'Default Moduark configuration mutated Laravel make:model under nwidart.',
+        );
+        $nativePlan = json_decode(
+            $this->artisan($application, ['moduark:native-bridge', '--format=json'], $environment),
+            true,
+            512,
+            JSON_THROW_ON_ERROR,
+        );
+
+        if (! is_array($nativePlan)
+            || ($nativePlan['status'] ?? null) !== 'disabled'
+            || ($nativePlan['opt_in'] ?? null) !== false
+            || ($nativePlan['mutation'] ?? null) !== false
+            || ($nativePlan['summary'] ?? null) !== [
+                'candidates' => 31,
+                'ready' => 31,
+                'blocked' => 0,
+            ]) {
+            throw new RuntimeException('The nwidart native generator bridge plan is invalid.');
+        }
         $this->assertContains('--factory', $moduark, 'Moduark resource maker lost its factory option.');
         $this->assertContains('--command', $moduark, 'Moduark Module Maker lost its command name option.');
         $this->assertContains(

@@ -95,6 +95,7 @@ These configuration identities are Stable:
 
 - `moduark.path`;
 - `moduark.activation.path` (Unreleased `1.3` Preview);
+- `moduark.generation.native_bridge` (Unreleased `1.3` Preview; plan-only);
 - `moduark.architecture.level`;
 - `moduark.architecture.baseline`;
 - `moduark.architecture.suppressions`;
@@ -237,6 +238,17 @@ publish the set. Ordinary failures roll back newly published targets; schema
 version `1` reports published, pre-rollback, remaining-target, and cleanup-failure
 evidence. This is failure-atomic recovery rather than a multi-directory
 filesystem transaction, and it does not install or publish packages.
+
+LC2-A adds the Preview, read-only
+`moduark:native-bridge [--format=text|json]` plan and the boolean
+`moduark.generation.native_bridge` opt-in, which defaults to `false`. Schema
+version `1` reports all 31 built-in Laravel Maker candidates, reviewed and
+actual command owners, readiness, stable diagnostics, aggregate counts, and
+explicit `mutation=false`. Disabled plans exit `0` even when diagnostics are
+present because no bridge is requested. Opted-in ready plans use `planned` and
+exit `0`; opted-in ownership, signature, missing-command, or existing
+`--module` collisions use `blocked` and exit `1`. LC2-A never changes a native
+command definition; actual decoration remains outside the published contract.
 
 The following commands and their documented arguments and options are Stable:
 

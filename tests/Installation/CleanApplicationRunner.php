@@ -259,6 +259,7 @@ final class CleanApplicationRunner
                 'moduark:resources',
                 'moduark:doctor',
                 'moduark:migrate',
+                'moduark:native-bridge',
                 'moduark:seed',
                 'moduark:test',
             ] as $command
@@ -280,6 +281,8 @@ final class CleanApplicationRunner
         }
 
         $version = $versionMatch[1];
+
+        $this->assertNativeGeneratorBridgePlan($application, $environment);
 
         $this->artisan($application, ['moduark:make-module', 'User'], $environment);
         $modulePath = $application.'/app/Modules/User/UserModule.php';
@@ -926,6 +929,88 @@ final class CleanApplicationRunner
             'major' => $major,
             'version' => $version,
         ];
+    }
+
+    /** @param array<string, string> $environment */
+    private function assertNativeGeneratorBridgePlan(string $application, array $environment): void
+    {
+        $beforeHelp = $this->artisan($application, ['help', 'make:model'], $environment);
+        $default = json_decode(
+            $this->artisan($application, ['moduark:native-bridge', '--format=json'], $environment),
+            true,
+            512,
+            JSON_THROW_ON_ERROR,
+        );
+
+        if (! is_array($default)
+            || ($default['schema_version'] ?? null) !== 1
+            || ($default['status'] ?? null) !== 'disabled'
+            || ($default['opt_in'] ?? null) !== false
+            || ($default['mutation'] ?? null) !== false
+            || ($default['summary'] ?? null) !== [
+                'candidates' => 31,
+                'ready' => 31,
+                'blocked' => 0,
+            ]) {
+            throw new RuntimeException('The default native generator bridge plan is invalid.');
+        }
+
+        $commands = $default['commands'] ?? null;
+
+        if (! is_array($commands) || count($commands) !== 31) {
+            throw new RuntimeException('The native generator bridge plan omitted reviewed Maker candidates.');
+        }
+
+        foreach ($commands as $command) {
+            if (! is_array($command)
+                || ($command['status'] ?? null) !== 'ready'
+                || ($command['diagnostics'] ?? null) !== []
+                || ($command['expected_class'] ?? null) !== ($command['actual_class'] ?? null)) {
+                throw new RuntimeException('A clean Laravel Maker is not bridge-ready.');
+            }
+        }
+
+        $configuration = <<<'PHP'
+<?php
+
+return [
+    'generation' => [
+        'native_bridge' => true,
+    ],
+];
+PHP;
+
+        if (file_put_contents($application.'/config/moduark.php', $configuration."\n") === false) {
+            throw new RuntimeException('Unable to enable the native generator bridge plan fixture.');
+        }
+
+        try {
+            $optedIn = json_decode(
+                $this->artisan($application, ['moduark:native-bridge', '--format=json'], $environment),
+                true,
+                512,
+                JSON_THROW_ON_ERROR,
+            );
+            $afterHelp = $this->artisan($application, ['help', 'make:model'], $environment);
+        } finally {
+            if (! unlink($application.'/config/moduark.php')) {
+                throw new RuntimeException('Unable to remove the native generator bridge plan fixture.');
+            }
+        }
+
+        if (! is_array($optedIn)
+            || ($optedIn['status'] ?? null) !== 'planned'
+            || ($optedIn['opt_in'] ?? null) !== true
+            || ($optedIn['mutation'] ?? null) !== false
+            || ($optedIn['summary'] ?? null) !== $default['summary']) {
+            throw new RuntimeException('The opted-in native generator bridge plan is invalid.');
+        }
+
+        if (str_contains($beforeHelp, '--module')
+            || str_contains($afterHelp, '--module')
+            || $beforeHelp !== $afterHelp) {
+            throw new RuntimeException('Native bridge planning mutated Laravel make:model.');
+        }
     }
 
     /** @param array<string, string> $environment */

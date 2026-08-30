@@ -11,6 +11,11 @@ return [
         'path' => base_path('moduark-modules.json'),
     ],
 
+    'generation' => [
+        // Native make:* command bridging remains opt-in and is currently plan-only.
+        'native_bridge' => false,
+    ],
+
     'architecture' => [
         // Levels 0 through 2 are Stable presets; Level 3 is Preview.
         'level' => 1,

@@ -58,6 +58,13 @@ final readonly class ModulesConfig
         return $activation['path'];
     }
 
+    public function nativeGeneratorBridgeEnabled(): bool
+    {
+        $generation = $this->values['generation'] ?? null;
+
+        return is_array($generation) && ($generation['native_bridge'] ?? false) === true;
+    }
+
     public function baselinePath(): ?string
     {
         /** @var array{baseline?: string, level: int, rules: array<string, mixed>} $architecture */
@@ -108,6 +115,20 @@ final readonly class ModulesConfig
 
         if (array_key_exists('activation', $values) && ! is_array($values['activation'])) {
             throw new InvalidArgumentException('The moduark.activation configuration must be an array.');
+        }
+
+        if (array_key_exists('generation', $values) && ! is_array($values['generation'])) {
+            throw new InvalidArgumentException('The moduark.generation configuration must be an array.');
+        }
+
+        $nativeBridge = is_array($values['generation'] ?? null)
+            ? ($values['generation']['native_bridge'] ?? false)
+            : false;
+
+        if (! is_bool($nativeBridge)) {
+            throw new InvalidArgumentException(
+                'The moduark.generation.native_bridge configuration must be a boolean.',
+            );
         }
 
         $activationPath = is_array($values['activation'] ?? null)

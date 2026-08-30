@@ -59,6 +59,7 @@ use Cluion\Moduark\Console\ModuleMigrateCommand;
 use Cluion\Moduark\Console\ModuleResourcesCommand;
 use Cluion\Moduark\Console\ModuleSeedCommand;
 use Cluion\Moduark\Console\ModuleTestCommand;
+use Cluion\Moduark\Console\NativeGeneratorBridgeCommand;
 use Cluion\Moduark\Discovery\ModuleActivationSet;
 use Cluion\Moduark\Discovery\ModuleDiscoverer;
 use Cluion\Moduark\Discovery\NwidartModuleActivationResolver;
@@ -95,6 +96,8 @@ use Cluion\Moduark\Generation\GeneratorRegistry;
 use Cluion\Moduark\Generation\ModuleMakerTargetResolver;
 use Cluion\Moduark\Generation\ModuleMakerType;
 use Cluion\Moduark\Generation\ModuleScaffoldPlanner;
+use Cluion\Moduark\Generation\NativeGeneratorBridgePlanner;
+use Cluion\Moduark\Generation\NativeGeneratorBridgePlanExporter;
 use Cluion\Moduark\Inspection\ModuleInspectionBuilder;
 use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
 use Cluion\Moduark\Lifecycle\ModuleOrderer;
@@ -355,6 +358,8 @@ final class ModuarkServiceProvider extends ServiceProvider
         $this->app->singleton(GenerationExecutor::class);
         $this->app->singleton(ModuleMakerTargetResolver::class);
         $this->app->singleton(ModuleScaffoldPlanner::class);
+        $this->app->singleton(NativeGeneratorBridgePlanner::class);
+        $this->app->singleton(NativeGeneratorBridgePlanExporter::class);
         $this->app->singleton(ModuleOrderer::class);
         $this->app->singleton(CapabilityResolver::class);
         $this->app->singleton(
@@ -469,6 +474,7 @@ final class ModuarkServiceProvider extends ServiceProvider
             ModuleResourcesCommand::class,
             ModuleSeedCommand::class,
             ModuleTestCommand::class,
+            NativeGeneratorBridgeCommand::class,
         ]);
 
         $this->optimizes('moduark:cache', 'moduark:clear');

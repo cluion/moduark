@@ -1,6 +1,7 @@
 # ADR-0032: Laravel Maker Integration Direction
 
-- Status: Accepted for the fourth `0.3.x` Developer Experience slice
+- Status: Accepted for the fourth `0.3.x` Developer Experience slice; native
+  bridge planning is extended by ADR-0071
 - Date: 2026-08-16
 
 ## Context
