@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use Cluion\Moduark\Architecture\ExitPolicy;
+use Cluion\Moduark\Export\ModuleExportFilesystem;
+use Cluion\Moduark\Export\NativeModuleExportFilesystem;
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Filesystem\Filesystem;
 use JsonException;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Tests\TestCase;
@@ -121,6 +124,178 @@ final class ModuleExportSetCommandTest extends TestCase
     }
 
     /** @throws JsonException */
+    public function test_it_materializes_every_package_after_preparing_the_complete_set(): void
+    {
+        $arguments = [
+            '--package' => [
+                'Order=acme/order-module:^1.0=>Acme\OrderModule',
+                'User=acme/user-module:^1.0=>Acme\UserModule',
+            ],
+            '--target' => [
+                'Order=packages/set-materialized-order',
+                'User=packages/set-materialized-user',
+            ],
+            '--format' => 'json',
+        ];
+        $filesystem = new Filesystem;
+        $userTarget = base_path('packages/set-materialized-user');
+        $orderTarget = base_path('packages/set-materialized-order');
+
+        try {
+            [, $planned] = $this->jsonOutput($arguments);
+            $arguments['--materialize'] = true;
+            [$exitCode, $exported] = $this->jsonOutput($arguments);
+
+            self::assertSame(ExitPolicy::SUCCESS, $exitCode);
+            self::assertSame('exported', $exported['status']);
+            self::assertTrue($exported['complete']);
+            self::assertFalse($exported['dry_run']);
+            self::assertSame([
+                'packages/set-materialized-user',
+                'packages/set-materialized-order',
+            ], $exported['published_targets']);
+            self::assertSame([], $exported['published_before_rollback']);
+            self::assertSame([], $exported['remaining_targets']);
+            self::assertSame([], $exported['rollback_failures']);
+            self::assertSame($planned['packages'], $exported['packages']);
+            self::assertDirectoryExists($userTarget);
+            self::assertDirectoryExists($orderTarget);
+            $orderComposer = json_decode(
+                $filesystem->get($orderTarget.'/composer.json'),
+                true,
+                512,
+                JSON_THROW_ON_ERROR,
+            );
+            self::assertIsArray($orderComposer);
+            $requirements = $orderComposer['require'] ?? null;
+            self::assertIsArray($requirements);
+            self::assertSame('^1.0', $requirements['acme/user-module']);
+            self::assertStringContainsString(
+                'use Acme\UserModule\UserModule;',
+                $filesystem->get($orderTarget.'/src/OrderModule.php'),
+            );
+            self::assertSame([], glob(base_path('packages/.moduark-export-set-*')) ?: []);
+        } finally {
+            $filesystem->deleteDirectory($userTarget);
+            $filesystem->deleteDirectory($orderTarget);
+        }
+    }
+
+    /** @throws JsonException */
+    public function test_second_publish_failure_rolls_back_the_first_target_and_all_staging(): void
+    {
+        $filesystem = new FailingPackageSetPublishFilesystem(2);
+        $this->application()->instance(ModuleExportFilesystem::class, $filesystem);
+        $userTarget = base_path('app/moduark-set-rollback-user');
+        $orderTarget = base_path('app/moduark-set-rollback-order');
+
+        try {
+            [$exitCode, $payload] = $this->jsonOutput([
+                '--package' => [
+                    'Order=acme/order-module:^1.0=>Acme\OrderModule',
+                    'User=acme/user-module:^1.0=>Acme\UserModule',
+                ],
+                '--target' => [
+                    'Order=app/moduark-set-rollback-order',
+                    'User=app/moduark-set-rollback-user',
+                ],
+                '--materialize' => true,
+                '--format' => 'json',
+            ]);
+
+            self::assertSame(ExitPolicy::TOOL_ERROR, $exitCode);
+            self::assertSame('error', $payload['status']);
+            self::assertFalse($payload['complete']);
+            self::assertFalse($payload['dry_run']);
+            self::assertSame([], $payload['published_targets']);
+            self::assertSame(['app/moduark-set-rollback-user'], $payload['published_before_rollback']);
+            self::assertSame([], $payload['remaining_targets']);
+            self::assertSame([], $payload['rollback_failures']);
+            self::assertIsString($payload['error']);
+            self::assertStringContainsString('Injected package-set publish failure', $payload['error']);
+            self::assertDirectoryDoesNotExist($userTarget);
+            self::assertDirectoryDoesNotExist($orderTarget);
+            self::assertSame([], glob(base_path('app/.moduark-export-set-*')) ?: []);
+        } finally {
+            $filesystem->native()->delete($userTarget);
+            $filesystem->native()->delete($orderTarget);
+        }
+    }
+
+    /** @throws JsonException */
+    public function test_late_collision_is_preserved_and_never_reported_as_published(): void
+    {
+        $filesystem = new LateCollisionPackageSetFilesystem;
+        $this->application()->instance(ModuleExportFilesystem::class, $filesystem);
+        $userTarget = base_path('app/moduark-set-late-user');
+        $orderTarget = base_path('app/moduark-set-late-order');
+
+        try {
+            [$exitCode, $payload] = $this->jsonOutput([
+                '--package' => [
+                    'User=acme/user-module:^1.0=>Acme\UserModule',
+                    'Order=acme/order-module:^1.0=>Acme\OrderModule',
+                ],
+                '--target' => [
+                    'User=app/moduark-set-late-user',
+                    'Order=app/moduark-set-late-order',
+                ],
+                '--materialize' => true,
+                '--format' => 'json',
+            ]);
+
+            self::assertSame(ExitPolicy::TOOL_ERROR, $exitCode);
+            self::assertSame([], $payload['published_before_rollback']);
+            self::assertSame([], $payload['remaining_targets']);
+            self::assertSame([], $payload['rollback_failures']);
+            self::assertFileExists($userTarget.'/external.txt');
+            self::assertSame("external collision\n", file_get_contents($userTarget.'/external.txt'));
+            self::assertDirectoryDoesNotExist($orderTarget);
+            self::assertSame([], glob(base_path('app/.moduark-export-set-*')) ?: []);
+        } finally {
+            $filesystem->native()->delete($userTarget);
+            $filesystem->native()->delete($orderTarget);
+        }
+    }
+
+    /** @throws JsonException */
+    public function test_failed_rollback_reports_the_remaining_published_target(): void
+    {
+        $filesystem = new FailingPackageSetPublishFilesystem(
+            2,
+            base_path('app/moduark-set-remaining-user'),
+        );
+        $this->application()->instance(ModuleExportFilesystem::class, $filesystem);
+        $userTarget = base_path('app/moduark-set-remaining-user');
+        $orderTarget = base_path('app/moduark-set-remaining-order');
+
+        try {
+            [$exitCode, $payload] = $this->jsonOutput([
+                '--package' => [
+                    'User=acme/user-module:^1.0=>Acme\UserModule',
+                    'Order=acme/order-module:^1.0=>Acme\OrderModule',
+                ],
+                '--target' => [
+                    'User=app/moduark-set-remaining-user',
+                    'Order=app/moduark-set-remaining-order',
+                ],
+                '--materialize' => true,
+                '--format' => 'json',
+            ]);
+
+            self::assertSame(ExitPolicy::TOOL_ERROR, $exitCode);
+            self::assertSame(['app/moduark-set-remaining-user'], $payload['published_before_rollback']);
+            self::assertSame(['app/moduark-set-remaining-user'], $payload['remaining_targets']);
+            self::assertSame([$userTarget], $payload['rollback_failures']);
+            self::assertDirectoryExists($userTarget);
+            self::assertDirectoryDoesNotExist($orderTarget);
+        } finally {
+            $filesystem->native()->delete($userTarget);
+            $filesystem->native()->delete($orderTarget);
+        }
+    }
+
+    /** @throws JsonException */
     public function test_overlapping_targets_block_the_complete_set(): void
     {
         [$exitCode, $payload] = $this->jsonOutput([
@@ -144,6 +319,33 @@ final class ModuleExportSetCommandTest extends TestCase
         self::assertSame('MOD-EXPORT-SET-TARGET-001', $targetBlocker['code']);
         self::assertSame(['packages/overlap<->packages/overlap/order'], $targetBlocker['evidence']);
         self::assertDirectoryDoesNotExist(base_path('packages/overlap'));
+    }
+
+    /** @throws JsonException */
+    public function test_materialization_keeps_a_blocked_set_read_only_and_reports_no_publish_evidence(): void
+    {
+        [$exitCode, $payload] = $this->jsonOutput([
+            '--package' => [
+                'User=acme/user-module:^1.0=>Acme\UserModule',
+                'Order=acme/order-module:^1.0=>Acme\OrderModule',
+            ],
+            '--target' => [
+                'User=packages/set-blocked',
+                'Order=packages/set-blocked/order',
+            ],
+            '--materialize' => true,
+            '--format' => 'json',
+        ]);
+
+        self::assertSame(ExitPolicy::VIOLATIONS_FOUND, $exitCode);
+        self::assertSame('blocked', $payload['status']);
+        self::assertTrue($payload['complete']);
+        self::assertFalse($payload['dry_run']);
+        self::assertSame([], $payload['published_targets']);
+        self::assertSame([], $payload['published_before_rollback']);
+        self::assertSame([], $payload['remaining_targets']);
+        self::assertSame([], $payload['rollback_failures']);
+        self::assertDirectoryDoesNotExist(base_path('packages/set-blocked'));
     }
 
     /** @throws JsonException */
@@ -223,8 +425,28 @@ final class ModuleExportSetCommandTest extends TestCase
         }
     }
 
+    /** @throws JsonException */
+    public function test_invalid_materialization_input_reports_empty_publish_evidence(): void
+    {
+        [$exitCode, $payload] = $this->jsonOutput([
+            '--package' => [],
+            '--target' => [],
+            '--materialize' => true,
+            '--format' => 'json',
+        ]);
+
+        self::assertSame(ExitPolicy::TOOL_ERROR, $exitCode);
+        self::assertSame('error', $payload['status']);
+        self::assertFalse($payload['complete']);
+        self::assertFalse($payload['dry_run']);
+        self::assertSame([], $payload['published_targets']);
+        self::assertSame([], $payload['published_before_rollback']);
+        self::assertSame([], $payload['remaining_targets']);
+        self::assertSame([], $payload['rollback_failures']);
+    }
+
     /**
-     * @param array<string, list<string>|string> $arguments
+     * @param array<string, bool|list<string>|string> $arguments
      * @return array{int, array<string, mixed>, string}
      * @throws JsonException
      */
@@ -247,5 +469,117 @@ final class ModuleExportSetCommandTest extends TestCase
         }
 
         return [$exitCode, $normalized, $json];
+    }
+}
+
+final class FailingPackageSetPublishFilesystem implements ModuleExportFilesystem
+{
+    private int $moves = 0;
+
+    private NativeModuleExportFilesystem $native;
+
+    public function __construct(
+        private readonly int $failOnMove,
+        private readonly ?string $failDeleteTarget = null,
+    ) {
+        $this->native = new NativeModuleExportFilesystem;
+    }
+
+    public function native(): NativeModuleExportFilesystem
+    {
+        return $this->native;
+    }
+
+    public function ensureDirectory(string $path): void
+    {
+        $this->native->ensureDirectory($path);
+    }
+
+    public function read(string $path): string
+    {
+        return $this->native->read($path);
+    }
+
+    public function write(string $path, string $contents): void
+    {
+        $this->native->write($path, $contents);
+    }
+
+    public function moveDirectory(string $source, string $destination): void
+    {
+        $this->moves++;
+
+        if ($this->moves === $this->failOnMove) {
+            throw new \RuntimeException('Injected package-set publish failure.');
+        }
+
+        $this->native->moveDirectory($source, $destination);
+    }
+
+    public function delete(string $path): void
+    {
+        if ($this->failDeleteTarget !== null && $path === $this->failDeleteTarget) {
+            throw new \RuntimeException('Injected package-set rollback failure.');
+        }
+
+        $this->native->delete($path);
+    }
+
+    public function removeEmptyDirectory(string $path): void
+    {
+        $this->native->removeEmptyDirectory($path);
+    }
+}
+
+final class LateCollisionPackageSetFilesystem implements ModuleExportFilesystem
+{
+    private bool $injected = false;
+
+    private NativeModuleExportFilesystem $native;
+
+    public function __construct()
+    {
+        $this->native = new NativeModuleExportFilesystem;
+    }
+
+    public function native(): NativeModuleExportFilesystem
+    {
+        return $this->native;
+    }
+
+    public function ensureDirectory(string $path): void
+    {
+        $this->native->ensureDirectory($path);
+    }
+
+    public function read(string $path): string
+    {
+        return $this->native->read($path);
+    }
+
+    public function write(string $path, string $contents): void
+    {
+        $this->native->write($path, $contents);
+    }
+
+    public function moveDirectory(string $source, string $destination): void
+    {
+        if (! $this->injected) {
+            $this->injected = true;
+            $this->native->ensureDirectory($destination);
+            $this->native->write($destination.'/external.txt', "external collision\n");
+        }
+
+        $this->native->moveDirectory($source, $destination);
+    }
+
+    public function delete(string $path): void
+    {
+        $this->native->delete($path);
+    }
+
+    public function removeEmptyDirectory(string $path): void
+    {
+        $this->native->removeEmptyDirectory($path);
     }
 }

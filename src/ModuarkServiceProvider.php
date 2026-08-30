@@ -72,7 +72,10 @@ use Cluion\Moduark\Export\ModuleExportSetPlanExporter;
 use Cluion\Moduark\Export\ModuleExportSetPlanner;
 use Cluion\Moduark\Export\ModuleExportFilesystem;
 use Cluion\Moduark\Export\ModuleExportMaterializer;
+use Cluion\Moduark\Export\ModuleExportPackagePreparer;
 use Cluion\Moduark\Export\ModuleExportRenderer;
+use Cluion\Moduark\Export\ModuleExportSetMaterializer;
+use Cluion\Moduark\Export\ModuleExportTargetGuard;
 use Cluion\Moduark\Export\NativeModuleExportFilesystem;
 use Cluion\Moduark\Graph\CapabilityGraphBuilder;
 use Cluion\Moduark\Graph\CombinedGraphBuilder;
@@ -313,12 +316,31 @@ final class ModuarkServiceProvider extends ServiceProvider
         $this->app->singleton(ModuleExportRenderer::class);
         $this->app->singleton(ModuleExportFilesystem::class, NativeModuleExportFilesystem::class);
         $this->app->singleton(
-            ModuleExportMaterializer::class,
-            fn (): ModuleExportMaterializer => new ModuleExportMaterializer(
+            ModuleExportPackagePreparer::class,
+            fn (): ModuleExportPackagePreparer => new ModuleExportPackagePreparer(
                 $this->app->make(ModuleExportFilesystem::class),
                 $this->app->make(ModuleExportRenderer::class),
                 $this->app->make(ModulesConfig::class),
-                $this->app->basePath(),
+            ),
+        );
+        $this->app->singleton(
+            ModuleExportTargetGuard::class,
+            fn (): ModuleExportTargetGuard => new ModuleExportTargetGuard($this->app->basePath()),
+        );
+        $this->app->singleton(
+            ModuleExportMaterializer::class,
+            fn (): ModuleExportMaterializer => new ModuleExportMaterializer(
+                $this->app->make(ModuleExportFilesystem::class),
+                $this->app->make(ModuleExportPackagePreparer::class),
+                $this->app->make(ModuleExportTargetGuard::class),
+            ),
+        );
+        $this->app->singleton(
+            ModuleExportSetMaterializer::class,
+            fn (): ModuleExportSetMaterializer => new ModuleExportSetMaterializer(
+                $this->app->make(ModuleExportFilesystem::class),
+                $this->app->make(ModuleExportPackagePreparer::class),
+                $this->app->make(ModuleExportTargetGuard::class),
             ),
         );
         $this->app->singleton(GeneratorRegistry::class);

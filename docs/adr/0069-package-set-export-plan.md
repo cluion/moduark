@@ -13,8 +13,9 @@ plan is reviewable would make partial output and rollback semantics ambiguous.
 
 ## Decision
 
-- Add the Preview, read-only `moduark:export-set` command. It always reports a
-  plan and never writes package files.
+- Add the Preview `moduark:export-set` command as a read-only planning surface.
+  Without an explicit mutation option it reports a plan and never writes package
+  files.
 - A repeatable `--package='Module=vendor/package:constraint=>Namespace'` option
   reuses the LC1-G package identity, Composer constraint, and namespace parser.
   Each selected Module must also have exactly one repeatable
@@ -52,11 +53,10 @@ existing two-package materialization and transitive-install adoption gate.
 
 ## Boundaries
 
-This slice does not materialize a package set, create a transaction spanning
-multiple targets, invoke Composer, choose versions, inspect remote repositories,
-publish packages, or change the single-package materialization command. A later
-slice must define atomic set materialization and recovery semantics before
-`moduark:export-set` may write files.
+This planning slice does not materialize a package set, invoke Composer, choose
+versions, inspect remote repositories, publish packages, or change the
+single-package materialization command. ADR-0070 later adds explicit opt-in
+materialization and rollback evidence without changing the read-only default.
 
 ## Consequences
 

@@ -15,14 +15,14 @@ final class ModuleExportSetPlanExporter
         ]);
     }
 
-    public function jsonFailure(int $exitCode, string $message): string
+    public function jsonFailure(int $exitCode, string $message, bool $dryRun = true): string
     {
         return $this->encode([
             'schema_version' => ModuleExportSetPlan::SCHEMA_VERSION,
             'status' => 'error',
             'complete' => false,
             'operation' => 'export-set',
-            'dry_run' => true,
+            'dry_run' => $dryRun,
             'order' => [],
             'summary' => [
                 'packages' => 0,
@@ -33,8 +33,63 @@ final class ModuleExportSetPlanExporter
             ],
             'packages' => [],
             'blockers' => [],
+            ...($dryRun ? [] : [
+                'published_targets' => [],
+                'published_before_rollback' => [],
+                'remaining_targets' => [],
+                'rollback_failures' => [],
+            ]),
             'exit_code' => $exitCode,
             'error' => $message,
+        ]);
+    }
+
+    public function jsonMaterialized(
+        ModuleExportSetPlan $plan,
+        ModuleExportSetExecutionResult $result,
+    ): string {
+        return $this->encode([
+            ...$plan->toArray(),
+            'status' => 'exported',
+            'dry_run' => false,
+            'published_targets' => $result->publishedTargets(),
+            'published_before_rollback' => [],
+            'remaining_targets' => [],
+            'rollback_failures' => [],
+            'exit_code' => 0,
+            'error' => null,
+        ]);
+    }
+
+    public function jsonMaterializationBlocked(ModuleExportSetPlan $plan): string
+    {
+        return $this->encode([
+            ...$plan->toArray(),
+            'dry_run' => false,
+            'published_targets' => [],
+            'published_before_rollback' => [],
+            'remaining_targets' => [],
+            'rollback_failures' => [],
+            'exit_code' => 1,
+            'error' => null,
+        ]);
+    }
+
+    public function jsonMaterializationFailure(
+        ModuleExportSetPlan $plan,
+        ModuleExportSetExecutionResult $result,
+    ): string {
+        return $this->encode([
+            ...$plan->toArray(),
+            'status' => 'error',
+            'complete' => false,
+            'dry_run' => false,
+            'published_targets' => [],
+            'published_before_rollback' => $result->publishedBeforeRollback(),
+            'remaining_targets' => $result->remainingTargets(),
+            'rollback_failures' => $result->rollbackFailures(),
+            'exit_code' => 2,
+            'error' => $result->error(),
         ]);
     }
 

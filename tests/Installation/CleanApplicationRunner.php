@@ -1505,69 +1505,66 @@ PHP;
             throw new RuntimeException('Package-set export plan was not deterministic, ordered, or read-only.');
         }
 
-        $orderTarget = 'packages/moduark-order-plan';
-        $orderArguments = [
-            'moduark:export',
-            'Order',
-            '--target='.$orderTarget,
-            '--package=acme/order-module',
-            '--namespace=Acme\OrderModule',
-            '--dependency=User=acme/user-module:^1.0=>Acme\UserModule',
-            '--format=json',
-        ];
-        $orderDryRun = $orderArguments;
-        $orderDryRun[] = '--dry-run';
-        $firstOrderPlan = $this->artisan($application, $orderDryRun, $environment);
-        $secondOrderPlan = $this->artisan($application, $orderDryRun, $environment);
-        $orderPlan = json_decode($firstOrderPlan, true, 512, JSON_THROW_ON_ERROR);
-        $orderSummary = is_array($orderPlan) ? ($orderPlan['summary'] ?? null) : null;
-
-        if ($firstOrderPlan !== $secondOrderPlan
-            || ! is_array($orderPlan)
-            || ! is_array($orderSummary)
-            || ($orderPlan['schema_version'] ?? null) !== 2
-            || ($orderPlan['status'] ?? null) !== 'planned'
-            || ($orderPlan['blockers'] ?? null) !== []
-            || ($orderSummary['manual_dependencies'] ?? null) !== 0) {
-            throw new RuntimeException('Mapped multi-package export plan was not deterministic and ready.');
-        }
-
-        $orderMaterialized = json_decode(
-            $this->artisan($application, $orderArguments, $environment),
+        $setUserTarget = 'packages/moduark-set-user';
+        $setOrderTarget = 'packages/moduark-set-order';
+        $setMaterialized = json_decode(
+            $this->artisan($application, [
+                'moduark:export-set',
+                '--package=Order=acme/order-module:^1.0=>Acme\OrderModule',
+                '--package=User=acme/user-module:^1.0=>Acme\UserModule',
+                '--target=Order='.$setOrderTarget,
+                '--target=User='.$setUserTarget,
+                '--materialize',
+                '--format=json',
+            ], $environment),
             true,
             512,
             JSON_THROW_ON_ERROR,
         );
         $orderComposer = json_decode(
-            (string) file_get_contents($application.'/'.$orderTarget.'/composer.json'),
+            (string) file_get_contents($application.'/'.$setOrderTarget.'/composer.json'),
             true,
             512,
             JSON_THROW_ON_ERROR,
         );
-        $exportedOrder = file_get_contents($application.'/'.$orderTarget.'/src/OrderModule.php');
+        $exportedOrder = file_get_contents($application.'/'.$setOrderTarget.'/src/OrderModule.php');
         $orderRequirements = is_array($orderComposer) ? ($orderComposer['require'] ?? null) : null;
 
-        if (! is_array($orderMaterialized)
-            || ($orderMaterialized['status'] ?? null) !== 'exported'
+        if (! is_array($setMaterialized)
+            || ($setMaterialized['status'] ?? null) !== 'exported'
+            || ($setMaterialized['complete'] ?? null) !== true
+            || ($setMaterialized['dry_run'] ?? null) !== false
+            || ($setMaterialized['order'] ?? null) !== ['User', 'Order']
+            || ($setMaterialized['published_targets'] ?? null) !== [$setUserTarget, $setOrderTarget]
+            || ($setMaterialized['published_before_rollback'] ?? null) !== []
+            || ($setMaterialized['remaining_targets'] ?? null) !== []
+            || ($setMaterialized['rollback_failures'] ?? null) !== []
             || ! is_array($orderComposer)
             || ! is_array($orderRequirements)
             || ($orderRequirements['acme/user-module'] ?? null) !== '^1.0'
+            || ! is_file($application.'/'.$setUserTarget.'/composer.json')
+            || ! is_file($application.'/'.$setUserTarget.'/src/UserModule.php')
             || ! is_string($exportedOrder)
             || ! str_contains($exportedOrder, 'use Acme\UserModule\UserModule;')
             || str_contains($exportedOrder, 'use App\Modules\User\UserModule;')) {
-            throw new RuntimeException('Mapped multi-package materialization is invalid.');
+            throw new RuntimeException('Package-set materialization is invalid.');
         }
 
         $this->command(
             ['composer', 'validate', '--strict', '--no-check-publish'],
-            $application.'/'.$orderTarget,
+            $application.'/'.$setUserTarget,
+            $environment,
+        );
+        $this->command(
+            ['composer', 'validate', '--strict', '--no-check-publish'],
+            $application.'/'.$setOrderTarget,
             $environment,
         );
         $this->verifyStandaloneExportPackages(
             $application,
             $major,
-            $exportTarget,
-            $orderTarget,
+            $setUserTarget,
+            $setOrderTarget,
             $environment,
         );
 

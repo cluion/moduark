@@ -47,6 +47,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added read-only `moduark:export-set` planning with explicit package and target
   mappings, dependency-closed validation, deterministic dependency-first order,
   embedded single-package plans, and cross-target collision blockers.
+- Added explicit `moduark:export-set --materialize` package-set preparation,
+  dependency-ordered publication, optimistic collision rechecks, rollback, and
+  machine-readable residual-target and cleanup-failure evidence.
 
 ### Changed
 

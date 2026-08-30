@@ -958,7 +958,7 @@ Module namespace to the dependency package namespace; it never infers a package,
 constraint, or namespace from PHP imports. Export plan schema version `2` adds
 the nullable dependency `namespace` field.
 
-Plan a complete set before materializing its individual packages:
+Plan a complete set without writing package files:
 
 ```bash
 php artisan moduark:export-set \
@@ -969,12 +969,33 @@ php artisan moduark:export-set \
     --format=json
 ```
 
-`moduark:export-set` is always read-only. It requires every declared Module
-dependency to be selected, emits a dependency-first canonical order, embeds each
-schema version `2` package plan in package-set schema version `1`, and blocks
-overlapping targets. Package, target, or CLI input order does not affect output.
-It does not materialize, install, or publish the set. See
-[ADR-0069](docs/adr/0069-package-set-export-plan.md).
+Without `--materialize`, `moduark:export-set` is read-only. It requires every
+declared Module dependency to be selected, emits a dependency-first canonical
+order, embeds each schema version `2` package plan in package-set schema version
+`1`, and blocks overlapping targets. Package, target, or CLI input order does
+not affect output.
+
+After reviewing a ready plan, explicitly materialize the complete set:
+
+```bash
+php artisan moduark:export-set \
+    --package='User=acme/user-module:^1.0=>Acme\UserModule' \
+    --package='Order=acme/order-module:^1.0=>Acme\OrderModule' \
+    --target='User=packages/user-module' \
+    --target='Order=packages/order-module' \
+    --materialize \
+    --format=json
+```
+
+Moduark prepares every package before publishing any target, rechecks all target
+collisions, then publishes in dependency order. A later publish failure rolls
+back targets created by that attempt; JSON reports any target or cleanup path
+that remains. This is failure-atomic recovery, not a multi-directory filesystem
+transaction: concurrent readers may briefly observe a published prefix, and an
+interrupted process has no durable recovery journal. The command does not install
+or publish Composer packages. See
+[ADR-0069](docs/adr/0069-package-set-export-plan.md) and
+[ADR-0070](docs/adr/0070-package-set-materialization.md).
 
 Omit `--dry-run` from the single-package command to materialize the same validated
 plan:
@@ -1003,7 +1024,9 @@ See [ADR-0064](docs/adr/0064-export-plan-contract.md),
 dependency mappings are specified by
 [ADR-0068](docs/adr/0068-package-dependency-contract.md), and dependency-closed
 package-set planning is specified by
-[ADR-0069](docs/adr/0069-package-set-export-plan.md).
+[ADR-0069](docs/adr/0069-package-set-export-plan.md); opt-in set materialization
+and rollback evidence are specified by
+[ADR-0070](docs/adr/0070-package-set-materialization.md).
 
 Exported Composer metadata also contains schema-versioned `extra.moduark`
 descriptors with the package-relative Module class source. Moduark reads those
