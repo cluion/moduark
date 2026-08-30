@@ -1470,6 +1470,41 @@ PHP;
             throw new RuntimeException('Unable to create the multi-package Order dependency fixture.');
         }
 
+        $packageSetArguments = [
+            'moduark:export-set',
+            '--package=Order=acme/order-module:^1.0=>Acme\OrderModule',
+            '--package=User=acme/user-module:^1.0=>Acme\UserModule',
+            '--target=Order=packages/set-order-plan',
+            '--target=User=packages/set-user-plan',
+            '--format=json',
+        ];
+        $reversedPackageSetArguments = [
+            'moduark:export-set',
+            '--package=User=acme/user-module:^1.0=>Acme\UserModule',
+            '--package=Order=acme/order-module:^1.0=>Acme\OrderModule',
+            '--target=User=packages/set-user-plan',
+            '--target=Order=packages/set-order-plan',
+            '--format=json',
+        ];
+        $firstPackageSetPlan = $this->artisan($application, $packageSetArguments, $environment);
+        $secondPackageSetPlan = $this->artisan($application, $reversedPackageSetArguments, $environment);
+        $packageSetPlan = json_decode($firstPackageSetPlan, true, 512, JSON_THROW_ON_ERROR);
+        $packageSetPackages = is_array($packageSetPlan) ? ($packageSetPlan['packages'] ?? null) : null;
+
+        if ($firstPackageSetPlan !== $secondPackageSetPlan
+            || ! is_array($packageSetPlan)
+            || ($packageSetPlan['schema_version'] ?? null) !== 1
+            || ($packageSetPlan['status'] ?? null) !== 'planned'
+            || ($packageSetPlan['dry_run'] ?? null) !== true
+            || ($packageSetPlan['order'] ?? null) !== ['User', 'Order']
+            || ($packageSetPlan['blockers'] ?? null) !== []
+            || ! is_array($packageSetPackages)
+            || array_column(array_column($packageSetPackages, 'module'), 'name') !== ['User', 'Order']
+            || file_exists($application.'/packages/set-user-plan')
+            || file_exists($application.'/packages/set-order-plan')) {
+            throw new RuntimeException('Package-set export plan was not deterministic, ordered, or read-only.');
+        }
+
         $orderTarget = 'packages/moduark-order-plan';
         $orderArguments = [
             'moduark:export',

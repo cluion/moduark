@@ -74,6 +74,17 @@ final readonly class ExportDependencyMapping
         return $this->namespace;
     }
 
+    public function toString(): string
+    {
+        return sprintf(
+            '%s=%s:%s=>%s',
+            $this->module,
+            $this->package,
+            $this->constraint,
+            $this->namespace,
+        );
+    }
+
     private static function invalid(string $mapping): InvalidArgumentException
     {
         return new InvalidArgumentException(

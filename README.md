@@ -956,8 +956,28 @@ The mapping must name a declared active Module. Moduark writes the requirement
 to generated Composer metadata and rewrites references from the application
 Module namespace to the dependency package namespace; it never infers a package,
 constraint, or namespace from PHP imports. Export plan schema version `2` adds
-the nullable dependency `namespace` field. Omit `--dry-run` to materialize the
-same validated plan:
+the nullable dependency `namespace` field.
+
+Plan a complete set before materializing its individual packages:
+
+```bash
+php artisan moduark:export-set \
+    --package='User=acme/user-module:^1.0=>Acme\UserModule' \
+    --package='Order=acme/order-module:^1.0=>Acme\OrderModule' \
+    --target='User=packages/user-module' \
+    --target='Order=packages/order-module' \
+    --format=json
+```
+
+`moduark:export-set` is always read-only. It requires every declared Module
+dependency to be selected, emits a dependency-first canonical order, embeds each
+schema version `2` package plan in package-set schema version `1`, and blocks
+overlapping targets. Package, target, or CLI input order does not affect output.
+It does not materialize, install, or publish the set. See
+[ADR-0069](docs/adr/0069-package-set-export-plan.md).
+
+Omit `--dry-run` from the single-package command to materialize the same validated
+plan:
 
 ```bash
 php artisan moduark:export User \
@@ -981,7 +1001,9 @@ See [ADR-0064](docs/adr/0064-export-plan-contract.md),
 [ADR-0065](docs/adr/0065-export-materialization.md), and
 [ADR-0067](docs/adr/0067-canonical-package-module-registry.md). Cross-package
 dependency mappings are specified by
-[ADR-0068](docs/adr/0068-package-dependency-contract.md).
+[ADR-0068](docs/adr/0068-package-dependency-contract.md), and dependency-closed
+package-set planning is specified by
+[ADR-0069](docs/adr/0069-package-set-export-plan.md).
 
 Exported Composer metadata also contains schema-versioned `extra.moduark`
 descriptors with the package-relative Module class source. Moduark reads those

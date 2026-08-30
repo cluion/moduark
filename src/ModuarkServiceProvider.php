@@ -51,6 +51,7 @@ use Cluion\Moduark\Console\ModuleGraphCommand;
 use Cluion\Moduark\Console\ModuleDoctorCommand;
 use Cluion\Moduark\Console\ModuleEnableCommand;
 use Cluion\Moduark\Console\ModuleExportCommand;
+use Cluion\Moduark\Console\ModuleExportSetCommand;
 use Cluion\Moduark\Console\ModuleInspectCommand;
 use Cluion\Moduark\Console\ModuleListCommand;
 use Cluion\Moduark\Console\ModuleMakeCommand;
@@ -67,6 +68,8 @@ use Cluion\Moduark\Extraction\PortableRuntimeGate;
 use Cluion\Moduark\Extraction\ProviderBindingScanner;
 use Cluion\Moduark\Export\ModuleExportPlanExporter;
 use Cluion\Moduark\Export\ModuleExportPlanner;
+use Cluion\Moduark\Export\ModuleExportSetPlanExporter;
+use Cluion\Moduark\Export\ModuleExportSetPlanner;
 use Cluion\Moduark\Export\ModuleExportFilesystem;
 use Cluion\Moduark\Export\ModuleExportMaterializer;
 use Cluion\Moduark\Export\ModuleExportRenderer;
@@ -297,6 +300,16 @@ final class ModuarkServiceProvider extends ServiceProvider
             ),
         );
         $this->app->singleton(ModuleExportPlanExporter::class);
+        $this->app->singleton(ModuleExportSetPlanExporter::class);
+        $this->app->singleton(
+            ModuleExportSetPlanner::class,
+            fn (): ModuleExportSetPlanner => new ModuleExportSetPlanner(
+                $this->app->make(ModuleRegistry::class),
+                $this->app->make(ModuleMetadataCompiler::class),
+                $this->app->make(ModuleOrderer::class),
+                $this->app->make(ModuleExportPlanner::class),
+            ),
+        );
         $this->app->singleton(ModuleExportRenderer::class);
         $this->app->singleton(ModuleExportFilesystem::class, NativeModuleExportFilesystem::class);
         $this->app->singleton(
@@ -425,6 +438,7 @@ final class ModuarkServiceProvider extends ServiceProvider
             ModuleDoctorCommand::class,
             ModuleEnableCommand::class,
             ModuleExportCommand::class,
+            ModuleExportSetCommand::class,
             ModuleGraphCommand::class,
             ModuleInspectCommand::class,
             ModuleListCommand::class,

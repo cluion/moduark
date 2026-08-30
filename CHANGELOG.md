@@ -44,6 +44,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added explicit Module-to-package export dependency mappings with validated
   Composer constraints, dependency namespace rewrites, and a transitive
   two-package Laravel 12 / 13 clean-install regression gate.
+- Added read-only `moduark:export-set` planning with explicit package and target
+  mappings, dependency-closed validation, deterministic dependency-first order,
+  embedded single-package plans, and cross-target collision blockers.
 
 ### Changed
 

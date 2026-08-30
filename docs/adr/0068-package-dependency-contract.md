@@ -1,6 +1,6 @@
 # ADR-0068: Package Dependency Contract
 
-- Status: Accepted
+- Status: Accepted; package-set planning added by ADR-0069
 - Date: 2026-08-29
 
 ## Context
@@ -45,16 +45,18 @@ set, package catalog, provider loading, and the existing User runtime resources.
 
 ## Boundaries
 
-Moduark does not infer package names, version constraints, or namespaces from
-imports, descriptors, repositories, Packagist, or installed-package state. It
-does not invoke Composer, export a dependency closure, coordinate package
-versions, publish packages, or prove that the mapped constraint exists in a
-remote repository. The operator remains responsible for exporting and releasing
-each dependency package under the declared contract.
+The single-package command does not infer package names, version constraints, or
+namespaces from imports, descriptors, repositories, Packagist, or
+installed-package state. It does not invoke Composer, export a dependency
+closure, coordinate package versions, publish packages, or prove that the mapped
+constraint exists in a remote repository. The operator remains responsible for
+exporting and releasing each dependency package under the declared contract.
+ADR-0069 adds read-only dependency-closed set planning without changing these
+installation or publication boundaries.
 
 ## Consequences
 
 Package dependency metadata becomes reviewable and reproducible without turning
-source-code guesses into public version contracts. Exporting a package set still
-requires one explicit mapping per direct Module dependency and an external
-Composer repository containing compatible releases.
+source-code guesses into public version contracts. A package set still requires
+one explicit identity and target per selected Module and an external Composer
+repository containing compatible releases.

@@ -223,6 +223,15 @@ reserved-runtime, malformed, or conflicting mappings fail with tool error exit
 `2`; dependencies without a mapping remain manual blockers with exit `1`.
 Moduark does not infer package contracts from PHP imports or install packages.
 
+LC1-H adds the Preview, read-only `moduark:export-set` plan. Repeatable
+`--package='Module=vendor/package:constraint=>Namespace'` and
+`--target='Module=portable/path'` mappings must describe one unique,
+dependency-closed set from the canonical active registry. Schema version `1`
+reports dependency-first Module order, aggregate counts, embedded schema version
+`2` package plans, and fixed closure, order, or target-overlap blockers. Ready
+plans use exit `0`, blockers exit `1`, and invalid mappings exit `2`. The command
+never writes, installs, or publishes packages.
+
 The following commands and their documented arguments and options are Stable:
 
 ```text

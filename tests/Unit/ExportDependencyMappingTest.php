@@ -21,6 +21,10 @@ final class ExportDependencyMappingTest extends TestCase
         self::assertSame('acme/user-module', $mapping->package());
         self::assertSame('^1.2 || ^2.0', $mapping->constraint());
         self::assertSame('Acme\\UserModule', $mapping->namespace());
+        self::assertSame(
+            'User=acme/user-module:^1.2 || ^2.0=>Acme\\UserModule',
+            $mapping->toString(),
+        );
     }
 
     #[DataProvider('invalidMappings')]
