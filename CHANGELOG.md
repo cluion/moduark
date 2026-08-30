@@ -41,8 +41,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added one canonical active Module registry across application or nwidart and
   Composer package Modules, including analysis, graphs, cache, lifecycle,
   providers, Capabilities, and resources.
+- Added explicit Module-to-package export dependency mappings with validated
+  Composer constraints, dependency namespace rewrites, and a transitive
+  two-package Laravel 12 / 13 clean-install regression gate.
 
 ### Changed
+
+- Advanced the Preview export plan to schema version 2 with a nullable
+  dependency namespace field.
 
 - Extended the rebuildable Module cache to schema version 6 and invalidate it
   when the installed package Module catalog fingerprint changes.

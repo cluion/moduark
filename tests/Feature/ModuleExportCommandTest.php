@@ -31,6 +31,7 @@ final class ModuleExportCommandTest extends TestCase
         self::assertSame($firstExit, $secondExit);
         self::assertSame($firstJson, $secondJson);
         self::assertSame($first, $second);
+        self::assertSame(2, $first['schema_version']);
         self::assertSame('planned', $first['status']);
         self::assertTrue($first['complete']);
         self::assertTrue($first['dry_run']);
@@ -169,6 +170,100 @@ final class ModuleExportCommandTest extends TestCase
     }
 
     /** @throws JsonException */
+    public function test_explicit_module_dependency_mapping_materializes_composer_requirement(): void
+    {
+        $target = 'packages/moduark-order-mapped';
+        $absolute = base_path($target);
+        $filesystem = new Filesystem;
+
+        try {
+            [$planExit, $plan] = $this->jsonOutput(
+                'Order',
+                $target,
+                dependencies: ['user=acme/user-module:^1.0=>Acme\\UserModule'],
+            );
+
+            self::assertSame(ExitPolicy::SUCCESS, $planExit);
+            self::assertSame(2, $plan['schema_version']);
+            self::assertSame('planned', $plan['status']);
+            $summary = $plan['summary'] ?? null;
+            $plannedDependencies = $plan['dependencies'] ?? null;
+            self::assertIsArray($summary);
+            self::assertIsArray($plannedDependencies);
+            self::assertSame(0, $summary['manual_dependencies']);
+            $moduleDependencies = array_values(array_filter(
+                $plannedDependencies,
+                static fn (mixed $dependency): bool => is_array($dependency)
+                    && ($dependency['kind'] ?? null) === 'module',
+            ));
+            self::assertSame([[
+                'kind' => 'module',
+                'source' => 'User=Workbench\\App\\Modules\\User\\UserModule',
+                'package' => 'acme/user-module',
+                'constraint' => '^1.0',
+                'status' => 'resolved',
+                'namespace' => 'Acme\\UserModule',
+            ]], $moduleDependencies);
+
+            [$exportExit, $export] = $this->jsonOutput(
+                'Order',
+                $target,
+                dryRun: false,
+                dependencies: ['User=acme/user-module:^1.0=>Acme\\UserModule'],
+            );
+
+            self::assertSame(ExitPolicy::SUCCESS, $exportExit);
+            self::assertSame('exported', $export['status']);
+            $composer = json_decode(
+                $filesystem->get($absolute.'/composer.json'),
+                true,
+                512,
+                JSON_THROW_ON_ERROR,
+            );
+            self::assertIsArray($composer);
+            $requirements = $composer['require'] ?? null;
+            self::assertIsArray($requirements);
+            self::assertSame('^1.0', $requirements['acme/user-module']);
+            self::assertStringContainsString(
+                'use Acme\\UserModule\\UserModule;',
+                $filesystem->get($absolute.'/src/OrderModule.php'),
+            );
+        } finally {
+            $filesystem->deleteDirectory($absolute);
+        }
+    }
+
+    /** @throws JsonException */
+    public function test_dependency_mapping_must_target_one_declared_dependency_exactly_once(): void
+    {
+        foreach ([
+            ['Missing=acme/missing-module:^1.0=>Acme\\MissingModule', 'Unknown export dependency Module [Missing]'],
+            ['Workbench=acme/workbench-module:^1.0=>Acme\\WorkbenchModule', 'is not a declared dependency of [Order]'],
+            [
+                'User=acme/user-module:^1.0=>Acme\\UserModule',
+                'user=acme/user-module:^1.0=>Acme\\UserModule',
+                'Duplicate export dependency mapping for Module [User]',
+            ],
+            ['User=acme/order-module:^1.0=>Acme\\UserModule', 'cannot require target package [acme/order-module]'],
+            ['User=cluion/moduark:^1.3=>Acme\\UserModule', 'conflicts with a generated runtime requirement'],
+        ] as $case) {
+            $mappings = array_slice($case, 0, -1);
+            $expected = $case[array_key_last($case)];
+            [$exitCode, $payload] = $this->jsonOutput(
+                'Order',
+                'packages/moduark-order-invalid-map',
+                dependencies: $mappings,
+            );
+
+            self::assertSame(ExitPolicy::TOOL_ERROR, $exitCode);
+            self::assertSame('error', $payload['status']);
+            self::assertIsString($payload['error']);
+            self::assertStringContainsString($expected, $payload['error']);
+            self::assertDirectoryDoesNotExist(base_path('packages/moduark-order-invalid-map'));
+        }
+    }
+
+    /** @throws JsonException */
     public function test_existing_destination_file_blocks_without_overwriting_it(): void
     {
         $target = 'packages/moduark-export-collision-fixture';
@@ -249,10 +344,16 @@ final class ModuleExportCommandTest extends TestCase
     }
 
     /**
+     * @param list<string> $dependencies
      * @return array{int, array<string, mixed>, string}
      * @throws JsonException
      */
-    private function jsonOutput(string $module, string $target, bool $dryRun = true): array
+    private function jsonOutput(
+        string $module,
+        string $target,
+        bool $dryRun = true,
+        array $dependencies = [],
+    ): array
     {
         return $this->rawJsonOutput([
             'module' => $module,
@@ -260,12 +361,13 @@ final class ModuleExportCommandTest extends TestCase
             '--target' => $target,
             '--package' => 'acme/'.strtolower($module).'-module',
             '--namespace' => 'Acme\\'.$module.'Module',
+            '--dependency' => $dependencies,
             '--format' => 'json',
         ]);
     }
 
     /**
-     * @param array<string, bool|string> $arguments
+     * @param array<string, bool|string|list<string>> $arguments
      * @return array{int, array<string, mixed>, string}
      * @throws JsonException
      */

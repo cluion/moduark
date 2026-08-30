@@ -28,15 +28,21 @@ final readonly class ModuleExportPlanner
     ) {
     }
 
+    /** @param list<string> $dependencyMappings */
     public function plan(
         string $moduleName,
         string $target,
         string $package,
         string $namespace,
+        array $dependencyMappings = [],
     ): ModuleExportPlan {
         $target = $this->target($target);
         $package = $this->package($package);
         $namespace = $this->namespace($namespace);
+        $mappings = array_map(
+            static fn (string $mapping): ExportDependencyMapping => ExportDependencyMapping::fromString($mapping),
+            $dependencyMappings,
+        );
         $report = $this->extractability->inspect($moduleName);
         $module = $report->module();
         $provider = $namespace.'\\'.$module->name().'PackageServiceProvider';
@@ -76,7 +82,7 @@ final readonly class ModuleExportPlanner
             );
         }
 
-        $dependencies = $this->dependencies($module);
+        $dependencies = $this->dependencies($module, $package, $mappings);
         $manual = [];
 
         foreach ($dependencies as $dependency) {
@@ -298,8 +304,15 @@ final readonly class ModuleExportPlanner
         return 'src/'.$source;
     }
 
-    /** @return list<ExportPlanDependency> */
-    private function dependencies(DiscoveredModule $module): array
+    /**
+     * @param list<ExportDependencyMapping> $mappings
+     * @return list<ExportPlanDependency>
+     */
+    private function dependencies(
+        DiscoveredModule $module,
+        string $targetPackage,
+        array $mappings,
+    ): array
     {
         $dependencies = [
             new ExportPlanDependency(
@@ -318,8 +331,59 @@ final readonly class ModuleExportPlanner
             ),
         ];
         $metadata = $this->compiler->compile($module->moduleClass());
+        $declared = $metadata->dependencies();
+        $resolvedMappings = [];
+        $packageConstraints = [];
 
-        foreach ($metadata->dependencies() as $dependency) {
+        foreach ($mappings as $mapping) {
+            $mappedModule = $this->registry->find($mapping->module());
+
+            if ($mappedModule === null) {
+                throw new InvalidArgumentException(
+                    "Unknown export dependency Module [{$mapping->module()}].",
+                );
+            }
+
+            if (! in_array($mappedModule->moduleClass(), $declared, true)) {
+                throw new InvalidArgumentException(
+                    "Module [{$mappedModule->name()}] is not a declared dependency of [{$module->name()}].",
+                );
+            }
+
+            $classKey = strtolower($mappedModule->moduleClass());
+
+            if (isset($resolvedMappings[$classKey])) {
+                throw new InvalidArgumentException(
+                    "Duplicate export dependency mapping for Module [{$mappedModule->name()}].",
+                );
+            }
+
+            if (strcasecmp($mapping->package(), $targetPackage) === 0) {
+                throw new InvalidArgumentException(
+                    "Export dependency Module [{$mappedModule->name()}] cannot require target package [{$targetPackage}].",
+                );
+            }
+
+            if (in_array($mapping->package(), ['cluion/moduark', 'illuminate/support'], true)) {
+                throw new InvalidArgumentException(
+                    "Export dependency package [{$mapping->package()}] conflicts with a generated runtime requirement.",
+                );
+            }
+
+            $packageKey = strtolower($mapping->package());
+            $knownConstraint = $packageConstraints[$packageKey] ?? null;
+
+            if ($knownConstraint !== null && $knownConstraint !== $mapping->constraint()) {
+                throw new InvalidArgumentException(
+                    "Export dependency package [{$mapping->package()}] has conflicting constraints.",
+                );
+            }
+
+            $resolvedMappings[$classKey] = $mapping;
+            $packageConstraints[$packageKey] = $mapping->constraint();
+        }
+
+        foreach ($declared as $dependency) {
             $name = $dependency;
 
             foreach ($this->registry->all() as $candidate) {
@@ -329,13 +393,23 @@ final readonly class ModuleExportPlanner
                 }
             }
 
-            $dependencies[] = new ExportPlanDependency(
-                'module',
-                $name,
-                null,
-                null,
-                ExportPlanDependency::MANUAL,
-            );
+            $mapping = $resolvedMappings[strtolower($dependency)] ?? null;
+            $dependencies[] = $mapping === null
+                ? new ExportPlanDependency(
+                    'module',
+                    $name,
+                    null,
+                    null,
+                    ExportPlanDependency::MANUAL,
+                )
+                : new ExportPlanDependency(
+                    'module',
+                    $name,
+                    $mapping->package(),
+                    $mapping->constraint(),
+                    ExportPlanDependency::RESOLVED,
+                    $mapping->namespace(),
+                );
         }
 
         return $dependencies;

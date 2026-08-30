@@ -19,6 +19,7 @@
     ],
     "require": {
         "php": "^8.2",
+        "composer/semver": "^3.4",
         "composer-runtime-api": "^2.1",
         "illuminate/console": "^12.0 || ^13.0",
         "illuminate/contracts": "^12.0 || ^13.0",

@@ -941,7 +941,23 @@ The command maps standalone or nwidart files to package roots, plans generated
 Composer and package-provider targets, records namespace rewrites and runtime or
 manual dependencies, and checks destination collisions. Package identity is
 never guessed. Module dependencies without an explicit Composer mapping block
-readiness. Omit `--dry-run` to materialize the same validated plan:
+readiness. Resolve a known dependency with a repeatable, reviewed mapping that
+includes its Composer constraint and exported namespace:
+
+```bash
+php artisan moduark:export Order --dry-run \
+    --target=packages/order-module \
+    --package=acme/order-module \
+    --namespace='Acme\OrderModule' \
+    --dependency='User=acme/user-module:^1.0=>Acme\UserModule'
+```
+
+The mapping must name a declared active Module. Moduark writes the requirement
+to generated Composer metadata and rewrites references from the application
+Module namespace to the dependency package namespace; it never infers a package,
+constraint, or namespace from PHP imports. Export plan schema version `2` adds
+the nullable dependency `namespace` field. Omit `--dry-run` to materialize the
+same validated plan:
 
 ```bash
 php artisan moduark:export User \
@@ -963,7 +979,9 @@ requiring an application Module directory. When the package contains a Moduark
 descriptor, its Module joins the host application's canonical active registry.
 See [ADR-0064](docs/adr/0064-export-plan-contract.md),
 [ADR-0065](docs/adr/0065-export-materialization.md), and
-[ADR-0067](docs/adr/0067-canonical-package-module-registry.md).
+[ADR-0067](docs/adr/0067-canonical-package-module-registry.md). Cross-package
+dependency mappings are specified by
+[ADR-0068](docs/adr/0068-package-dependency-contract.md).
 
 Exported Composer metadata also contains schema-versioned `extra.moduark`
 descriptors with the package-relative Module class source. Moduark reads those

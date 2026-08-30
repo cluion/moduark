@@ -1,6 +1,6 @@
 # ADR-0064: Export Plan Contract
 
-- Status: Accepted; materialization added by ADR-0065
+- Status: Accepted; materialization added by ADR-0065 and dependency mapping by ADR-0068
 - Date: 2026-08-29
 
 ## Context
@@ -32,7 +32,8 @@ plan destructive.
   or linked/unsupported source entries block with stable export codes.
 - Runtime requirements for `cluion/moduark` and `illuminate/support` are explicit.
   A Module dependency has no implicit Composer identity; without a reviewed
-  package/constraint mapping it is reported as manual and blocks readiness.
+  package/constraint/namespace mapping defined by ADR-0068 it is reported as
+  manual and blocks readiness.
 
 ## Blocker codes
 

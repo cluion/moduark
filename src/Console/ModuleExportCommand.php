@@ -20,6 +20,7 @@ final class ModuleExportCommand extends Command
         {--target= : Portable application-relative package target}
         {--package= : Lowercase Composer vendor/name}
         {--namespace= : Target package PHP namespace}
+        {--dependency=* : Explicit Module=vendor/package:constraint=>Namespace mapping}
         {--format=text : Output format: text or json}';
 
     /** @var string */
@@ -50,11 +51,13 @@ final class ModuleExportCommand extends Command
         $target = $this->option('target');
         $package = $this->option('package');
         $namespace = $this->option('namespace');
+        $dependencyMappings = $this->option('dependency');
 
         if (! is_string($module)
             || ! is_string($target)
             || ! is_string($package)
             || ! is_string($namespace)
+            || ! is_array($dependencyMappings)
             || $target === ''
             || $package === ''
             || $namespace === '') {
@@ -65,8 +68,22 @@ final class ModuleExportCommand extends Command
             );
         }
 
+        $dependencies = [];
+
+        foreach ($dependencyMappings as $mapping) {
+            if (! is_string($mapping)) {
+                return $this->failure(
+                    $format,
+                    'Every export dependency mapping must be a string.',
+                    $dryRun,
+                );
+            }
+
+            $dependencies[] = $mapping;
+        }
+
         try {
-            $plan = $this->planner->plan($module, $target, $package, $namespace);
+            $plan = $this->planner->plan($module, $target, $package, $namespace, $dependencies);
         } catch (InvalidArgumentException $exception) {
             return $this->failure($format, $exception->getMessage(), $dryRun);
         }

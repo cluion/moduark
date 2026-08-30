@@ -84,7 +84,33 @@ final readonly class ModuleExportMaterializer
             throw new RuntimeException("Invalid namespace transform [{$transform}].");
         }
 
-        return str_replace($from, $to, $contents);
+        $contents = str_replace($from, $to, $contents);
+
+        foreach ($plan->dependencies() as $dependency) {
+            if ($dependency->kind() !== 'module' || $dependency->namespace() === null) {
+                continue;
+            }
+
+            $separator = strrpos($dependency->source(), '=');
+            $moduleClass = $separator === false
+                ? $dependency->source()
+                : substr($dependency->source(), $separator + 1);
+            $namespaceSeparator = strrpos($moduleClass, '\\');
+
+            if ($namespaceSeparator === false) {
+                throw new RuntimeException(
+                    "Export dependency [{$dependency->source()}] has no source namespace.",
+                );
+            }
+
+            $contents = str_replace(
+                substr($moduleClass, 0, $namespaceSeparator),
+                $dependency->namespace(),
+                $contents,
+            );
+        }
+
+        return $contents;
     }
 
     private function validatePhp(string $destination, string $contents): void

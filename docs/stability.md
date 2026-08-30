@@ -215,6 +215,14 @@ bypasses the previous cache. Descriptor-aware portable providers delegate to the
 canonical runtime, while descriptor-less LC1-E packages retain their portable
 fallback.
 
+LC1-G advances the Preview export plan to schema version `2`. Its repeatable
+`--dependency='Module=vendor/package:constraint=>Namespace'` option resolves an
+already-declared Module dependency into deterministic Composer metadata and a
+dependency namespace rewrite. Unknown, unrelated, duplicate, self-referential,
+reserved-runtime, malformed, or conflicting mappings fail with tool error exit
+`2`; dependencies without a mapping remain manual blockers with exit `1`.
+Moduark does not infer package contracts from PHP imports or install packages.
+
 The following commands and their documented arguments and options are Stable:
 
 ```text

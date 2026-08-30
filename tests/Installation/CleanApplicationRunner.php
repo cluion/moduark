@@ -870,7 +870,7 @@ final class CleanApplicationRunner
         $moduleCachePath = $application.'/bootstrap/cache/moduark.php';
         $moduleCache = $this->artisan($application, ['moduark:cache'], $environment);
         $this->assertContains(
-            'Module cache created successfully: 5 Modules cached.',
+            'Module cache created successfully: 6 Modules cached.',
             $moduleCache,
             'moduark:cache did not report every generated Module.',
         );
@@ -1438,7 +1438,103 @@ PHP;
             throw new RuntimeException('Export materialization did not rewrite the Module namespace.');
         }
 
-        $this->verifyStandaloneExportPackage($application, $major, $exportTarget, $environment);
+        $this->artisan(
+            $application,
+            ['moduark:make-module', 'Order', '--preset=minimal'],
+            $environment,
+        );
+        $orderSource = <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Order;
+
+use App\Modules\User\UserModule;
+use Cluion\Moduark\Module;
+
+final class OrderModule extends Module
+{
+    /** @return list<class-string<Module>> */
+    public function dependencies(): array
+    {
+        return [UserModule::class];
+    }
+}
+PHP;
+
+        if (file_put_contents(
+            $application.'/app/Modules/Order/OrderModule.php',
+            $orderSource."\n",
+        ) === false) {
+            throw new RuntimeException('Unable to create the multi-package Order dependency fixture.');
+        }
+
+        $orderTarget = 'packages/moduark-order-plan';
+        $orderArguments = [
+            'moduark:export',
+            'Order',
+            '--target='.$orderTarget,
+            '--package=acme/order-module',
+            '--namespace=Acme\OrderModule',
+            '--dependency=User=acme/user-module:^1.0=>Acme\UserModule',
+            '--format=json',
+        ];
+        $orderDryRun = $orderArguments;
+        $orderDryRun[] = '--dry-run';
+        $firstOrderPlan = $this->artisan($application, $orderDryRun, $environment);
+        $secondOrderPlan = $this->artisan($application, $orderDryRun, $environment);
+        $orderPlan = json_decode($firstOrderPlan, true, 512, JSON_THROW_ON_ERROR);
+        $orderSummary = is_array($orderPlan) ? ($orderPlan['summary'] ?? null) : null;
+
+        if ($firstOrderPlan !== $secondOrderPlan
+            || ! is_array($orderPlan)
+            || ! is_array($orderSummary)
+            || ($orderPlan['schema_version'] ?? null) !== 2
+            || ($orderPlan['status'] ?? null) !== 'planned'
+            || ($orderPlan['blockers'] ?? null) !== []
+            || ($orderSummary['manual_dependencies'] ?? null) !== 0) {
+            throw new RuntimeException('Mapped multi-package export plan was not deterministic and ready.');
+        }
+
+        $orderMaterialized = json_decode(
+            $this->artisan($application, $orderArguments, $environment),
+            true,
+            512,
+            JSON_THROW_ON_ERROR,
+        );
+        $orderComposer = json_decode(
+            (string) file_get_contents($application.'/'.$orderTarget.'/composer.json'),
+            true,
+            512,
+            JSON_THROW_ON_ERROR,
+        );
+        $exportedOrder = file_get_contents($application.'/'.$orderTarget.'/src/OrderModule.php');
+        $orderRequirements = is_array($orderComposer) ? ($orderComposer['require'] ?? null) : null;
+
+        if (! is_array($orderMaterialized)
+            || ($orderMaterialized['status'] ?? null) !== 'exported'
+            || ! is_array($orderComposer)
+            || ! is_array($orderRequirements)
+            || ($orderRequirements['acme/user-module'] ?? null) !== '^1.0'
+            || ! is_string($exportedOrder)
+            || ! str_contains($exportedOrder, 'use Acme\UserModule\UserModule;')
+            || str_contains($exportedOrder, 'use App\Modules\User\UserModule;')) {
+            throw new RuntimeException('Mapped multi-package materialization is invalid.');
+        }
+
+        $this->command(
+            ['composer', 'validate', '--strict', '--no-check-publish'],
+            $application.'/'.$orderTarget,
+            $environment,
+        );
+        $this->verifyStandaloneExportPackages(
+            $application,
+            $major,
+            $exportTarget,
+            $orderTarget,
+            $environment,
+        );
 
         $test = json_decode($this->artisan(
             $application,
@@ -1475,25 +1571,35 @@ PHP;
     }
 
     /** @param array<string, string> $environment */
-    private function verifyStandaloneExportPackage(
+    private function verifyStandaloneExportPackages(
         string $application,
         int $major,
-        string $exportTarget,
+        string $userExportTarget,
+        string $orderExportTarget,
         array $environment,
     ): void {
         $this->artisan($application, ['moduark:clear'], $environment);
         $this->deleteDirectory($application.'/app/Modules/User');
+        $this->deleteDirectory($application.'/app/Modules/Order');
 
-        if (is_dir($application.'/app/Modules/User')) {
-            throw new RuntimeException('The application User Module was not removed before package adoption.');
+        if (is_dir($application.'/app/Modules/User') || is_dir($application.'/app/Modules/Order')) {
+            throw new RuntimeException('Application Modules were not removed before multi-package adoption.');
         }
 
-        $repository = json_encode([
+        $userRepository = json_encode([
             'type' => 'path',
-            'url' => $application.'/'.$exportTarget,
+            'url' => $application.'/'.$userExportTarget,
             'options' => [
                 'symlink' => false,
-                'versions' => ['acme/user-module' => 'dev-main'],
+                'versions' => ['acme/user-module' => '1.0.0'],
+            ],
+        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+        $orderRepository = json_encode([
+            'type' => 'path',
+            'url' => $application.'/'.$orderExportTarget,
+            'options' => [
+                'symlink' => false,
+                'versions' => ['acme/order-module' => '1.0.0'],
             ],
         ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
         $this->command([
@@ -1501,12 +1607,19 @@ PHP;
             'config',
             '--json',
             'repositories.moduark-user-export',
-            $repository,
+            $userRepository,
+        ], $application, $environment);
+        $this->command([
+            'composer',
+            'config',
+            '--json',
+            'repositories.moduark-order-export',
+            $orderRepository,
         ], $application, $environment);
         $this->command([
             'composer',
             'require',
-            'acme/user-module:dev-main',
+            'acme/order-module:^1.0',
             '--no-interaction',
             '--no-progress',
             '--prefer-dist',
@@ -1523,11 +1636,28 @@ PHP;
             '--with-all-dependencies',
         ], $application, $environment);
 
+        $rootComposer = json_decode(
+            (string) file_get_contents($application.'/composer.json'),
+            true,
+            512,
+            JSON_THROW_ON_ERROR,
+        );
+        $rootRequirements = is_array($rootComposer) ? ($rootComposer['require'] ?? null) : null;
+
+        if (! is_array($rootComposer)
+            || ! is_array($rootRequirements)
+            || ($rootRequirements['acme/order-module'] ?? null) !== '^1.0'
+            || array_key_exists('acme/user-module', $rootRequirements)) {
+            throw new RuntimeException('Clean application did not preserve transitive-only User package adoption.');
+        }
+
         $runtimeProbe = <<<'PHP'
 <?php
 
 declare(strict_types=1);
 
+use Acme\OrderModule\OrderModule;
+use Acme\OrderModule\OrderPackageServiceProvider;
 use Acme\UserModule\UserModule;
 use Acme\UserModule\UserPackageServiceProvider;
 use Cluion\Moduark\Analysis\Source\SourceIndexBuilder;
@@ -1548,6 +1678,7 @@ $discoverer = $application->make(ComposerPackageModuleDiscoverer::class);
 $catalog = $discoverer->discover();
 $catalogPayload = $catalog->toArray();
 $registry = $application->make(ModuleRegistry::class);
+$order = $registry->find('Order');
 $user = $registry->find('User');
 $ordered = array_map(
     static fn ($descriptor): string => $descriptor->moduleClass(),
@@ -1557,6 +1688,11 @@ $owners = array_values(array_unique(array_map(
     static fn ($symbol): string => $symbol->owner(),
     $application->make(SourceIndexBuilder::class)->build()->symbols(),
 )));
+$resourceModules = $application->make(ResourceManifest::class)->moduleClasses();
+$moduleGraph = $application->make(CombinedGraphBuilder::class)->build()->moduleGraph();
+$orderEdges = $moduleGraph->edgesFrom(OrderModule::class);
+$orderPosition = array_search(OrderModule::class, $ordered, true);
+$userPosition = array_search(UserModule::class, $ordered, true);
 $routeCount = 0;
 
 foreach ($application->make(Router::class)->getRoutes() as $route) {
@@ -1565,32 +1701,70 @@ foreach ($application->make(Router::class)->getRoutes() as $route) {
     }
 }
 
-if ($user?->moduleClass() !== UserModule::class
+if ($order?->moduleClass() !== OrderModule::class
+    || $user?->moduleClass() !== UserModule::class
+    || ! $application->providerIsLoaded(OrderPackageServiceProvider::class)
     || ! $application->providerIsLoaded(UserPackageServiceProvider::class)
     || $application->make(Repository::class)->get('moduark_export_user.portable') !== true
     || $application->make(Router::class)->getRoutes()->getByName('moduark.export.user') === null
     || $routeCount !== 1
     || ! $application->make(Factory::class)->exists('user::export-probe')
+    || count(array_keys($ordered, OrderModule::class, true)) !== 1
     || count(array_keys($ordered, UserModule::class, true)) !== 1
+    || $orderPosition === false
+    || $userPosition === false
+    || $userPosition >= $orderPosition
+    || ! in_array(OrderModule::class, $owners, true)
     || ! in_array(UserModule::class, $owners, true)
-    || ! in_array(UserModule::class, $application->make(ResourceManifest::class)->moduleClasses(), true)
-    || $application->make(CombinedGraphBuilder::class)
-        ->build()
-        ->moduleGraph()
-        ->node(UserModule::class)
-        ->moduleClass() !== UserModule::class
+    || $resourceModules !== $ordered
+    || $moduleGraph->node(OrderModule::class)->moduleClass() !== OrderModule::class
+    || $moduleGraph->node(UserModule::class)->moduleClass() !== UserModule::class
+    || count($orderEdges) !== 1
+    || $orderEdges[0]->source() !== OrderModule::class
+    || $orderEdges[0]->target() !== UserModule::class
     || $catalogPayload !== [
         'schema_version' => 1,
-        'modules' => [[
-            'package' => 'acme/user-module',
-            'name' => 'User',
-            'class' => UserModule::class,
-            'path' => 'src/UserModule.php',
-            'namespace' => 'Acme\\UserModule',
-        ]],
+        'modules' => [
+            [
+                'package' => 'acme/order-module',
+                'name' => 'Order',
+                'class' => OrderModule::class,
+                'path' => 'src/OrderModule.php',
+                'namespace' => 'Acme\\OrderModule',
+            ],
+            [
+                'package' => 'acme/user-module',
+                'name' => 'User',
+                'class' => UserModule::class,
+                'path' => 'src/UserModule.php',
+                'namespace' => 'Acme\\UserModule',
+            ],
+        ],
     ]
     || $catalog->fingerprint() !== $discoverer->discover()->fingerprint()) {
     fwrite(STDERR, 'Exported package auto-discovery runtime probe failed.'.PHP_EOL);
+    fwrite(STDERR, json_encode([
+        'registry' => [
+            'Order' => $order?->moduleClass(),
+            'User' => $user?->moduleClass(),
+        ],
+        'providers' => [
+            'Order' => $application->providerIsLoaded(OrderPackageServiceProvider::class),
+            'User' => $application->providerIsLoaded(UserPackageServiceProvider::class),
+        ],
+        'ordered' => $ordered,
+        'owners' => $owners,
+        'resources' => $resourceModules,
+        'edges' => array_map(static fn ($edge): array => $edge->toArray(), $orderEdges),
+        'catalog' => $catalogPayload,
+        'catalog_stable' => $catalog->fingerprint() === $discoverer->discover()->fingerprint(),
+        'user_runtime' => [
+            'config' => $application->make(Repository::class)->get('moduark_export_user.portable'),
+            'route' => $application->make(Router::class)->getRoutes()->getByName('moduark.export.user') !== null,
+            'route_count' => $routeCount,
+            'view' => $application->make(Factory::class)->exists('user::export-probe'),
+        ],
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).PHP_EOL);
     exit(2);
 }
 
@@ -1601,8 +1775,11 @@ PHP;
 
 declare(strict_types=1);
 
+use Acme\OrderModule\OrderModule;
+use Acme\OrderModule\OrderPackageServiceProvider;
 use Acme\UserModule\UserModule;
 use Acme\UserModule\UserPackageServiceProvider;
+use Cluion\Moduark\Graph\CombinedGraphBuilder;
 use Cluion\Moduark\ModuarkServiceProvider;
 use Cluion\Moduark\Registry\ModuleRegistry;
 use Illuminate\Contracts\Config\Repository;
@@ -1613,13 +1790,23 @@ use Orchestra\Testbench\Foundation\Application;
 require __DIR__.'/vendor/autoload.php';
 $application = Application::create(
     options: ['extra' => ['providers' => [
+        OrderPackageServiceProvider::class,
         UserPackageServiceProvider::class,
         ModuarkServiceProvider::class,
     ]]],
 );
+$order = $application->make(ModuleRegistry::class)->find('Order');
 $user = $application->make(ModuleRegistry::class)->find('User');
+$orderEdges = $application->make(CombinedGraphBuilder::class)
+    ->build()
+    ->moduleGraph()
+    ->edgesFrom(OrderModule::class);
 
-if ($user?->moduleClass() !== UserModule::class
+if ($order?->moduleClass() !== OrderModule::class
+    || $user?->moduleClass() !== UserModule::class
+    || count($orderEdges) !== 1
+    || $orderEdges[0]->source() !== OrderModule::class
+    || $orderEdges[0]->target() !== UserModule::class
     || $application->make(Repository::class)->get('moduark_export_user.portable') !== true
     || $application->make(Router::class)->getRoutes()->getByName('moduark.export.user') === null
     || ! $application->make(Factory::class)->exists('user::export-probe')) {

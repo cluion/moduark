@@ -8,7 +8,7 @@ use Cluion\Moduark\Discovery\DiscoveredModule;
 
 final readonly class ModuleExportPlan
 {
-    public const SCHEMA_VERSION = 1;
+    public const SCHEMA_VERSION = 2;
 
     /** @var list<ExportPlanFile> */
     private array $files;

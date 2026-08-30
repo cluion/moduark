@@ -92,6 +92,9 @@ final class ModuleExportPlanExporter
             $requirement = $values['package'] === null
                 ? '[manual]'
                 : $values['package'].' '.$values['constraint'];
+            $requirement .= $values['namespace'] === null
+                ? ''
+                : ' => '.$values['namespace'];
             $lines[] = 'REQUIRE '.$values['source'].' => '.$requirement;
         }
 

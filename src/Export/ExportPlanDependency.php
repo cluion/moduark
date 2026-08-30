@@ -16,7 +16,13 @@ final readonly class ExportPlanDependency
         private ?string $package,
         private ?string $constraint,
         private string $status,
+        private ?string $namespace = null,
     ) {
+    }
+
+    public function kind(): string
+    {
+        return $this->kind;
     }
 
     public function source(): string
@@ -39,13 +45,19 @@ final readonly class ExportPlanDependency
         return $this->status;
     }
 
+    public function namespace(): ?string
+    {
+        return $this->namespace;
+    }
+
     /**
      * @return array{
      *     kind: string,
      *     source: string,
      *     package: ?string,
      *     constraint: ?string,
-     *     status: string
+     *     status: string,
+     *     namespace: ?string
      * }
      */
     public function toArray(): array
@@ -56,6 +68,7 @@ final readonly class ExportPlanDependency
             'package' => $this->package,
             'constraint' => $this->constraint,
             'status' => $this->status,
+            'namespace' => $this->namespace,
         ];
     }
 }
