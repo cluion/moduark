@@ -26,6 +26,7 @@ final class NativeGeneratorBridgeCommandTest extends TestCase
         [$exitCode, $payload] = $this->jsonPlan();
 
         self::assertSame(ExitPolicy::SUCCESS, $exitCode);
+        self::assertSame(2, $payload['schema_version'] ?? null);
         self::assertSame('disabled', $payload['status'] ?? null);
         self::assertTrue($payload['complete'] ?? false);
         self::assertFalse($payload['opt_in'] ?? true);
@@ -34,6 +35,7 @@ final class NativeGeneratorBridgeCommandTest extends TestCase
         $summary = $payload['summary'] ?? null;
         self::assertIsArray($summary);
         self::assertSame(31, $summary['candidates'] ?? null);
+        self::assertSame(0, $summary['active'] ?? null);
         self::assertSame($before, $this->commandDefinitions());
 
         foreach ($this->nativeCommands() as $command) {
@@ -85,7 +87,10 @@ final class NativeGeneratorBridgeCommandTest extends TestCase
         $diagnostics = $traitPlan['diagnostics'] ?? null;
         self::assertIsArray($diagnostics);
         self::assertSame(
-            [NativeGeneratorBridgePlanner::OPTION_COLLISION],
+            [
+                NativeGeneratorBridgePlanner::OPTION_COLLISION,
+                NativeGeneratorBridgePlanner::REGISTRATION_FAILED,
+            ],
             array_column($diagnostics, 'code'),
         );
     }
@@ -111,7 +116,10 @@ final class NativeGeneratorBridgeCommandTest extends TestCase
         $diagnostics = $traitPlan['diagnostics'] ?? null;
         self::assertIsArray($diagnostics);
         self::assertSame(
-            [NativeGeneratorBridgePlanner::SIGNATURE_COLLISION],
+            [
+                NativeGeneratorBridgePlanner::SIGNATURE_COLLISION,
+                NativeGeneratorBridgePlanner::REGISTRATION_FAILED,
+            ],
             array_column($diagnostics, 'code'),
         );
     }

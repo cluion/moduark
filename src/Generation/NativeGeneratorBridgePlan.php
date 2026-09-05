@@ -37,19 +37,31 @@ final readonly class NativeGeneratorBridgePlan
         return count($this->candidates) - $this->readyCount();
     }
 
+    public function activeCount(): int
+    {
+        return count(array_filter(
+            $this->candidates,
+            static fn (NativeGeneratorBridgeCandidate $candidate): bool => $candidate->decorated(),
+        ));
+    }
+
     public function ready(): bool
     {
         return $this->blockedCount() === 0;
     }
 
-    /** @return 'disabled'|'planned'|'blocked' */
+    /** @return 'disabled'|'planned'|'active'|'blocked' */
     public function status(): string
     {
         if (! $this->optedIn) {
             return 'disabled';
         }
 
-        return $this->ready() ? 'planned' : 'blocked';
+        if (! $this->ready()) {
+            return 'blocked';
+        }
+
+        return $this->activeCount() === count($this->candidates) ? 'active' : 'planned';
     }
 
     public function exitCode(): int

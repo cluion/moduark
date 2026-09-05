@@ -10,30 +10,31 @@ final readonly class NativeGeneratorBridgePlanExporter
 {
     /**
      * @return array{
-     *     schema_version: 1,
-     *     status: 'disabled'|'planned'|'blocked',
+     *     schema_version: 2,
+     *     status: 'disabled'|'planned'|'active'|'blocked',
      *     complete: true,
      *     exit_code: int,
      *     opt_in: bool,
-     *     mutation: false,
+     *     mutation: bool,
      *     option: 'module',
-     *     summary: array{candidates: int, ready: int, blocked: int},
+     *     summary: array{candidates: int, ready: int, active: int, blocked: int},
      *     commands: list<array<string, mixed>>
      * }
      */
     public function payload(NativeGeneratorBridgePlan $plan): array
     {
         return [
-            'schema_version' => 1,
+            'schema_version' => 2,
             'status' => $plan->status(),
             'complete' => true,
             'exit_code' => $plan->exitCode(),
             'opt_in' => $plan->optedIn(),
-            'mutation' => false,
+            'mutation' => $plan->activeCount() > 0,
             'option' => 'module',
             'summary' => [
                 'candidates' => count($plan->candidates()),
                 'ready' => $plan->readyCount(),
+                'active' => $plan->activeCount(),
                 'blocked' => $plan->blockedCount(),
             ],
             'commands' => array_map(
@@ -58,7 +59,7 @@ final readonly class NativeGeneratorBridgePlanExporter
         $lines = [
             'Native generator bridge plan: '.strtoupper($plan->status()),
             'Opt-in: '.($plan->optedIn() ? 'enabled' : 'disabled'),
-            'Mutation: disabled (plan-only)',
+            'Mutation: '.($plan->activeCount() > 0 ? 'active' : 'disabled'),
             sprintf(
                 'Candidates: %d; ready: %d; blocked: %d',
                 count($plan->candidates()),
@@ -70,7 +71,7 @@ final readonly class NativeGeneratorBridgePlanExporter
         foreach ($plan->candidates() as $candidate) {
             $lines[] = sprintf(
                 '%s %s -> %s',
-                $candidate->ready() ? 'READY' : 'BLOCKED',
+                ! $candidate->ready() ? 'BLOCKED' : ($candidate->decorated() ? 'ACTIVE' : 'READY'),
                 $candidate->command(),
                 $candidate->generatorId(),
             );

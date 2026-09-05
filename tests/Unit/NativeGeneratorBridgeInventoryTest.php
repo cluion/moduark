@@ -7,6 +7,7 @@ namespace Tests\Unit;
 use Cluion\Moduark\Configuration\ModulesConfig;
 use Cluion\Moduark\Generation\ModuleMakerType;
 use Cluion\Moduark\Generation\NativeGeneratorBridgePlanner;
+use Cluion\Moduark\Generation\NativeGeneratorBridgeState;
 use Illuminate\Contracts\Console\Kernel;
 use JsonException;
 use PHPUnit\Framework\TestCase;
@@ -19,6 +20,7 @@ final class NativeGeneratorBridgeInventoryTest extends TestCase
         $planner = new NativeGeneratorBridgePlanner(
             $this->createMock(Kernel::class),
             $this->configuration(),
+            new NativeGeneratorBridgeState,
         );
 
         foreach ([12, 13] as $major) {

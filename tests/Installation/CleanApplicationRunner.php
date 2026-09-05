@@ -282,12 +282,12 @@ final class CleanApplicationRunner
 
         $version = $versionMatch[1];
 
-        $this->assertNativeGeneratorBridgePlan($application, $environment);
-
         $this->artisan($application, ['moduark:make-module', 'User'], $environment);
         $modulePath = $application.'/app/Modules/User/UserModule.php';
         $this->assertFileExists($modulePath, 'moduark:make-module did not create UserModule.php.');
         $this->assertOnlyGeneratedModuleFile($application.'/app/Modules/User', $modulePath);
+
+        $this->assertNativeGeneratorBridgePlan($application, $environment);
 
         $extensionJson = $this->artisan(
             $application,
@@ -943,13 +943,14 @@ final class CleanApplicationRunner
         );
 
         if (! is_array($default)
-            || ($default['schema_version'] ?? null) !== 1
+            || ($default['schema_version'] ?? null) !== 2
             || ($default['status'] ?? null) !== 'disabled'
             || ($default['opt_in'] ?? null) !== false
             || ($default['mutation'] ?? null) !== false
             || ($default['summary'] ?? null) !== [
                 'candidates' => 31,
                 'ready' => 31,
+                'active' => 0,
                 'blocked' => 0,
             ]) {
             throw new RuntimeException('The default native generator bridge plan is invalid.');
@@ -992,6 +993,89 @@ PHP;
                 JSON_THROW_ON_ERROR,
             );
             $afterHelp = $this->artisan($application, ['help', 'make:model'], $environment);
+
+            $moduleTrait = $application.'/app/Modules/User/Concerns/NativeBridgeProbe.php';
+            $applicationTrait = $application.'/app/NativeBridgeApplicationProbe.php';
+
+            if (file_exists($moduleTrait) || file_exists($applicationTrait)) {
+                throw new RuntimeException('A native bridge generation probe already exists.');
+            }
+
+            try {
+                $this->artisan(
+                    $application,
+                    ['make:trait', 'NativeBridgeProbe', '--module=User', '--no-interaction'],
+                    $environment,
+                );
+                $this->artisan(
+                    $application,
+                    ['make:trait', 'NativeBridgeApplicationProbe', '--no-interaction'],
+                    $environment,
+                );
+
+                $moduleContents = file_get_contents($moduleTrait);
+                $applicationContents = file_get_contents($applicationTrait);
+
+                if (! is_string($moduleContents)
+                    || ! str_contains($moduleContents, 'namespace App\\Modules\\User\\Concerns;')
+                    || ! is_string($applicationContents)
+                    || ! str_contains($applicationContents, 'namespace App;')) {
+                    throw new RuntimeException('Native bridge generation did not preserve its Module boundary.');
+                }
+
+                [$unsupportedExit, $unsupportedOutput] = $this->artisanResult(
+                    $application,
+                    ['make:model', 'UnsafeBridgeProbe', '--module=User', '--all', '--no-interaction'],
+                    $environment,
+                );
+
+                if ($unsupportedExit !== 2
+                    || ! str_contains($unsupportedOutput, 'The --all option is not supported')) {
+                    throw new RuntimeException('Native bridge did not fail closed for an unsupported native option.');
+                }
+
+                $this->artisan($application, ['config:cache'], $environment);
+
+                try {
+                    $cachedBridge = json_decode(
+                        $this->artisan(
+                            $application,
+                            ['moduark:native-bridge', '--format=json'],
+                            $environment,
+                        ),
+                        true,
+                        512,
+                        JSON_THROW_ON_ERROR,
+                    );
+
+                    $cachedSummary = is_array($cachedBridge)
+                        ? ($cachedBridge['summary'] ?? null)
+                        : null;
+
+                    if (! is_array($cachedBridge)
+                        || ! is_array($cachedSummary)
+                        || ($cachedBridge['status'] ?? null) !== 'active'
+                        || ($cachedSummary['active'] ?? null) !== 31) {
+                        throw new RuntimeException('Native bridge did not survive Laravel configuration caching.');
+                    }
+                } finally {
+                    $this->artisan($application, ['config:clear'], $environment);
+                }
+            } finally {
+                foreach ([$moduleTrait, $applicationTrait] as $path) {
+                    if (is_file($path) && ! unlink($path)) {
+                        throw new RuntimeException("Unable to remove native bridge probe [{$path}].");
+                    }
+                }
+
+                foreach ([dirname($moduleTrait), dirname($applicationTrait)] as $directory) {
+                    $entries = is_dir($directory) ? scandir($directory) : false;
+
+                    if ($entries === ['.', '..'] && ! rmdir($directory)) {
+                        throw new RuntimeException("Unable to remove native bridge probe directory [{$directory}].");
+                    }
+                }
+            }
         } finally {
             if (! unlink($application.'/config/moduark.php')) {
                 throw new RuntimeException('Unable to remove the native generator bridge plan fixture.');
@@ -999,17 +1083,21 @@ PHP;
         }
 
         if (! is_array($optedIn)
-            || ($optedIn['status'] ?? null) !== 'planned'
+            || ($optedIn['status'] ?? null) !== 'active'
             || ($optedIn['opt_in'] ?? null) !== true
-            || ($optedIn['mutation'] ?? null) !== false
-            || ($optedIn['summary'] ?? null) !== $default['summary']) {
+            || ($optedIn['mutation'] ?? null) !== true
+            || ($optedIn['summary'] ?? null) !== [
+                'candidates' => 31,
+                'ready' => 31,
+                'active' => 31,
+                'blocked' => 0,
+            ]) {
             throw new RuntimeException('The opted-in native generator bridge plan is invalid.');
         }
 
         if (str_contains($beforeHelp, '--module')
-            || str_contains($afterHelp, '--module')
-            || $beforeHelp !== $afterHelp) {
-            throw new RuntimeException('Native bridge planning mutated Laravel make:model.');
+            || ! str_contains($afterHelp, '--module')) {
+            throw new RuntimeException('Native bridge option visibility does not match the opt-in configuration.');
         }
     }
 

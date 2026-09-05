@@ -18,15 +18,25 @@ final readonly class NativeGeneratorBridgePlanner
 
     public const OPTION_COLLISION = 'MOD-NATIVE-BRIDGE-OPTION-001';
 
+    public const REGISTRATION_FAILED = 'MOD-NATIVE-BRIDGE-REGISTER-001';
+
+    public const DECORATION_DRIFT = 'MOD-NATIVE-BRIDGE-DRIFT-001';
+
     public function __construct(
         private Kernel $kernel,
         private ModulesConfig $configuration,
+        private NativeGeneratorBridgeState $state,
     ) {
     }
 
     public function plan(): NativeGeneratorBridgePlan
     {
-        $commands = $this->kernel->all();
+        return $this->planForCommands($this->kernel->all());
+    }
+
+    /** @param array<array-key, mixed> $commands */
+    public function planForCommands(array $commands): NativeGeneratorBridgePlan
+    {
         $candidates = [];
 
         foreach (ModuleMakerType::cases() as $type) {
@@ -51,16 +61,19 @@ final readonly class NativeGeneratorBridgePlanner
                 continue;
             }
 
-            $actualClass = $command::class;
+            $decorated = $command instanceof NativeGeneratorBridgeDecoratedCommand
+                && $command->generatorType() === $type;
+            $inspected = $decorated ? $command->original() : $command;
+            $actualClass = $inspected::class;
 
-            if ($command::class !== $expectedClass) {
+            if ($actualClass !== $expectedClass) {
                 $diagnostics[] = new NativeGeneratorBridgeDiagnostic(
                     self::COMMAND_OWNER_COLLISION,
                     "Command [{$name}] is owned by [{$actualClass}], expected [{$expectedClass}].",
                 );
             }
 
-            $definition = $command->getNativeDefinition();
+            $definition = $inspected->getNativeDefinition();
             $argument = $definition->hasArgument('name')
                 ? $definition->getArgument('name')
                 : null;
@@ -75,10 +88,24 @@ final readonly class NativeGeneratorBridgePlanner
                 );
             }
 
-            if ($definition->hasOption('module')) {
+            if (! $decorated && $definition->hasOption('module')) {
                 $diagnostics[] = new NativeGeneratorBridgeDiagnostic(
                     self::OPTION_COLLISION,
                     "Command [{$name}] already defines the [--module] option.",
+                );
+            }
+
+            if ($this->state->active() && ! $this->state->owns($name, $command)) {
+                $diagnostics[] = new NativeGeneratorBridgeDiagnostic(
+                    self::DECORATION_DRIFT,
+                    "Command [{$name}] no longer has the activated Moduark decorator.",
+                );
+            }
+
+            if ($this->state->registrationFailure() !== null) {
+                $diagnostics[] = new NativeGeneratorBridgeDiagnostic(
+                    self::REGISTRATION_FAILED,
+                    'Native bridge registration failed: '.$this->state->registrationFailure(),
                 );
             }
 
@@ -88,6 +115,7 @@ final readonly class NativeGeneratorBridgePlanner
                 $expectedClass,
                 $actualClass,
                 $diagnostics,
+                $decorated,
             );
         }
 

@@ -703,12 +703,14 @@ PHP;
         );
 
         if (! is_array($nativePlan)
+            || ($nativePlan['schema_version'] ?? null) !== 2
             || ($nativePlan['status'] ?? null) !== 'disabled'
             || ($nativePlan['opt_in'] ?? null) !== false
             || ($nativePlan['mutation'] ?? null) !== false
             || ($nativePlan['summary'] ?? null) !== [
                 'candidates' => 31,
                 'ready' => 31,
+                'active' => 0,
                 'blocked' => 0,
             ]) {
             throw new RuntimeException('The nwidart native generator bridge plan is invalid.');

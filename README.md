@@ -695,7 +695,7 @@ return [
     'path' => app_path('Modules'),
 
     'generation' => [
-        // Unreleased 1.3 plan-only opt-in; this does not mutate make:* commands.
+        // Unreleased 1.3 Preview; false leaves every make:* command untouched.
         'native_bridge' => false,
     ],
 
@@ -735,7 +735,7 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `moduark:clear` | Remove cached Module metadata and incremental source analysis |
 | `moduark:enable {module} [--dry-run] [--format=text\|json]` | Validate and enable a Module, or preview the exact plan with `--dry-run` |
 | `moduark:disable {module} [--dry-run] [--format=text\|json]` | Validate and disable a Module, or preview the exact plan with `--dry-run` |
-| `moduark:native-bridge [--format=text\|json]` | Inspect the Preview native `make:* --module` opt-in capability and collision plan without modifying Laravel commands |
+| `moduark:native-bridge [--format=text\|json]` | Inspect the Preview native `make:* --module` bridge, its active decorators, and collision diagnostics |
 | `moduark:list` | List discovered Modules in deterministic order |
 | `moduark:check [--level=0..3] [--format=text\|json\|github] [--show-suppressions]` | Run the effective architecture rules, audit suppressions, and optionally emit JSON or GitHub Actions annotations |
 | `moduark:graph [module] [--view=module\|capability\|combined] [--format=text\|mermaid]` | Render direct, Capability, or combined relationships and optionally select one neighborhood |
@@ -753,14 +753,18 @@ Module metadata, source-analysis, route, and event caches before atomically
 committing the authoritative file state. The running process is never
 hot-switched; start a new application process to consume the committed set.
 
-The unreleased `1.3` native bridge command is plan-only. It inspects the 31
-Module-owned Laravel Maker candidates, their concrete command owner, required
-`name` argument, and any existing `--module` option. The default
+The unreleased `1.3` native bridge inspects the 31 Module-owned Laravel Maker
+candidates, their concrete command owner, required `name` argument, and any
+existing `--module` option. The default
 `moduark.generation.native_bridge=false` leaves every `make:*` definition
-untouched. Setting it to `true` changes the plan to `planned` or `blocked`; LC2-A
-still does not inject `--module`, so generation continues through
-`moduark:make`. JSON schema version `1` exposes stable command, ownership,
-signature, and option-collision diagnostics.
+untouched. When enabled, all 31 reviewed commands must be safe before any are
+decorated. A native call without `--module` delegates to the original Laravel
+command; a call with `--module` reuses `moduark:make` and its Generator Registry,
+Generation Plan, collision preflight, and rollback. Explicit native options
+outside the reviewed Moduark mapping fail with exit `2` before generation. JSON
+schema version `2` reports `disabled`, `planned`, `active`, or `blocked`, the
+active count, mutation state, and stable ownership, signature, option,
+registration, and decoration-drift diagnostics.
 
 `moduark:check` exit codes are part of the Stable `1.x` contract:
 

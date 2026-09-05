@@ -95,7 +95,7 @@ These configuration identities are Stable:
 
 - `moduark.path`;
 - `moduark.activation.path` (Unreleased `1.3` Preview);
-- `moduark.generation.native_bridge` (Unreleased `1.3` Preview; plan-only);
+- `moduark.generation.native_bridge` (Unreleased `1.3` Preview; opt-in decoration);
 - `moduark.architecture.level`;
 - `moduark.architecture.baseline`;
 - `moduark.architecture.suppressions`;
@@ -242,13 +242,19 @@ filesystem transaction, and it does not install or publish packages.
 LC2-A adds the Preview, read-only
 `moduark:native-bridge [--format=text|json]` plan and the boolean
 `moduark.generation.native_bridge` opt-in, which defaults to `false`. Schema
-version `1` reports all 31 built-in Laravel Maker candidates, reviewed and
+version `2` retains all 31 built-in Laravel Maker candidates, reviewed and
 actual command owners, readiness, stable diagnostics, aggregate counts, and
-explicit `mutation=false`. Disabled plans exit `0` even when diagnostics are
-present because no bridge is requested. Opted-in ready plans use `planned` and
-exit `0`; opted-in ownership, signature, missing-command, or existing
-`--module` collisions use `blocked` and exit `1`. LC2-A never changes a native
-command definition; actual decoration remains outside the published contract.
+explicit mutation state. Disabled plans exit `0` even when diagnostics are
+present because no bridge is requested.
+
+LC2-B activates the Preview bridge only when all 31 reviewed owners and
+signatures remain compatible. Registration is all-or-none and rolls back on a
+partial failure. Calls without `--module` delegate to the original Laravel
+command; calls with it reuse `moduark:make`. Unsupported explicit native options
+fail with exit `2` before filesystem mutation. Active plans report all 31
+decorators; owner drift, signature or option collisions, unavailable command-map
+inspection, registration failure, or later decoration drift report `blocked`
+and exit `1`. This opt-in surface remains Preview for the unreleased `1.3` line.
 
 The following commands and their documented arguments and options are Stable:
 

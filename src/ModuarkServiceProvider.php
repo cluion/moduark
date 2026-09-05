@@ -96,8 +96,13 @@ use Cluion\Moduark\Generation\GeneratorRegistry;
 use Cluion\Moduark\Generation\ModuleMakerTargetResolver;
 use Cluion\Moduark\Generation\ModuleMakerType;
 use Cluion\Moduark\Generation\ModuleScaffoldPlanner;
+use Cluion\Moduark\Generation\NativeGeneratorBridgeCommandSet;
+use Cluion\Moduark\Generation\NativeGeneratorBridgeContainerPreparer;
+use Cluion\Moduark\Generation\NativeGeneratorBridgeExecutor;
 use Cluion\Moduark\Generation\NativeGeneratorBridgePlanner;
 use Cluion\Moduark\Generation\NativeGeneratorBridgePlanExporter;
+use Cluion\Moduark\Generation\NativeGeneratorBridgeRegistrar;
+use Cluion\Moduark\Generation\NativeGeneratorBridgeState;
 use Cluion\Moduark\Inspection\ModuleInspectionBuilder;
 use Cluion\Moduark\Lifecycle\ModuleLifecycleRegistrar;
 use Cluion\Moduark\Lifecycle\ModuleOrderer;
@@ -130,6 +135,7 @@ use Cluion\Moduark\Resources\ModuleOperationResolver;
 use Cluion\Moduark\Resources\ModuleAssetManifest;
 use Cluion\Moduark\Resources\ResourceRegistrationState;
 use Illuminate\Contracts\Config\Repository;
+use Illuminate\Console\Application as Artisan;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
 use RuntimeException;
@@ -360,6 +366,11 @@ final class ModuarkServiceProvider extends ServiceProvider
         $this->app->singleton(ModuleScaffoldPlanner::class);
         $this->app->singleton(NativeGeneratorBridgePlanner::class);
         $this->app->singleton(NativeGeneratorBridgePlanExporter::class);
+        $this->app->singleton(NativeGeneratorBridgeExecutor::class);
+        $this->app->singleton(NativeGeneratorBridgeCommandSet::class);
+        $this->app->singleton(NativeGeneratorBridgeContainerPreparer::class);
+        $this->app->singleton(NativeGeneratorBridgeRegistrar::class);
+        $this->app->singleton(NativeGeneratorBridgeState::class);
         $this->app->singleton(ModuleOrderer::class);
         $this->app->singleton(CapabilityResolver::class);
         $this->app->singleton(
@@ -476,6 +487,16 @@ final class ModuarkServiceProvider extends ServiceProvider
             ModuleTestCommand::class,
             NativeGeneratorBridgeCommand::class,
         ]);
+
+        $this->app->booted(function (): void {
+            $this->app->booted(function (): void {
+                $this->app->make(NativeGeneratorBridgeContainerPreparer::class)->prepare();
+
+                Artisan::starting(function (Artisan $artisan): void {
+                    $this->app->make(NativeGeneratorBridgeRegistrar::class)->register($artisan);
+                });
+            });
+        });
 
         $this->optimizes('moduark:cache', 'moduark:clear');
 

@@ -12,7 +12,7 @@ return [
     ],
 
     'generation' => [
-        // Native make:* command bridging remains opt-in and is currently plan-only.
+        // Decorate reviewed native make:* commands with --module when explicitly enabled.
         'native_bridge' => false,
     ],
 

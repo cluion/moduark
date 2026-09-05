@@ -19,6 +19,7 @@ final readonly class NativeGeneratorBridgeCandidate
         private string $expectedClass,
         private ?string $actualClass,
         private array $diagnostics,
+        private bool $decorated = false,
     ) {
     }
 
@@ -37,6 +38,11 @@ final readonly class NativeGeneratorBridgeCandidate
         return $this->diagnostics === [];
     }
 
+    public function decorated(): bool
+    {
+        return $this->decorated;
+    }
+
     /** @return list<NativeGeneratorBridgeDiagnostic> */
     public function diagnostics(): array
     {
@@ -49,7 +55,7 @@ final readonly class NativeGeneratorBridgeCandidate
      *     generator_id: string,
      *     expected_class: class-string<Command>,
      *     actual_class: class-string<Command>|null,
-     *     status: 'ready'|'blocked',
+     *     status: 'ready'|'active'|'blocked',
      *     diagnostics: list<array{code: string, message: string}>
      * }
      */
@@ -60,7 +66,9 @@ final readonly class NativeGeneratorBridgeCandidate
             'generator_id' => $this->generatorId,
             'expected_class' => $this->expectedClass,
             'actual_class' => $this->actualClass,
-            'status' => $this->ready() ? 'ready' : 'blocked',
+            'status' => ! $this->ready()
+                ? 'blocked'
+                : ($this->decorated ? 'active' : 'ready'),
             'diagnostics' => array_map(
                 static fn (NativeGeneratorBridgeDiagnostic $diagnostic): array => $diagnostic->toArray(),
                 $this->diagnostics,

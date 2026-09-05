@@ -53,6 +53,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the plan-only `moduark:native-bridge` capability report with explicit
   opt-in, reviewed Laravel 12 / 13 Maker ownership, stable command / signature /
   option collision diagnostics, and a default zero-mutation boundary.
+- Added opt-in, all-or-none native Laravel Maker decoration so reviewed
+  `make:* --module` calls reuse Moduark's Generator Registry and Generation Plan,
+  preserve unqualified Laravel behavior, and fail closed on ownership drift,
+  unsupported options, or registration failure.
 
 ### Changed
 
