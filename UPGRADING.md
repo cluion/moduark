@@ -43,6 +43,44 @@ filenames. Substitute the paths configured in
 `moduark.architecture.baseline` and `moduark.architecture.suppressions` when the
 application overrides them.
 
+## Testing `1.3.0-rc.1` from `1.2.0`
+
+`1.3.0-rc.1` is a prerelease evaluation target, not the supported Stable line.
+Install it only after the exact version is visible on Packagist, and use an
+application branch with a reviewed rollback to the previous lock file:
+
+```bash
+composer require cluion/moduark:1.3.0-rc.1
+php artisan optimize:clear
+php artisan moduark:list
+php artisan moduark:resources
+php artisan moduark:doctor
+php artisan moduark:native-bridge --format=json
+```
+
+No configuration migration, baseline rewrite, or suppression rewrite is
+required. The rebuildable Module metadata cache advances to schema version `6`
+and is invalidated when the Composer package Module catalog changes.
+
+The activation commands, extractability and export commands, Composer package
+Module catalog, package-set materialization, and native Maker bridge are all
+Preview in this RC. `moduark.generation.native_bridge` defaults to `false`, so
+Laravel's native `make:*` commands remain unchanged unless the application
+explicitly opts in and all 31 reviewed command owners pass the compatibility
+gate.
+
+Before changing activation state, run `moduark:enable` or `moduark:disable`
+with `--dry-run --format=json`, review the authoritative `standalone` or
+`nwidart` driver and complete plan, and preserve the relevant state file.
+Activation commits file state atomically but does not hot-switch a running
+application process. Composer-installed package Modules remain active until
+Composer removes them.
+
+Before materializing an exported package or package set, retain the default
+read-only plan, review every target and dependency mapping, and use a new target
+directory. Materialization is rollback-aware but is not a durable cross-directory
+transaction and does not publish a package registry version.
+
 ## Upgrading from `1.1.0` to `1.2.0`
 
 This additive minor release introduces the Resource Plugin manifest, opt-in

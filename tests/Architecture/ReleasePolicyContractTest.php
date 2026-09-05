@@ -97,7 +97,6 @@ final class ReleasePolicyContractTest extends TestCase
         foreach ([
             'CHANGELOG.md',
             'README.md',
-            'SECURITY.md',
             'UPGRADING.md',
             'docs/adoption.md',
             'docs/stability.md',
@@ -107,6 +106,7 @@ final class ReleasePolicyContractTest extends TestCase
 
         $changelog = $this->contents('CHANGELOG.md');
         self::assertStringContainsString('## [Unreleased]', $changelog);
+        self::assertStringContainsString('## [1.3.0-rc.1] - 2026-09-05', $changelog);
         self::assertStringContainsString('Laravel 13 + `nwidart/laravel-modules`', $changelog);
         self::assertStringContainsString('## [1.2.0]', $changelog);
         self::assertStringContainsString('## [1.1.0]', $changelog);
@@ -115,7 +115,11 @@ final class ReleasePolicyContractTest extends TestCase
         self::assertStringContainsString('## [1.0.0-rc.2]', $changelog);
         self::assertStringContainsString('## [1.0.0-rc.1]', $changelog);
         self::assertStringContainsString(
-            '[Unreleased]: https://github.com/cluion/moduark/compare/v1.2.0...HEAD',
+            '[Unreleased]: https://github.com/cluion/moduark/compare/v1.3.0-rc.1...HEAD',
+            $changelog,
+        );
+        self::assertStringContainsString(
+            '[1.3.0-rc.1]: https://github.com/cluion/moduark/compare/v1.2.0...v1.3.0-rc.1',
             $changelog,
         );
         self::assertStringContainsString(
@@ -162,6 +166,21 @@ final class ReleasePolicyContractTest extends TestCase
         self::assertStringNotContainsString(
             'The `0.6.x` development line includes',
             $installationDocs,
+        );
+
+        foreach ([
+            'CHANGELOG.md',
+            'README.md',
+            'SECURITY.md',
+            'UPGRADING.md',
+            'docs/stability.md',
+        ] as $path) {
+            self::assertStringContainsString('1.3.0-rc.1', $this->contents($path));
+        }
+
+        self::assertStringContainsString(
+            'composer require cluion/moduark:1.3.0-rc.1',
+            $this->contents('README.md'),
         );
     }
 

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0-rc.1] - 2026-09-05
+
+This release candidate adds Preview Module activation, extractability and
+standalone package export, Composer package Module discovery, package-set
+materialization, and an opt-in native Laravel Maker bridge. Levels 0 through 2
+remain Stable, Level 3 remains Preview, and every new `1.3` surface remains
+Preview while the candidate is evaluated on Laravel 12 and 13 applications.
+
 ### Added
 
 - Added dependency- and Capability-aware Module activation planning with stable
@@ -561,7 +569,8 @@ incomplete and are not part of this release contract.
 - Clean installation acceptance from release-tag checkouts by explicitly
   mapping the local path repository to `dev-main`.
 
-[Unreleased]: https://github.com/cluion/moduark/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/cluion/moduark/compare/v1.3.0-rc.1...HEAD
+[1.3.0-rc.1]: https://github.com/cluion/moduark/compare/v1.2.0...v1.3.0-rc.1
 [1.2.0]: https://github.com/cluion/moduark/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/cluion/moduark/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/cluion/moduark/compare/v1.0.0...v1.0.1

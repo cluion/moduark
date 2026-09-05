@@ -7,7 +7,9 @@ by ADR-0047. `1.0.0` promotes that reviewed boundary without another runtime or
 machine-schema change. `1.1.0` adds the Generation Foundation contracts below
 without changing the existing architecture or diagnostic identities. `1.2.0`
 adds the Runtime Completeness resource and operation contracts while retaining
-the same Stable Level 0 through 2 and Preview Level 3 boundary.
+the same Stable Level 0 through 2 and Preview Level 3 boundary. The
+`1.3.0-rc.1` candidate adds the activation, extraction, package Module, export,
+and native bridge Preview contracts below without promoting them to Stable.
 
 ## Contract Categories
 
@@ -94,8 +96,8 @@ writes from a descriptor are Internal or unsupported. See
 These configuration identities are Stable:
 
 - `moduark.path`;
-- `moduark.activation.path` (Unreleased `1.3` Preview);
-- `moduark.generation.native_bridge` (Unreleased `1.3` Preview; opt-in decoration);
+- `moduark.activation.path` (`1.3.0-rc.1` Preview);
+- `moduark.generation.native_bridge` (`1.3.0-rc.1` Preview; opt-in decoration);
 - `moduark.architecture.level`;
 - `moduark.architecture.baseline`;
 - `moduark.architecture.suppressions`;
@@ -132,7 +134,7 @@ test failure or no declared tests, and `2` for invalid input or unavailable
 runner. Human-readable output may be clarified; automation must use JSON and
 exit codes.
 
-The Unreleased `1.3` line also contains Preview activation commands:
+The `1.3.0-rc.1` candidate contains these Preview activation commands:
 
 ```text
 moduark:enable {module} [--dry-run] [--format=text|json]
@@ -156,7 +158,7 @@ metadata; `inspect` requires an active Module. This semantic boundary is the
 same on cold and Module-cached boot. No additional `--enabled-only` switch is
 defined because aggregate surfaces are already active-only.
 
-The Unreleased `1.3` Preview also adds the read-only form
+The `1.3.0-rc.1` Preview also adds the read-only form
 `moduark:doctor {module} --extractable [--format=text|json]`. Its JSON schema
 version `1` reports ordered checks and blockers for supported source layout,
 autoload identity, provider/resource ownership, and declared application-global
@@ -254,7 +256,7 @@ command; calls with it reuse `moduark:make`. Unsupported explicit native options
 fail with exit `2` before filesystem mutation. Active plans report all 31
 decorators; owner drift, signature or option collisions, unavailable command-map
 inspection, registration failure, or later decoration drift report `blocked`
-and exit `1`. This opt-in surface remains Preview for the unreleased `1.3` line.
+and exit `1`. This opt-in surface remains Preview in `1.3.0-rc.1`.
 
 The following commands and their documented arguments and options are Stable:
 

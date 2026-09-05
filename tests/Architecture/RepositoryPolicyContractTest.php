@@ -15,7 +15,7 @@ final class RepositoryPolicyContractTest extends TestCase
 
         foreach ([
             '`1.x` (`v1.2.0` current)',
-            '`v1.0.0-rc.2` and earlier pre-releases',
+            '`v1.3.0-rc.1` and all pre-releases',
             'rather than backported to an RC or beta',
             'https://github.com/cluion/moduark/security/advisories/new',
             'Do not open a public GitHub issue',

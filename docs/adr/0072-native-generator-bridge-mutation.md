@@ -1,6 +1,6 @@
 # ADR-0072: Native Generator Bridge Mutation
 
-- Status: Accepted for the unreleased `1.3` LC2-B slice
+- Status: Accepted for the `1.3.0-rc.1` Preview candidate
 - Date: 2026-08-30
 
 ## Context

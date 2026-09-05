@@ -10,6 +10,11 @@ resources, and architecture boundaries executable and inspectable.
 > canonical resource manifest while retaining nwidart active-set
 > interoperability.
 
+> **Release candidate status:** `1.3.0-rc.1` is prepared for prerelease
+> validation. It adds Preview activation, package extraction, Composer package
+> Modules, package-set export, and an opt-in native Laravel Maker bridge;
+> `1.2.0` remains the current Stable release.
+
 ## Requirements
 
 - PHP 8.2 or later
@@ -23,6 +28,15 @@ Install the stable line from Packagist:
 ```bash
 composer require cluion/moduark:^1.2
 ```
+
+After Packagist lists the prerelease, test the exact release candidate with:
+
+```bash
+composer require cluion/moduark:1.3.0-rc.1
+```
+
+Do not replace a production Stable constraint with the RC without reviewing
+the [upgrade guide](UPGRADING.md) and retaining a rollback path.
 
 Laravel package discovery registers `Cluion\Moduark\ModuarkServiceProvider`.
 Configuration publishing is optional because package defaults are merged even
@@ -48,7 +62,7 @@ with:
 php artisan vendor:publish --tag=moduark-config
 ```
 
-The unreleased `1.3` activation commands persist standalone state in the
+The `1.3.0-rc.1` Preview activation commands persist standalone state in the
 configurable `moduark.activation.path` (`moduark-modules.json` by default), or
 update nwidart's configured file-activator status file when both packages share
 the same Module root. Custom nwidart activators remain dry-run-only unless they
@@ -695,7 +709,7 @@ return [
     'path' => app_path('Modules'),
 
     'generation' => [
-        // Unreleased 1.3 Preview; false leaves every make:* command untouched.
+        // 1.3.0-rc.1 Preview; false leaves every make:* command untouched.
         'native_bridge' => false,
     ],
 
@@ -746,14 +760,14 @@ matrix and [Adopting Moduark](docs/adoption.md) for a staged migration workflow.
 | `moduark:seed {module} [--format=text\|json]` | Run only seeders declared by the selected active Module |
 | `moduark:test {module} [arguments...] [--runner=auto\|phpunit\|pest] [--list] [--format=text\|json]` | Run or list the selected active Module's declared test paths |
 
-The activation commands are an unreleased `1.3` preview surface. `--dry-run`
+The activation commands are a `1.3.0-rc.1` Preview surface. `--dry-run`
 reports the authoritative `standalone` or `nwidart` driver and complete proposed
 plan without mutation. Without `--dry-run`, an executable non-no-op plan clears
 Module metadata, source-analysis, route, and event caches before atomically
 committing the authoritative file state. The running process is never
 hot-switched; start a new application process to consume the committed set.
 
-The unreleased `1.3` native bridge inspects the 31 Module-owned Laravel Maker
+The `1.3.0-rc.1` Preview native bridge inspects the 31 Module-owned Laravel Maker
 candidates, their concrete command owner, required `name` argument, and any
 existing `--module` option. The default
 `moduark.generation.native_bridge=false` leaves every `make:*` definition
@@ -1220,6 +1234,14 @@ contract.
 - [Changelog](CHANGELOG.md)
 
 ## Current Scope
+
+The `1.3.0-rc.1` candidate adds Preview dependency- and Capability-aware Module
+activation, extractability diagnostics, standalone package and dependency-closed
+package-set export, Composer-installed package Modules, and an opt-in native
+`make:* --module` bridge. These surfaces share the canonical active Module set,
+Generation Plan, resource manifest, graph, cache, provider, and Capability
+contracts. They remain Preview during RC evaluation and do not broaden the
+Stable Level 0 through 2 contract.
 
 The `1.2.0` minor release completes Runtime Completeness with a serializable
 Resource Plugin manifest shared by cold discovery, cached boot, diagnostics,

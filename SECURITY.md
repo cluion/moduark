@@ -7,7 +7,7 @@ Security support follows the latest stable `1.x` release line:
 | Version | Security support |
 |---|---|
 | `1.x` (`v1.2.0` current) | Supported |
-| `v1.0.0-rc.2` and earlier pre-releases | Not supported |
+| `v1.3.0-rc.1` and all pre-releases | Not supported |
 | Unreleased `main` and future versions | Not a published support line |
 
 The package's published Composer constraints and compatibility matrix remain
