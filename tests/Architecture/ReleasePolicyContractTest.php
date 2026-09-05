@@ -42,6 +42,7 @@ final class ReleasePolicyContractTest extends TestCase
         foreach ([
             'verify',
             'test:dependencies',
+            'test:lowest',
             'test:distribution',
             'test:installation',
             'test:interop',

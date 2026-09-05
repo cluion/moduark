@@ -1145,6 +1145,7 @@ incremental manifest. See
 ```bash
 composer verify
 composer test:dependencies
+composer test:lowest
 composer test:distribution
 composer test:installation
 composer test:installation -- --boost
@@ -1188,6 +1189,15 @@ disposable Composer projects. It simulates the supported PHP floors for
 dependency solving, leaves Composer's security blocking enabled, and reports
 the exact framework, Testbench, and PHPUnit versions selected. It does not
 replace executing the test suite on those PHP runtimes.
+
+`composer test:lowest` copies the current checkout into an isolated disposable
+project, resolves the Laravel 12 dependency floor, installs that graph, and runs
+the Architecture, Unit, and Feature PHPUnit suites. Composer simulates PHP 8.2
+for dependency selection; the summary reports the actual local PHP runtime, so
+this gate complements rather than replaces the blocking PHP 8.2 CI job. The
+process-based `GenerationBenchmarkTest` is excluded because newer host PHP
+deprecations from the floor graph can contaminate its JSON subprocess; the
+separate `composer test:performance` gate remains authoritative for that path.
 
 `composer test:installation` is the slower, networked acceptance matrix. It
 creates disposable Laravel 12 and 13 applications, installs this checkout

@@ -9,10 +9,12 @@ use Cluion\Moduark\Generation\ModuleMakerType;
 use Cluion\Moduark\Generation\NativeGeneratorBridgeDecoratedCommand;
 use Cluion\Moduark\Generation\NativeGeneratorBridgeCommandSet;
 use Cluion\Moduark\Generation\NativeGeneratorBridgeExecutor;
+use Illuminate\Console\Application;
+use Illuminate\Container\Container;
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Events\Dispatcher;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputDefinition;
@@ -25,7 +27,8 @@ final class NativeGeneratorBridgeMutationTest extends TestCase
 {
     public function test_command_set_rolls_back_every_original_after_partial_registration(): void
     {
-        $application = new class extends Application
+        $container = new Container;
+        $application = new class($container, new Dispatcher($container), 'test') extends Application
         {
             private int $decoratedAdds = 0;
 
@@ -36,7 +39,7 @@ final class NativeGeneratorBridgeMutationTest extends TestCase
                 $this->armed = true;
             }
 
-            public function addCommand(callable|Command $command): ?Command
+            public function add(Command $command): ?Command
             {
                 if ($this->armed
                     && $command instanceof NativeGeneratorBridgeDecoratedCommand
@@ -46,7 +49,7 @@ final class NativeGeneratorBridgeMutationTest extends TestCase
                     throw new \RuntimeException('Injected registration failure.');
                 }
 
-                return parent::addCommand($command);
+                return parent::add($command);
             }
         };
         $executor = new NativeGeneratorBridgeExecutor($this->createStub(Kernel::class));
@@ -61,7 +64,7 @@ final class NativeGeneratorBridgeMutationTest extends TestCase
         foreach ($types as $type) {
             $original = new Command($type->command());
             $original->addArgument('name', InputArgument::REQUIRED);
-            $application->addCommand($original);
+            $application->add($original);
             $originals[$type->command()] = $original;
             $decorated[$type->command()] = new NativeGeneratorBridgeDecoratedCommand(
                 $type,

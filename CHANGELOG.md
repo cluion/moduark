@@ -80,6 +80,13 @@ Preview while the candidate is evaluated on Laravel 12 and 13 applications.
   runtime so provider and resource registration remain single-owner regardless
   of Laravel provider order.
 
+### Fixed
+
+- Made native Laravel Maker registration and rollback use Laravel's console
+  compatibility layer, preserving Laravel 12 support with Symfony Console 7.2;
+  added an isolated `composer test:lowest` runtime regression gate for the exact
+  Laravel 12 lowest-dependency graph.
+
 ## [1.2.0] - 2026-08-29
 
 This minor release completes Runtime Completeness while preserving the Stable

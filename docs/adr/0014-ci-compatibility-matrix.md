@@ -44,6 +44,11 @@ the package's PHP syntax floor.
   to the matrix runtime, resolves without installing or running scripts, and
   reports selected versions. Platform simulation proves dependency solving, not
   runtime behavior; the CI jobs provide the runtime evidence.
+- `composer test:lowest` copies the current checkout into a disposable project,
+  resolves and installs the Laravel 12 lowest graph with platform PHP 8.2, and
+  executes the Architecture, Unit, and Feature suites except the process-based
+  generation benchmark covered by its dedicated performance gate. It reports
+  the actual interpreter separately and does not replace the blocking PHP 8.2 CI job.
 - The package intentionally does not track `composer.lock`. Every matrix job and
   local probe creates a fresh lock from the current package constraints.
 

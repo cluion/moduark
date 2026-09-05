@@ -61,6 +61,7 @@
             "@php vendor/bin/phpunit --testsuite=Feature"
         ],
         "test:dependencies": "@php tests/Compatibility/run.php",
+        "test:lowest": "@php tests/Compatibility/run.php --case=laravel-12-lowest --test",
         "test:distribution": "@php vendor/bin/phpunit tests/Distribution",
         "test:installation": "@php tests/Installation/run.php",
         "test:interop": "@php tests/Interop/run.php",

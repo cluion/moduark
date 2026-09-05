@@ -43,6 +43,7 @@ final class RepositoryPolicyContractTest extends TestCase
             'test:unit',
             'test:feature',
             'test:dependencies',
+            'test:lowest',
             'test:distribution',
             'test:installation',
             'verify',

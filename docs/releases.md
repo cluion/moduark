@@ -120,6 +120,7 @@ composer validate --strict
 composer audit --locked
 composer verify
 composer test:dependencies
+composer test:lowest
 composer test:distribution
 composer test:installation
 composer test:installation -- --boost
@@ -127,10 +128,13 @@ composer test:interop
 ```
 
 `composer test:dependencies` resolves all four Laravel 12 / 13 lowest and
-highest dependency cases. It does not execute those four runtime combinations;
-the blocking GitHub Actions matrix does. The two installation commands run the
-current checkout on Laravel 12 and 13, first without and then with Laravel
-Boost Skill synchronization.
+highest dependency cases. `composer test:lowest` additionally installs the
+Laravel 12 lowest graph in an isolated current-checkout copy and executes the
+Architecture, Unit, and Feature suites, excluding the process-based generation
+benchmark already covered by `composer test:performance`. Its simulated PHP 8.2
+dependency floor does not replace the blocking GitHub Actions job on an actual PHP 8.2 runtime.
+The two installation commands run the current checkout on Laravel 12 and 13,
+first without and then with Laravel Boost Skill synchronization.
 
 `composer test:interop` creates fresh Laravel 12 and 13 applications with the
 matching `nwidart/laravel-modules` majors, installs the current checkout, and

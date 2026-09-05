@@ -44,14 +44,17 @@ Laravel Boost Skill should also run the relevant slower, networked gates:
 
 ```bash
 composer test:dependencies
+composer test:lowest
 composer test:installation
 composer test:installation -- --boost
 ```
 
 `composer test:dependencies` verifies dependency resolution; it does not
-execute the test suite on every simulated PHP runtime. GitHub Actions runs the
-blocking Laravel 12 / 13 lowest- and highest-dependency matrix and remains the
-authoritative compatibility result.
+execute the test suite on every simulated PHP runtime. `composer test:lowest`
+installs the Laravel 12 lowest graph in an isolated copy and runs the
+Architecture, Unit, and Feature suites on the current PHP interpreter. GitHub
+Actions runs the blocking Laravel 12 / 13 lowest- and highest-dependency matrix
+on their declared PHP runtimes; its result is the authoritative compatibility result.
 
 ## Change and Test Expectations
 

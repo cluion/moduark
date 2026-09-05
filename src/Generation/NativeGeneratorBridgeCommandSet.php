@@ -7,17 +7,16 @@ namespace Cluion\Moduark\Generation;
 use RuntimeException;
 use Illuminate\Console\Application as Artisan;
 use ReflectionProperty;
-use Symfony\Component\Console\Application as SymfonyApplication;
 use Symfony\Component\Console\Command\Command;
 use Throwable;
 
 final readonly class NativeGeneratorBridgeCommandSet
 {
     /** @param array<string, Command> $commands */
-    public function restore(SymfonyApplication $application, array $commands): void
+    public function restore(Artisan $application, array $commands): void
     {
         foreach ($commands as $command) {
-            $application->addCommand($command);
+            $application->add($command);
         }
 
         foreach ($commands as $name => $command) {
@@ -32,13 +31,13 @@ final readonly class NativeGeneratorBridgeCommandSet
      * @param array<string, NativeGeneratorBridgeDecoratedCommand> $decorated
      */
     public function replace(
-        SymfonyApplication $application,
+        Artisan $application,
         array $originals,
         array $decorated,
     ): ?string {
         try {
             foreach ($decorated as $command) {
-                $application->addCommand($command);
+                $application->add($command);
             }
 
             foreach ($decorated as $name => $command) {
@@ -51,7 +50,7 @@ final readonly class NativeGeneratorBridgeCommandSet
 
             foreach ($originals as $name => $original) {
                 try {
-                    $application->addCommand($original);
+                    $application->add($original);
                 } catch (Throwable) {
                     $rollbackFailures[] = $name;
                 }

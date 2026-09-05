@@ -14,7 +14,11 @@ final class DependencyMatrixRunner
 {
     private string $packagePath;
 
-    public function __construct(string $packagePath, private readonly bool $keep = false)
+    public function __construct(
+        string $packagePath,
+        private readonly bool $keep = false,
+        private readonly bool $executeTests = false,
+    )
     {
         $resolved = realpath($packagePath);
 
@@ -98,7 +102,9 @@ final class DependencyMatrixRunner
      *     php: string,
      *     laravel: string,
      *     testbench: string,
-     *     phpunit: string
+     *     phpunit: string,
+     *     tests_executed: bool,
+     *     runtime_php: string
      * }>
      */
     public function run(array $selected): array
@@ -160,7 +166,9 @@ final class DependencyMatrixRunner
      *     php: string,
      *     laravel: string,
      *     testbench: string,
-     *     phpunit: string
+     *     phpunit: string,
+     *     tests_executed: bool,
+     *     runtime_php: string
      * }
      */
     private function runCase(string $root, string $case, array $configuration, array $environment): array
@@ -171,7 +179,9 @@ final class DependencyMatrixRunner
             throw new RuntimeException("Unable to create dependency case directory [{$directory}].");
         }
 
-        if (! copy($this->packagePath.'/composer.json', $directory.'/composer.json')) {
+        if ($this->executeTests) {
+            $this->copyPackage($directory);
+        } elseif (! copy($this->packagePath.'/composer.json', $directory.'/composer.json')) {
             throw new RuntimeException("Unable to copy Composer metadata for [{$case}].");
         }
 
@@ -198,11 +208,14 @@ final class DependencyMatrixRunner
             'composer',
             'update',
             '--prefer-dist',
-            '--no-install',
             '--no-interaction',
             '--no-progress',
-            '--no-scripts',
         ];
+
+        if (! $this->executeTests) {
+            $update[] = '--no-install';
+            $update[] = '--no-scripts';
+        }
 
         if ($configuration['dependencies'] === 'lowest') {
             $update[] = '--prefer-lowest';
@@ -216,7 +229,19 @@ final class DependencyMatrixRunner
             'laravel' => $this->packageVersion($directory.'/composer.lock', 'laravel/framework'),
             'testbench' => $this->packageVersion($directory.'/composer.lock', 'orchestra/testbench'),
             'phpunit' => $this->packageVersion($directory.'/composer.lock', 'phpunit/phpunit'),
+            'tests_executed' => $this->executeTests,
+            'runtime_php' => PHP_VERSION,
         ];
+
+        if ($this->executeTests) {
+            $this->command([
+                PHP_BINARY,
+                'vendor/bin/phpunit',
+                '--testsuite=Architecture,Unit,Feature',
+                '--exclude-filter=GenerationBenchmarkTest',
+                '--colors=never',
+            ], $directory, $environment);
+        }
 
         echo sprintf(
             "PASS %s (PHP %s, Laravel %s, Testbench %s, PHPUnit %s)\n",
@@ -228,6 +253,75 @@ final class DependencyMatrixRunner
         );
 
         return $result;
+    }
+
+    private function copyPackage(string $target): void
+    {
+        $excluded = [
+            '.git',
+            '.internal',
+            '.phpstan',
+            '.phpunit.cache',
+            'composer.lock',
+            'vendor',
+        ];
+
+        foreach (new FilesystemIterator($this->packagePath, FilesystemIterator::SKIP_DOTS) as $entry) {
+            if (! $entry instanceof \SplFileInfo) {
+                throw new RuntimeException('Package copy encountered an unsupported filesystem entry.');
+            }
+
+            if (in_array($entry->getFilename(), $excluded, true)) {
+                continue;
+            }
+
+            $destination = $target.'/'.$entry->getFilename();
+
+            if ($entry->isLink()) {
+                throw new RuntimeException("Package copy does not support symlink [{$entry->getPathname()}].");
+            }
+
+            if ($entry->isDir()) {
+                if (! mkdir($destination, 0755)) {
+                    throw new RuntimeException("Unable to create package copy directory [{$destination}].");
+                }
+
+                $this->copyDirectory($entry->getPathname(), $destination);
+                continue;
+            }
+
+            if (! copy($entry->getPathname(), $destination)) {
+                throw new RuntimeException("Unable to copy package file [{$entry->getPathname()}].");
+            }
+        }
+    }
+
+    private function copyDirectory(string $source, string $target): void
+    {
+        foreach (new FilesystemIterator($source, FilesystemIterator::SKIP_DOTS) as $entry) {
+            if (! $entry instanceof \SplFileInfo) {
+                throw new RuntimeException('Package copy encountered an unsupported filesystem entry.');
+            }
+
+            $destination = $target.'/'.$entry->getFilename();
+
+            if ($entry->isLink()) {
+                throw new RuntimeException("Package copy does not support symlink [{$entry->getPathname()}].");
+            }
+
+            if ($entry->isDir()) {
+                if (! mkdir($destination, 0755)) {
+                    throw new RuntimeException("Unable to create package copy directory [{$destination}].");
+                }
+
+                $this->copyDirectory($entry->getPathname(), $destination);
+                continue;
+            }
+
+            if (! copy($entry->getPathname(), $destination)) {
+                throw new RuntimeException("Unable to copy package file [{$entry->getPathname()}].");
+            }
+        }
     }
 
     private function packageVersion(string $lockPath, string $package): string
